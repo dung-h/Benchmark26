@@ -1,53 +1,60 @@
-# Benchmark26
+# Quantum Runtime Estimation Benchmark
 
-Code and setup notes for a quantum-runtime-estimation benchmark.
+This repository provides the implementation and experimental configuration for
+benchmarking quantum-program runtime estimators. It covers circuit-input
+preparation, grouped evaluation splits, learned and analytical estimators, and
+prediction-cost measurement.
 
-## Start here
+The benchmark pipeline is:
 
 ```text
-original datasets
-      ↓
-qualify rows and recover usable circuit inputs
-      ↓
-group related logical circuits and create train/test splits
-      ↓
-fit estimators and score held-out runtime predictions
+source datasets → qualified circuit inputs → grouped train/test splits
+                → estimator fitting → held-out runtime evaluation
 ```
 
-| If you want to understand... | Read... |
+## Repository structure
+
+| Directory | Contents |
 | --- | --- |
-| where the inputs come from | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) |
-| how the benchmark is organized | [docs/METHODOLOGY.md](docs/METHODOLOGY.md) |
-| logical-circuit preparation | `benchmark_v1/scripts/prepare_logical_benchmark.py` |
-| neural/classical benchmark runs | `research/postfreeze_qpu_workflow_mean_expansion_v1/` |
-| analytical estimators | `research/postfreeze_unified_analytical_completion_v1/` |
-| prediction-cost measurement | `research/postfreeze_qpu_workflow_mean_cost_v1/` |
+| `benchmark_v1/` | Circuit preparation, feature construction, and base model implementations. |
+| `research/` | Cohort construction, splitting, estimator training, evaluation, analytical routes, and prediction-cost code. |
+| `scripts/` | Utilities for downloading pinned inputs and checking data lineage/selection. |
+| `upstream/` | Locations, revisions, and hashes for the original source inputs. |
+| `docs/` | Benchmark methodology and data-access notes. |
 
-## Repository map
+## Methodology
 
-```text
-benchmark_v1/   circuit preparation and base model code
-research/       cohort, split, training, evaluation, and cost scripts
-scripts/        source-download and consistency-check utilities
-upstream/       pinned locations and hashes for original inputs
-docs/           short methodology and data-source guides
-```
+The benchmark keeps related logical circuit variants in the same evaluation
+group, including variants that differ only in gate parameters. This avoids
+placing near-duplicate logical inputs in both training and test partitions.
+Feature transforms and model selection are fit within the corresponding
+training partition. Metrics are reported with pooled, source-balanced, and
+logical-group-balanced weighting where applicable.
 
-## Before running anything
+Further details are available in:
 
-The benchmark uses original QPU datasets and large derived circuit caches that
-are not included here. First read [the data-source guide](docs/DATA_SOURCES.md).
-It explains what can be downloaded, what must be supplied separately, and why
-the code refuses to silently substitute a newly generated circuit for a missing
-historical input.
+- [Methodology](docs/METHODOLOGY.md)
+- [Data sources and acquisition](docs/DATA_SOURCES.md)
 
-The scripts preserve the directory layout used by the study, including paths
-under `artifacts/`. For a new run, configure a **new output directory**; do not
-overwrite an existing result directory.
+## Environment and data access
 
-## Deliberately not included
+`requirements-review.txt` contains the lightweight dependencies used by the
+review utilities. Full feature extraction and model fitting additionally depend
+on Qiskit, PyTorch, PyTorch Geometric, CUDA, and source-specific environments
+referenced by the relevant scripts.
 
-This is the implementation/setup repository. It does not contain thesis or
-paper sources, PDFs, trained checkpoints, saved predictions, bootstrap draws,
-or third-party data archives. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
-for redistribution constraints.
+The original QPU datasets and large derived circuit caches are not redistributed
+in this repository. The source pins in `upstream/data_sources.json` identify
+the downloadable inputs; [DATA_SOURCES.md](docs/DATA_SOURCES.md) describes the
+remaining externally supplied inputs and validation steps.
+
+## Reproducibility scope
+
+The scripts retain the study's original directory layout and therefore refer to
+input/output locations under `artifacts/`. A new experiment should use a new
+output directory and must not overwrite a locked result directory. This release
+does not include thesis or paper sources, PDFs, trained checkpoints, saved
+predictions, bootstrap draws, or third-party data archives.
+
+See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for third-party material
+and redistribution constraints.
