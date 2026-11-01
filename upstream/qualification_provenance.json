@@ -1,0 +1,7 @@
+{
+  "file": "upstream/qonductor_recipe_screen.csv",
+  "sha256": "81da2e7ef71040c06bdbadc0cd27c961cfd868185e8dc5464acbf942abc7c013",
+  "source_path": "artifacts/postfreeze_qonductor_recipe_repeatability_expansion_v1/observation_linkage.csv",
+  "scope": "Original retained recipe-screening statuses; metadata only. Does not claim full unitary/historical program equivalence.",
+  "original_bytes_preserved": true
+}

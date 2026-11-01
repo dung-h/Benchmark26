@@ -1,0 +1,9 @@
+# Preserve exact scientific artifact bytes; no newline conversion.
+* -text
+*.csv whitespace=cr-at-eol
+# Preserve exact delivered writing/template bytes, including inherited whitespace.
+# These narrow exceptions concern copied source, not maintained review guidance.
+docs/thesis_drafts/source/nguyenpandaCode.sty whitespace=-blank-at-eol
+docs/thesis_drafts/source/nguyenpandaReport.cls whitespace=-blank-at-eol
+docs/thesis_drafts/source/tex/dacn/chapters/ch04_literature.tex whitespace=-blank-at-eol
+papers/workshop/references.bib whitespace=-blank-at-eof

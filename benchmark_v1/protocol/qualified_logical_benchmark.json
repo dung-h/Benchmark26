@@ -1,0 +1,52 @@
+{
+  "contract_id": "qualified-logical-real-qpu-benchmark",
+  "authorized_request": "Test the methods on the 4515 reconstruction-qualified observations (2026-10-08).",
+  "assigned_rows": 4515,
+  "source_counts": {"mali_real_qpu": 340, "qonductor_single_circuit_ibm": 230, "qpack_mcp": 3945},
+  "included_tiers": ["source_has_logical_input", "archive_supported_recipe_adaptation", "qpack_reconstruction_qualified"],
+  "cohort_rule": "Filter the previously frozen 7350 input manifest by these tiers only, without reading errors or labels. Exclude all 2835 candidate_recipe_sensitivity_only rows. Preserve original observations and targets.",
+  "claim": "Retrospective grouped OOF comparison on a declared reconstruction-qualified corpus, not 4515 verified exact historical logical instances. Original observations are reused; no QPU execution or simulator measurements.",
+  "reconstruction": {
+    "qonductor": "Archive-supported MQT recipe, not recovered original logical DAG. Physical-feature methods retain exact submitted physical QASM.",
+    "qpack": "Source-backed angle-insensitive structural QAOA reconstruction. Parameter values and submitted routing are not recovered; compiled-feature methods use the previously frozen representative-angle nominal compiled view, with this approximation disclosed.",
+    "mali": "Original source logical QASM; nominal target compilation only for compiled-feature/analytical methods.",
+    "eligibility": "Graph/51-global inputs omit numeric angle values. This permits the declared structural adaptation, not claims about fidelity of the reconstructed state's amplitudes or exact historical compilation. Do not use zero-input output agreement as proof of historical DAG identity."
+  },
+  "split": {
+    "outer_folds": 5, "inner_folds": 4, "seed": 42, "inner_seeds": [43,44,45,46,47],
+    "groups": "Retain the conservative transitive circuit/workflow/model-input components from the 7350 input manifest, restricted to included IDs. Do not split a component after exclusion. Assign fresh folds by source-balanced deterministic greedy group allocation, without targets. Record per-source/backend support; no row-wise fallback.",
+    "validation": "Neural fit uses inner1-3; inner0 selects the epoch. Regressors tune over all four inner folds then refit outer-train. All methods share outer-test IDs.",
+    "minimum_support": "All three sources represented in every outer test and inner validation; no outer/inner group overlap. Backend support is reported, not silently enforced by resampling rare contexts."
+  },
+  "neural": {
+    "methods": ["mali_logical_graph", "mali_global_mlp"],
+    "representation": "Pinned 51 raw globals plus original upstream 178-field DAG and nominal-index T1/T2; global-only MLP is matched. Preserve all raw globals; fit-only upstream masks/normalization.",
+    "seeds": [42,1234,31415], "epochs": 500, "effective_batch": 32,
+    "node_budget": 250000, "cache_bytes": 8589934592,
+    "optimizer": {"name": "Adam", "lr": 0.0005, "weight_decay": 0.0001},
+    "loss": "unweighted raw-seconds MSE", "device": "cuda", "precision": "float32_no_amp",
+    "selection": "Minimum inner0 validation MSE after all500 epochs; earliest tie. No test-driven stopping or clipping. Fresh initialization for every cell; no7350/340 checkpoint reuse.",
+    "seed_reduction": "Per-row median only when all three seed predictions exist; retain individual seeds.",
+    "checkpoint": "Atomic every epoch with optimizer, RNG, current/best states and context/transform/runner/model/environment identity. Resume only exact matching identities."
+  },
+  "regression": {
+    "families": ["Extra Trees", "Random Forest", "Gradient Boosting", "AdaBoost", "Histogram Gradient Boosting", "Polynomial Regression"],
+    "features": ["swap", "depth", "num_qubits", "shots", "circuit_count"],
+    "swap": "Pinned upstream CX/CZ/ECR counter, not literal SWAP.",
+    "candidate_budget": [64,64,64,48,64,3], "sampler_seed": 0,
+    "selection": "Mean raw-seconds R2 over four inner folds, earliest candidate tie. Optional family selector uses only inner scores. No source/backend one-hot or source missing mask.",
+    "source": "Same pinned source/grid transcription as completed strict_method_completion; disclose the bounded search as an adaptation."
+  },
+  "analytical": {
+    "qiskit": "Reuse hash-pinned raw nominal duration, not fitted predictions; measurement semantics unchanged.",
+    "qcre": "Invoke pinned qcre estimate_runtime through BQSKit on the frozen compiled/submitted unitary view. Omit terminal measurement explicitly; barriers omitted, nonunitary/classical operations unsupported. Do not substitute the custom critical-path proxy.",
+    "hyb": "Reuse the audited nominal r2 component log cost and raw values. Preserve true-zero survival and float64 overflow. Fit nominal log-cost Ridge anew with alpha0.1/1/10/100 selected by source-balanced inner MAE. No automatic alternate-snapshot selection.",
+    "scholten": "Pinned unified nominal throughput and compiled wire-depth proxy, not original QV-normalized effective depth. Original-paper eligibility remains explicit unavailable where kernel n/template D are absent. No CLOPS_h/v conversion.",
+    "calibration": "Raw, shot-scaled, affine and log-affine are separate variants. Fit affine/log-affine on successful outer-train only; no7350 calibrators. Projection max(pred,0) only for declared analytical calibration and log-error reporting."
+  },
+  "gates": ["all input/code hashes", "4515 exact selected IDs and tier/source counts", "graph/compiled/feature/snapshot joins", "group leakage and support", "CUDA synthetic gradient/Adam parity and largest intact fit graph", "fold0 all six neural cells completed with correct IDs/epoch/transform/checkpoint hashes before later folds"],
+  "resources": {"gpu_workers": 1, "cpu_workers": 4, "neural_cpu_threads": 8, "gpu_budget_gib": 12, "gpu_reserve_gib": 4, "minimum_available_ram_gib": 8, "training_timeout": "No fixed circuit timeout; checkpoint every epoch and stop on correctness/nonfinite errors, not poor scores."},
+  "reporting": {"metrics": ["coverage","MAE","MedAE","RMSE","R2","log1p_MAE","p90","p99","max","negative_prediction_count"], "slices": ["source","backend","logical_input_tier"], "paired": "Compare identical held-out successful IDs; publish n/ID hash and10000 grouped bootstrap replicates seed42. Distinguish observed MAE delta from bootstrap mean. No universal ranking across unequal subsets."},
+  "outputs": "artifacts/real_qpu/qualified_logical_panel",
+  "boundaries": "No simulator changes, live QPU, old artifact rewrite, CURRENT/C4 mutation, deletion, commit or push. This request supersedes exact-input-only exclusion solely for this explicitly qualified new run."
+}

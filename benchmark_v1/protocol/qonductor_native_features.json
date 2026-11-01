@@ -1,0 +1,193 @@
+{
+  "protocol_id": "qonductor-native-feature-unified-polynomial",
+  "status": "scientific_contract_frozen_implementation_required",
+  "execution_authorized": false,
+  "method_id": "qonductor_native_feature_unified_polynomial",
+  "reader_label": "Qonductor code-faithful feature polynomial, unified adaptation",
+  "fidelity_class": "adaptation",
+  "plan": "docs/estimator_implementation_plan.md",
+  "evaluation_target_clock": "archived_observed_service_execution_time",
+  "method_output_clock": "predicted_observed_service_seconds",
+  "claim_boundary": "The extractor and polynomial component follow pinned upstream code. The corpus, source-dependent input stages and frozen grouped 5-outer/4-inner validation are benchmark adaptations. This is not the complete upstream six-family model selector or paper-exact reproduction. Results are retrospective extension evidence after earlier benchmark inspection, not untouched-test confirmation.",
+  "source_pin": {
+    "repository": "https://github.com/manosgior/Qonductor-SC25",
+    "revision": "5d1ac8a90cd574a23e7544e1044681641354ff67",
+    "files": {
+      "src/execution_time/regression_estimator.py": "d44ab196a56fba444f5cebfe9dee8737ad3b6ab6f39081336a41d5811fdb828a",
+      "src/utils/circuit_archive.py": "5b6c19de2104719f950878645378063cad0427d8a95b8b7dff7107046dbac216",
+      "src/execution_time/base_estimator.py": "101dedc30e35ab0cc01b224224a32a71ccf5c97e24b185c55a0af3de0a7abbdb",
+      "requirements.txt": "3ef4c458a8be90b8b7a100e23d5f425e8b3fa1cc758eb8f30d988a603427341e"
+    },
+    "audited_local_checkout_revision": "28477f54c1670709093c7cb43c84cc634eb75bc6",
+    "local_revision_difference": "Only estimate_execution_time backend.max_shots access receives a compatibility fallback. The extractor, polynomial component and candidate grid are unchanged. Retrieve source at the pinned original revision rather than silently importing a dirty checkout.",
+    "adapter_policy": "Port only import/API compatibility. Preserve feature arithmetic, operation traversal, insertion order and model defaults. Do not instantiate upstream RegressionEstimator: its constructor can train and write files. Extract the pinned methods into a side-effect-free adapter with source hashes and parity tests."
+  },
+  "input_pins": {
+    "canonical": {"path": "artifacts/benchmark_v1/canonical_corpus_8767_20260926/canonical_observations.csv", "sha256": "920d745e03dd00e8155118d9323baea18ff865e4df2620f3a059bd5503a05ba4"},
+    "outer": {"path": "artifacts/benchmark_v2/real_qpu/unified_outer_split_v2.csv", "sha256": "d72b7ba6f90d5bf6ed2f3b602196a05bee11a0f441ee4e5caaca6978b6b0e25a"},
+    "inner": {"path": "artifacts/benchmark_v2/real_qpu/unified_inner_split_v2.csv", "sha256": "aaff2b0950379ac7ad8992698bc140687a4cd1b6696b8abeff7cb96270af3cab"},
+    "representation_rows": {"path": "artifacts/benchmark_v3/real_qpu/compiled_unified/representation_rows.csv", "sha256": "cad9f42f414c5fc551aef1a52d715dcb13aee6636cda9972d8bf970e2d84e802"},
+    "materializer_reference": {"path": "benchmark_v1/scripts/materialize_compiled_unified_qpu_v1.py", "sha256": "72f221c39b9be4388867bcce628deb403d897227d8a7fe06273c8ee294164f91"}
+  },
+  "external_assets": {
+    "qonductor_archive": {
+      "sha256": "c9f259d38b24658e303c73c020c0c35e38d26d835061b19afc67626f8b70f51b",
+      "local_resolution_hint": "/home/server/Documents/Qonductor-SC25/data/database/circuits.zip",
+      "repository_relative_path": "data/database/circuits.zip",
+      "retrieve_recipe": "Retrieve the pinned Qonductor repository/dataset archive, resolve this relative asset, and verify archive SHA256 plus every canonical member digest before loading. Absence or hash mismatch blocks reproduction; do not manufacture a replacement archive. Preserve direct DB-to-member provenance from the existing Qonductor audit.",
+      "bundled_by_contract": false
+    }
+  },
+  "corpus": {
+    "assigned_rows": 8767,
+    "source_counts": {"mali_real_qpu": 340, "qonductor_single_circuit_ibm": 4482, "qpack_mcp": 3945},
+    "target_column": "target_seconds",
+    "shots_column": "shots",
+    "circuit_count": 1,
+    "scope": "One unified fit per outer fold across all eligible sources. Source-local reports are slices of these same OOF predictions, not separate fitted models.",
+    "one_attempt_per_canonical_row": true,
+    "runtime_labels_used_to_build_features": false
+  },
+  "representation": {
+    "source_routes": {
+      "mali_real_qpu": "Saved nominal-target compiled QASM3 from exact logical QASM; preserve compiled_qasm3_sha256 and compiled_or_submitted_digest.",
+      "qonductor_single_circuit_ibm": "Exact submitted physical QASM archive member named by canonical qasm_path_or_member, verified against qasm_bytes_sha256; do not re-transpile.",
+      "qpack_mcp": "Saved nominal-target compiled QASM3 from pinned representative angle-insensitive QAOA reconstruction. Reconstruction-qualified, not exact original submitted angles/routing."
+    },
+    "compiled_qasm_root": "artifacts/benchmark_v3/real_qpu/compiled_unified",
+    "saved_qasm_inventory": {"mali_real_qpu": 340, "qpack_mcp": 3945, "total": 4285},
+    "qasm_hash_authority": "Every saved relative filename and SHA256 are pinned by representation_rows. Verify individual bytes before parsing; do not replace missing files by new transpilation.",
+    "parser": "qiskit==2.5.2; qiskit-ibm-runtime==0.49.0 retained as existing representation environment; audited qiskit-qasm3-import==0.6.0 and openqasm3==1.0.1. QASM2 first then QASM3 for submitted archive inputs, matching upstream loader. Saved QASM3 uses qasm3.loads after the declared AST restoration. Record all package versions.",
+    "hardware_wire_restoration": {
+      "reason": "Pinned QASM3 exports hardware identifiers $N and omits trailing idle allocated wires. The audited qasm3 importer preserves physical hardware indices but allocates only through the largest referenced hardware index. Example qpack_mcp|row0 references $0/$1: original register_width=7, parsed width=2. This changes Ma–Li allocated width and is not an admissible unnoticed input change. A sparse $0/$6 fixture correctly retains index6 even before restoration; do not misdescribe the observed issue as arbitrary wire compression.",
+      "adapter": "Parse with openqasm3 AST; introduce a collision-free allocated quantum register of saved register_width. Replace every hardware Identifier('$N') by IndexedIdentifier(new_register, N), preserving operation order, classical declarations/operands/conditions/directives and gate arguments. Validate each N is within the pinned allocation. Do not use regex rewriting of source strings, append arbitrary ancillas after compressed wires, route or transpile. The input byte hash remains the original saved file; record a separate adapter/output signature.",
+      "scope": "Saved compiled Ma–Li/QPack QASM3 only. Submitted Qonductor physical QASM retains its upstream QASM2-then-QASM3 parser semantics and original declared allocation.",
+      "test_requirement": "Sparse hardware-wire fixture uses $0 and $6 with pinned width7; after restoration allocation is7 and operand indices remain0 and6, not0 and1. Verify no classical bit index/condition changes and no operation/body expansion."
+    },
+    "roundtrip_gate": "Verify original QASM bytes and its saved per-file digest. After AST hardware-wire restoration, require saved register_width and full pinned graph_input_digest match using materializer.graph_record (ordered operation names, arity, parameter-presence, physical qargs, per-wire edges and allocation). Compare full gate_counts_json including skipped directives and measurement_count with representation_rows. Validate classical declarations, operands and conditions against the parsed immutable QASM AST; the flat DAG does not certify them. Check every distinct saved input. A semantic mismatch stops materialization, never recompile. Preserve compiled_or_submitted_digest as historical identity metadata but do not require raw compiled_ir_digest roundtrip equality: QASM omits global phase and may change floating-point argument spelling, neither used by this extractor. This exclusion is not permission to change names/wires/order/directives/conditions or silently alter any angle-dependent estimator.",
+    "flat_graph_is_not_feature_authority": "Saved operation DAGs discard classical operands and directives. Do not infer native custom depth from graph longest path, qiskit.depth, saved structural_depth or legacy sum_* columns.",
+    "graph_eligibility_inherited": false,
+    "nominal_target_compatibility": "Advisory for exact submitted Qonductor circuits. This structural extractor requires no gate-duration map and must not reject a parsed operation merely because a modern nominal Target lacks it."
+  },
+  "features": {
+    "actual_matrix_order": ["swap", "depth", "num_qubits", "shots", "circuit_count"],
+    "upstream_helper_order_not_model_order": ["depth", "num_qubits", "swap", "shots", "circuit_count"],
+    "names_helper_bug": "_get_feature_names disagrees with _extract_features insertion order. Do not label or construct a matrix from the helper order. Persist actual matrix order beside coefficients, predictions and artifacts.",
+    "swap": {
+      "definition": "Case-sensitive exact operation.name in ['cx', 'cz', 'ecr']; increment once per matching top-level instruction before the directive skip.",
+      "public_explanatory_alias": "qonductor_entangling_gate_count",
+      "not_equivalent_to": ["literal swap gate count", "all arity-two operations", "substring swap_like_count", "routing SWAP count"],
+      "example": "100 cx + 3 literal swap on the same two wires yields swap=100, depth=103, num_qubits=2; the literal SWAP count is 3 and generic arity-two count is 103."
+    },
+    "depth": "Initialize one counter per allocated quantum and classical bit to zero. Traverse circuit.data in order. Skip _directive instructions after the named-counter increment. Increment counters for every qarg and carg. Include operation.condition classical bits not already among operands, incrementing each once. Synchronize all touched counters to their maximum and update global maximum. Conditions on a Clbit use that bit; register conditions use each register bit. Zero-operand instructions do not increase depth. This is upstream operation-stack depth, not scheduled time or generic circuit.depth().",
+    "num_qubits": "Size of the set of qargs touched by non-directive top-level instructions; not allocated circuit.num_qubits or backend capacity. Measurements and resets with quantum operands count as touches.",
+    "shots": "Positive integer recorded canonical shots, passed directly to _extract_features. Preserve values above 100000. Upstream _create_dataset also passes archive job.shots directly; estimate_execution_time convenience API instead defaults to 4000 and clamps to backend.max_shots or 100000. Do not apply that deployment wrapper to benchmark targets with already-recorded shots.",
+    "circuit_count": "len([circuit])=1, retained as the fifth raw feature and in PolynomialFeatures despite being constant.",
+    "aggregate_rule": "Upstream sums swap, depth and touched width over input circuits, then appends job shots and circuit count. This benchmark supplies exactly one circuit per row.",
+    "matrix_dtype": "float64",
+    "preprocessing": "None: no scaler, log1p, clipping, feature pruning, missing mask or imputation. Persist all five columns including constant circuit_count.",
+    "forbidden_inputs": ["backend ID", "source ID", "source-specific missingness", "legacy sum_* metadata", "target_seconds", "runtime-derived aggregates", "row position", "hashes", "workflow ID", "snapshot tier"]
+  },
+  "operations_and_terminal_states": {
+    "unknown_named_operations": "Eligible if upstream traversal handles their operands/condition. They increment depth and touched width but not swap unless name is exactly cx/cz/ecr. Do not create a new gate vocabulary or silently rename operations.",
+    "directives": "Preserve upstream _directive skip including its before-skip named-counter behavior. Do not globally remove final measurements/barriers/reset before extraction.",
+    "control_flow": "Opaque top-level upstream semantics only: count top-level operands and the available classical condition; do not recursively expand branch bodies, estimate branch probabilities or flatten branches. Nested operations do not enter swap. Unsupported nonlegacy condition expressions receive explicit unavailable_condition_expression_not_supported_by_upstream.",
+    "row4477": "Attempt exact submitted archive extraction regardless of flat-graph unavailability. If exact upstream parity passes, eligible as opaque_control_flow_structural_input; explicitly not branch-aware duration inference. Never splice a graph representation or alter the archived target.",
+    "empty_circuit": "Eligible with swap=0, depth=0, num_qubits=0, provided shots and circuit_count are valid.",
+    "unavailable_reasons": ["source_input_missing", "qasm_parse_failure", "unsupported_condition_expression_not_supported_by_upstream", "malformed_operand_reference", "native_extractor_exception", "invalid_canonical_shots", "no_eligible_outer_train", "invalid_inner_validation_partition"],
+    "stop_entire_run_reasons": ["pinned_input_or_source_hash_drift", "compiled_identity_mismatch", "matrix_order_mismatch", "golden_parity_failure", "canonical_or_split_identity_drift", "group_leakage", "target_in_feature_construction"],
+    "failed_reasons": ["polynomial_fit_exception", "nonfinite_polynomial_prediction", "resource_failure"],
+    "no_unavailable_error_imputation": true
+  },
+  "estimator": {
+    "component": "sklearn Pipeline(PolynomialFeatures(degree=d, include_bias=False), LinearRegression())",
+    "degree_candidates": [2, 3, 4],
+    "polynomial_include_bias": false,
+    "polynomial_interaction_only": false,
+    "polynomial_order": "C",
+    "linear_fit_intercept": true,
+    "linear_positive": false,
+    "fit_weights": "unweighted ordinary least squares",
+    "target_transform": "identity_seconds",
+    "prediction_transform": "identity; preserve finite negative OLS outputs, flag negative_prediction, do not clip before scoring",
+    "negative_prediction_policy": "Physically invalid but numerically legitimate model output; score its original error and report negative-output rate. A nonnegative deployment correction would require a separately named diagnostic, not silent clipping.",
+    "device": "CPU",
+    "deterministic_no_redundant_seed_runs": true,
+    "upstream_selector": "Six estimator families, nested row-wise shuffled KFold 10 evaluation/5 search folds with random_state=0, scoring=r2. Polynomial candidates are degrees2/3/4. Source best_score starts at0 and can leave best_grid_search=None when all family scores are nonpositive; this unified polynomial-only runner does not inherit that control-flow crash.",
+    "component_scope_disclosure": "Only the polynomial family is selected for the planned primary component. Not the full upstream 80771-candidate six-family grid. The ordinary row-wise KFold is replaced by the common frozen grouped folds for leakage control.",
+    "sklearn_environment": "Use the pinned shared benchmark environment and record exact numpy/scipy/scikit-learn/joblib/threadpoolctl versions. No claim of paper environment equivalence: upstream requirements only lower-bound scikit-learn>=1.3.0. Version changes require fixture and fit/replay parity disclosure.",
+    "rank_deficiency": "Constant circuit_count creates duplicate polynomial terms. Preserve source pipeline and fit_intercept=True; record expanded feature names, coefficient norm/rank/singular values and condition diagnostics without pruning terms or regularizing to improve results."
+  },
+  "validation": {
+    "outer_folds": [0, 1, 2, 3, 4],
+    "inner_folds": [0, 1, 2, 3],
+    "group_field": "unified_leakage_group_id",
+    "selection_metric": "Arithmetic mean of raw-seconds r2_score on the four frozen inner validation folds; unweighted over rows within each fold, matching upstream scoring convention. Exact score ties choose the lower degree.",
+    "invalid_r2_partition": "Require at least2 eligible validation observations and nonconstant target in every inner validation fold. Otherwise unavailable_invalid_inner_validation_partition; do not replace NaN by0, silently drop a fold, or choose using outer-test.",
+    "nonpositive_r2": "Valid score, never an implementation failure or reason to change degree/objective.",
+    "fit_count": "3 degrees x4 inner fits +1 selected refit =13 fits per outer fold;65 planned fits overall, including5 final fitted models.",
+    "final_refit": "Selected degree refit on all eligible outer-train observations jointly from all sources, then predict eligible outer-test only.",
+    "holdout_meaning": "Frozen source-QASM/workflow observation holdout. Same compiled signatures may occur across groups; do not call this unseen-structure OOD.",
+    "classical_seeds": [],
+    "test_accuracy_threshold": null
+  },
+  "strong_audit_evidence": {
+    "audit_date": "2026-10-06",
+    "no_fit_or_simulator_timing": true,
+    "row4477": {
+      "canonical_row_id": "qonductor_single_circuit_ibm|row4477",
+      "submitted_qasm_sha256": "abc2b5725d3e34544b56b5c70fc444a38d6cee85003a0f3359400ddf49899ecf",
+      "actual_pinned_source_vector": [133, 197, 12, 8192, 1],
+      "total_top_level_instructions_including_barrier": 370,
+      "if_else_top_level_instruction_count": 10,
+      "disposition": "Direct pinned extractor succeeds. Eligible for this opaque-operation polynomial component, not a statement of graph/control-flow support."
+    },
+    "saved_qasm_roundtrip_canaries": [
+      {"source": "mali_real_qpu", "backend": "ibm_kyoto", "operation_count": 72008, "restored_width": 127, "restored_graph_digest_match": true},
+      {"source": "mali_real_qpu", "backend": "ibm_osaka", "operation_count": 64578, "restored_width": 127, "restored_graph_digest_match": true},
+      {"source": "qpack_mcp", "backend": "ibm_jakarta", "operation_count": 47, "restored_width": 7, "restored_graph_digest_match": true},
+      {"source": "qpack_mcp", "backend": "ibm_lagos", "operation_count": 47, "restored_width": 7, "restored_graph_digest_match": true},
+      {"source": "qpack_mcp", "backend": "ibm_manila", "operation_count": 47, "restored_width": 5, "restored_graph_digest_match": true},
+      {"source": "qpack_mcp", "backend": "ibm_nairobi", "operation_count": 47, "restored_width": 7, "restored_graph_digest_match": true},
+      {"source": "qpack_mcp", "backend": "ibm_perth", "operation_count": 47, "restored_width": 7, "restored_graph_digest_match": true},
+      {"source": "qpack_mcp", "backend": "ibm_quito", "operation_count": 47, "restored_width": 5, "restored_graph_digest_match": true}
+    ],
+    "canary_selection": "Minimum operation_count saved-QASM row within each source/backend cell, from pinned representation_rows in canonical order. These are input compatibility audits, not performance measurements.",
+    "canary_limits": "Eight checks do not certify all saved inputs. Routine materialization must verify every distinct saved file and extraction signature before fitting. No full compiled identity equality is claimed after QASM serialization.",
+    "standalone_golden_test_command": "/home/server/Documents/.venv-qonductor/bin/python -m pytest -q benchmark_v1/tests/test_qonductor_native_feature_contract.py",
+    "standalone_golden_tests_passed": 18,
+    "upstream_warning": "CircuitInstruction tuple iteration emits Qiskit deprecation warnings; compatibility adapter may use named attributes only after arithmetic parity tests."
+  },
+  "golden_fixtures": [
+    {"id": "empty_allocated_width_not_active", "qubits": 3, "clbits": 0, "operations": [], "shots": 1024, "expected_vector": [0, 0, 0, 1024, 1]},
+    {"id": "parallel_one_qubit_layers", "qubits": 3, "clbits": 0, "operations": [{"name": "x", "qargs": [0]}, {"name": "x", "qargs": [1]}], "shots": 1024, "expected_vector": [0, 1, 2, 1024, 1]},
+    {"id": "literal_swap_contrast", "qubits": 2, "clbits": 0, "operations": [{"name": "cx", "qargs": [0, 1], "repeat": 100}, {"name": "swap", "qargs": [0, 1], "repeat": 3}], "shots": 1024, "expected_vector": [100, 103, 2, 1024, 1]},
+    {"id": "counter_not_all_two_qubit_gates", "qubits": 2, "clbits": 0, "operations": [{"name": "cx", "qargs": [0, 1]}, {"name": "cz", "qargs": [0, 1]}, {"name": "ecr", "qargs": [0, 1]}, {"name": "cp", "qargs": [0, 1]}, {"name": "rzz", "qargs": [0, 1]}, {"name": "swap", "qargs": [0, 1]}], "shots": 4096, "expected_vector": [3, 6, 2, 4096, 1]},
+    {"id": "directive_skip_preserves_idle_width", "qubits": 3, "clbits": 0, "operations": [{"name": "barrier", "qargs": [0, 1], "directive": true}, {"name": "x", "qargs": [2]}], "shots": 1024, "expected_vector": [0, 1, 1, 1024, 1]},
+    {"id": "classical_condition_dependency", "qubits": 2, "clbits": 2, "operations": [{"name": "x", "qargs": [0]}, {"name": "measure", "qargs": [0], "cargs": [0]}, {"name": "x", "qargs": [1], "condition_bits": [0]}, {"name": "measure", "qargs": [1], "cargs": [1]}], "shots": 8192, "expected_vector": [0, 4, 2, 8192, 1]},
+    {"id": "opaque_if_else_ignores_body", "qubits": 2, "clbits": 1, "operations": [{"name": "if_else", "qargs": [0, 1], "cargs": [0], "condition_bits": [0], "nested_body_description": "ten cx ignored by top-level extractor"}], "shots": 8192, "expected_vector": [0, 1, 2, 8192, 1]},
+    {"id": "register_condition_no_double_increment", "qubits": 2, "clbits": 2, "operations": [{"name": "measure", "qargs": [0], "cargs": [0]}, {"name": "x", "qargs": [1], "condition_bits": [0, 1]}], "shots": 2048, "expected_vector": [0, 2, 2, 2048, 1]},
+    {"id": "named_counter_precedes_directive_skip", "qubits": 2, "clbits": 0, "operations": [{"name": "cx", "qargs": [0, 1], "directive": true}], "shots": 1024, "expected_vector": [1, 0, 0, 1024, 1]},
+    {"id": "zero_operand_operation", "qubits": 2, "clbits": 0, "operations": [{"name": "gphase", "qargs": []}], "shots": 1024, "expected_vector": [0, 0, 0, 1024, 1]},
+    {"id": "recorded_shots_not_deployment_cap", "qubits": 1, "clbits": 0, "operations": [{"name": "custom", "qargs": [0]}], "shots": 200000, "expected_vector": [0, 1, 1, 200000, 1]}
+  ],
+  "acceptance": {
+    "before_full_materialization": ["all golden vectors equal actual pinned extractor", "saved-QASM hash and parsed identity canaries across all source/backend cells", "exact physical archive digest for row4477 and top-level extractor parity", "no labels accessed by feature adapter"],
+    "before_first_fit": ["source/data/protocol hashes match", "exact8677 identity/status ledger with5 columns in actual order", "frozen outer/inner split leakage audit", "record negative-output policy and raw-seconds target", "source code adapter import has no training/write side effects"],
+    "fold0_gate": ["held-out IDs exactly match frozen fold0", "all eligible numeric predictions finite, negative values disclosed not suppressed", "all3 candidate degrees have4 inner score records", "selected degree is meanR2 winner with lower-degree tie break", "outer-test labels excluded from tuning", "effective native thread pools <=4"],
+    "remaining_folds": "Auto-continue after technical fold0 QA under explicit execution authorization. Poor MAE/R2 is not a stop or refit criterion.",
+    "historical_source_local_scores": "Do not overwrite or reinterpret them as unified results."
+  },
+  "resources_and_outputs": {
+    "native_thread_cap": 4,
+    "gpu_required": false,
+    "feature_workers_initial": 2,
+    "native_threads_per_feature_worker": 2,
+    "aggregate_rss_gib_cap": 28,
+    "available_ram_gib_min": 8,
+    "output_root": "artifacts/real_qpu/qonductor_native_features",
+    "required_artifacts": ["method_card.json", "feature_rows.csv", "attempts.csv", "run_manifest.json", "fold_manifests.json", "metrics.csv", "source_metrics.csv", "coverage.csv", "common_intersections.csv", "source_parity.json"],
+    "public_naming": "Semantic, version-free paths; source/package versions and revision hashes belong in metadata. No scratch outputs or large upstream checkout in public payload.",
+    "prohibited": ["rewrite_canonical", "rewrite_splits", "rewrite_historical_results", "rewrite_CURRENT", "rewrite_fidelity_registry", "write_selected_export", "new_simulator_timing", "live_QPU", "git_mutation", "deletion"]
+  }
+}
