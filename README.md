@@ -1,89 +1,113 @@
-# Quantum Runtime Estimation Benchmark
+# Quantum Runtime Estimation Benchmark (Benchmark26)
 
-Predicting QPU runtime helps plan workloads and compare execution choices.
-This repository contains code for preparing circuit inputs, comparing neural,
-regression and analytical estimators, and measuring the cost of a prediction.
-Evaluation covers new circuit groups, new observations and new backend contexts.
+[![Quality & Reproducibility CI](https://github.com/dung-h/Benchmark26/actions/workflows/quality.yml/badge.svg)](https://github.com/dung-h/Benchmark26/actions/workflows/quality.yml)
+[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Tested on Linux](https://img.shields.io/badge/OS-Linux%20Ubuntu-orange)](https://ubuntu.com/)
 
-The study follows this workflow:
+Predicting physical quantum processing unit (QPU) runtime is critical for cloud job scheduling, compilation selection, and workflow cost optimization. **Benchmark26** provides an open-source, leakage-safe benchmarking suite evaluating learning-based and analytical runtime estimators on physical IBM quantum processors.
 
-```text
-source datasets → qualified circuit inputs → grouped train/test splits
-                → estimator fitting → held-out runtime evaluation
-```
+The unified study evaluates **3,443 physical QPU execution observations across 203 logical-circuit groups**, unifying three upstream corpora: Ma–Li (340 observations), Qonductor (3,058 observations), and QPack (45 workflow means from 3,854 execution records).
 
-## Repository structure
+---
 
-| Directory | Contents |
-| --- | --- |
-| `benchmark_v1/` | Circuit preparation, feature construction, and base model implementations. |
-| `research/` | Cohort construction, splitting, estimator training, evaluation, analytical routes, and prediction-cost code. |
-| `scripts/` | Utilities for downloading pinned inputs and checking data lineage/selection. |
-| `upstream/` | Locations, revisions, and hashes for the original source inputs. |
-| `docs/` | Benchmark methodology and data-access notes. |
+## Key Highlights
 
-The [implementation guide](research/README.md) maps each task to its scripts,
-including the descriptive meaning of older directory and file names.
+- **Leakage-Safe Grouping:** Enforces strict group-disjoint partitioning so that parameter-angle variants (e.g., $RZ(\theta)$ variations of identical DAG structures) never cross train and test folds.
+- **Multi-Paradigm Comparison:** Directly contrasts graph neural networks (Graph-augmented TransformerConv MLP), baseline MLPs, validation-selected regression ensembles (Qonductor adaptation), and zero-training analytical critical-path models.
+- **Fair Inference Cost Accounting:** Measures prediction latency across multiple operational boundaries (in-memory feature inference vs. full raw circuit parsing and transpilation).
+- **Cryptographic Provenance:** Cryptographically pins 249 original upstream assets in `upstream/data_sources.json` and records recipe qualification criteria in `upstream/qualification_provenance.json`.
 
-## Quick verification
+---
 
-From a clean checkout:
+## Quickstart
+
+From a clean checkout, verify the environment and run unit tests in under 10 seconds:
 
 ```bash
-python3 -m pip install -e ".[test]"
+# 1. Clone repository
+git clone https://github.com/dung-h/Benchmark26.git
+cd Benchmark26
+
+# 2. Install package and lightweight test dependencies
+pip install -e ".[test]"
+
+# 3. Check environment readiness and run automated test suite
 make check
 make test
 ```
 
-This verifies the released source and lightweight unit tests without requiring
-the external study bundle, QPU access, or CUDA. The full reproduction path,
-including pinned input acquisition and its explicit limitations, is documented
-in [Reproduction guide](docs/REPRODUCTION.md).
-
-## Methodology
-
-For evaluation on new structures, the benchmark keeps related logical circuit
-variants in the same group, including variants that differ only in gate
-parameters. Random-observation and backend-context evaluations use different
-split rules, described in the methodology.
-Feature transforms and model selection are fit within the corresponding
-training partition. Metrics are reported with pooled, source-balanced, and
-logical-group-balanced weighting where applicable.
-
-Further details are available in:
-
-- [Methodology](docs/METHODOLOGY.md)
-- [Data sources and acquisition](docs/DATA_SOURCES.md)
-
-## Environment and data access
-
-Install the review dependencies, check the code setup, and inspect download options:
+To view the readiness of every benchmark pipeline stage:
 
 ```bash
-python3 -m pip install -r requirements-review.txt
-python3 scripts/check_setup.py
-python3 scripts/fetch_upstream_data.py --help
+make status
 ```
 
-The setup check lists missing packages and representative study inputs.
+---
 
-`requirements-review.txt` contains the lightweight dependencies used by the
-review utilities. Full feature extraction and model fitting additionally depend
-on Qiskit, PyTorch, PyTorch Geometric, CUDA, and source-specific environments
-referenced by the relevant scripts.
+## Repository Structure
 
-The original QPU datasets and large derived circuit caches are not redistributed
-in this repository. The source pins in `upstream/data_sources.json` identify
-the downloadable inputs; [DATA_SOURCES.md](docs/DATA_SOURCES.md) describes the
-remaining externally supplied inputs and validation steps.
+| Directory | Purpose | Contents |
+|:---|:---|:---|
+| [`configs/`](configs/) | Declarative Configurations | Canonical YAML configs for unified benchmark (`unified_benchmark.yaml`) and analytical evaluations. |
+| [`tests/`](tests/) | Unit & Integration Tests | Test suite validating schema integrity, recipe screening, split leakage guards, and metric calculations. |
+| [`benchmark_v1/`](benchmark_v1/) | Feature Pipeline & Adapters | Circuit materializers, AST hardware-wire restoration adapters, and frozen component protocols. |
+| [`research/`](research/) | Benchmark Experiments | Unified cohort preparation, group-disjoint split generators, neural training harnesses, and cost timers. |
+| [`scripts/`](scripts/) | Utilities & Entrypoints | Canonical pipeline CLI (`run_benchmark_pipeline.py`), setup checkers, and verifiers. |
+| [`upstream/`](upstream/) | Provenance & Source Pins | Pinned upstream URLs, commit revisions, SHA256 checksums, and MQT 1.0.3 screening tables. |
+| [`docs/`](docs/) | Documentation | Methodology guide (`METHODOLOGY.md`), data access guide (`DATA_SOURCES.md`), and reproduction manual (`REPRODUCTION.md`). |
 
-## Reproducibility scope
+---
 
-Full execution requires original datasets, intermediate tables, circuit caches,
-and experiment configuration. See [Data access](docs/DATA_SOURCES.md) for the
-inputs required by each stage. The scripts use `artifacts/` paths for study
-inputs and generated results. This code release contains the implementation and
-setup documentation; datasets and saved model outputs are supplied separately.
+## Benchmark Pipeline & Stages
 
-See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for third-party material
-and redistribution constraints.
+```text
+upstream sources ──► circuit qualification ──► group-disjoint splits ──► estimator training ──► evaluation & cost
+  (Ma–Li, Qonductor,     (MQT 1.0.3 readout        (E1 group holdout,        (Graph MLP, Global,     (Pooled, source-balanced,
+        QPack)             state filtering)        E2 random, E3 backend)     R0 selector, Analytical) group-balanced metrics)
+```
+
+| Stage | Command / Script | Dependencies & Input Requirements |
+|:---|:---|:---|
+| **1. Source Acquisition** | `python3 scripts/fetch_upstream_data.py --source all --destination <dir>` | Network access; downloads and checks 249 pinned upstream files. |
+| **2. Recipe Qualification** | `pytest tests/test_qonductor_recipe_screen.py` | Local repository files; validates 4,482 screening decisions. |
+| **3. Group-Disjoint Splits** | `python3 research/postfreeze_qpu_workflow_mean_expansion_v1/prepare_splits.py` | Requires cohort tables (`panel.csv`). Enforces zero-group leakage. |
+| **4. Estimator Training** | `python3 research/postfreeze_qpu_workflow_mean_expansion_v1/train_neural.py` | PyTorch, PyTorch Geometric, CUDA. Trains G1, G2, M0, M1. |
+| **5. Analytical Routes** | `pytest tests/test_analytical_path_kernel.py` | NumPy / g++; evaluates critical-path DAG recurrence and durations. |
+| **6. Cost & Metrics Reporting** | `python3 scripts/verify_cost.py` | Validates warm inference latency (Clock B) and accuracy alignments. |
+
+For detailed instructions on obtaining the external study bundle and reproducing specific tables, see [docs/REPRODUCTION.md](docs/REPRODUCTION.md).
+
+---
+
+## Methodology Summary
+
+- **Evaluation Unit:** A **logical-circuit group** (`group_id` / `structural_group`) groups circuits sharing topological structure. Angle-parameter variants remain grouped together to prevent data leakage.
+- **Measurement Boundaries:** Runtime targets are evaluated strictly within their source-specific measurement clock (e.g., job duration vs. queue-to-completion). Clocks are never merged into an arbitrary universal unit.
+- **Analytical Estimand Types:** We strictly differentiate raw nominal quantities, shot-scaled quantities, and train-only calibrated predictors.
+
+Full details are documented in [docs/METHODOLOGY.md](docs/METHODOLOGY.md) and [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
+
+---
+
+## Citation
+
+If you use Benchmark26 in your research, please cite:
+
+```bibtex
+@software{benchmark26_2026,
+  author = {Dung Hoang},
+  title = {Benchmark26: A Unified Quantum Program Runtime Estimation Benchmark},
+  year = {2026},
+  url = {https://github.com/dung-h/Benchmark26},
+  version = {0.2.0}
+}
+```
+
+See [CITATION.cff](CITATION.cff) for the complete Citation File Format metadata.
+
+---
+
+## License
+
+The code and benchmark configuration scaffolding in this repository are licensed under the [MIT License](LICENSE). Third-party datasets and tools remain subject to their respective upstream licenses as detailed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
