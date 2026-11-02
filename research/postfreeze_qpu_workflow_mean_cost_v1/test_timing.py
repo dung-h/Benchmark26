@@ -5,7 +5,9 @@ import unittest
 from unittest.mock import patch
 
 import numpy as np
-import torch
+import pytest
+
+torch = pytest.importorskip("torch")
 
 from timing import check_prediction, neural_predict, predict_c0, predict_r0
 
