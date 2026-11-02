@@ -25,6 +25,21 @@ source datasets → qualified circuit inputs → grouped train/test splits
 The [implementation guide](research/README.md) maps each task to its scripts,
 including the descriptive meaning of older directory and file names.
 
+## Quick verification
+
+From a clean checkout:
+
+```bash
+python3 -m pip install -e ".[test]"
+make check
+make test
+```
+
+This verifies the released source and lightweight unit tests without requiring
+the external study bundle, QPU access, or CUDA. The full reproduction path,
+including pinned input acquisition and its explicit limitations, is documented
+in [Reproduction guide](docs/REPRODUCTION.md).
+
 ## Methodology
 
 For evaluation on new structures, the benchmark keeps related logical circuit
