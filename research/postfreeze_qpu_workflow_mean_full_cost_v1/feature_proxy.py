@@ -1,4 +1,4 @@
-"""Explicit two-environment pipeline; IPC is included in Clock C elapsed time."""
+"""Run feature extraction in a separate Python environment; circuit-to-prediction timing includes inter-process communication."""
 import sys,subprocess,pickle,struct
 from pathlib import Path
 import numpy as np

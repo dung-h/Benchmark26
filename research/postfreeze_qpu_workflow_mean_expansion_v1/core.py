@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Common target-separated readers and fold partition helpers for expansion v1."""
+"""Read cohort features and labels separately, and construct evaluation partitions."""
 from __future__ import annotations
 import csv,hashlib,json,math
 from pathlib import Path

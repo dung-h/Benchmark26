@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Train four matched Ma-Li-style treatments on the locked random-row folds."""
+"""Train MLP and Graph+MLP, with or without shots, on the supplied E1/E2/E3 splits."""
 from __future__ import annotations
 
 import argparse

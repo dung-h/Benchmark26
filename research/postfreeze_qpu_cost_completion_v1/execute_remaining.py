@@ -1,4 +1,4 @@
-"""Adopt the first canary, then complete all sample routes serially."""
+"""Wait for the initial trial, verify its inputs, and measure remaining routes sequentially."""
 import sys,os,json,time,signal,fcntl,hashlib
 from pathlib import Path
 from campaign import ROOT,CODE,OUT,GPU,CPU,run,rss,tree,atomic

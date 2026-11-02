@@ -1,4 +1,4 @@
-"""Single-owner bounded queue for remaining diagnostic clocks."""
+"""Run diagnostic latency measurements sequentially with memory and time limits."""
 import os,sys,json,time,subprocess,signal,fcntl
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2];CODE=Path(__file__).parent;OUT=ROOT/'artifacts/postfreeze_qpu_workflow_mean_cost_v1/completion_v2'

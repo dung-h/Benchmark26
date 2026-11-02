@@ -55,7 +55,7 @@ def main():
     import mali_full_features as mf
     from qiskit import qasm2
     def canonical_instruction_digest(circuit, *, include_parameters=True):
-        # Byte-for-byte port of prepare_logical_benchmark's stable signature.
+        # Use the same ordered operation/operand signature as logical-input grouping.
         body={"qubits":circuit.num_qubits,"clbits":circuit.num_clbits,"instructions":[]}
         for inst in circuit.data:
             op=inst.operation; params=[]
@@ -104,7 +104,7 @@ def main():
             raise RuntimeError(f"qpack_workflow_regression_features_vary:{wid}")
         qpack_representative[wid]=min(ids)
 
-    # Materialize only the one missing feature identity; source artifacts stay immutable.
+    # Extract the GraphState representation missing from the feature table.
     missing=[r for r in proposed if r["source"]=="qonductor_single_circuit_ibm"
              and attempts.get(r["observation_id"],{}).get("status")!="available"]
     repair_rows=[]; repair_receipt={"status":"NOT_NEEDED","observations":0}
@@ -122,7 +122,7 @@ def main():
         calibration, snap_info=mf.snapshot_t1_t2(first,registry)
         globals51=mf.extract_global_features(circuit,mf.load_pinned_global_extractor()[0])
         sparse,graph_info=mf.compact_graph_record(circuit,calibration)
-        # Stable graph cache key includes source QASM, snapshot properties and schema.
+        # Cache by QASM, backend snapshot and schema so different representations do not share a graph.
         gkey=sha_bytes((qhash+first["target_properties_sha256"]+"mali-51x178-v1").encode())
         graph_path=OUT/"features/graphs"/(gkey+".npz")
         graph_path.parent.mkdir(parents=True,exist_ok=True)

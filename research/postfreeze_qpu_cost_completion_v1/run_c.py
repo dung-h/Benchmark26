@@ -1,4 +1,4 @@
-"""Serial warm circuit-to-prediction diagnostic on a locked 12-row subset."""
+"""Measure warm circuit-to-prediction latency on a fixed 12-observation diagnostic subset."""
 import os,sys,json,time,signal
 from pathlib import Path
 os.environ.update({k:'1' for k in ('OMP_NUM_THREADS','OPENBLAS_NUM_THREADS','MKL_NUM_THREADS','NUMEXPR_NUM_THREADS')})

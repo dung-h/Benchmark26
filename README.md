@@ -1,15 +1,11 @@
 # Quantum Runtime Estimation Benchmark
 
-This repository provides the implementation and experimental configuration for
-benchmarking quantum-program runtime estimators. It covers circuit-input
-preparation, grouped evaluation splits, learned and analytical estimators, and
-prediction-cost measurement.
+Predicting QPU runtime helps plan workloads and compare execution choices.
+This repository contains code for preparing circuit inputs, comparing neural,
+regression and analytical estimators, and measuring the cost of a prediction.
+Evaluation covers new circuit groups, new observations and new backend contexts.
 
-This is a reference implementation with external data dependencies. Running the
-full study requires the original datasets, intermediate tables, circuit caches,
-and execution configuration described in [Data access](docs/DATA_SOURCES.md).
-
-The benchmark pipeline is:
+The study follows this workflow:
 
 ```text
 source datasets → qualified circuit inputs → grouped train/test splits
@@ -26,11 +22,15 @@ source datasets → qualified circuit inputs → grouped train/test splits
 | `upstream/` | Locations, revisions, and hashes for the original source inputs. |
 | `docs/` | Benchmark methodology and data-access notes. |
 
+The [implementation guide](research/README.md) maps each task to its scripts,
+including the descriptive meaning of older directory and file names.
+
 ## Methodology
 
-The benchmark keeps related logical circuit variants in the same evaluation
-group, including variants that differ only in gate parameters. This avoids
-placing near-duplicate logical inputs in both training and test partitions.
+For evaluation on new structures, the benchmark keeps related logical circuit
+variants in the same group, including variants that differ only in gate
+parameters. Random-observation and backend-context evaluations use different
+split rules, described in the methodology.
 Feature transforms and model selection are fit within the corresponding
 training partition. Metrics are reported with pooled, source-balanced, and
 logical-group-balanced weighting where applicable.
@@ -42,13 +42,15 @@ Further details are available in:
 
 ## Environment and data access
 
-Check source syntax and identify representative external dependencies:
+Install the review dependencies, check the code setup, and inspect download options:
 
 ```bash
+python3 -m pip install -r requirements-review.txt
 python3 scripts/check_setup.py
+python3 scripts/fetch_upstream_data.py --help
 ```
 
-This check does not execute experiments or certify that all study inputs are present.
+The setup check lists missing packages and representative study inputs.
 
 `requirements-review.txt` contains the lightweight dependencies used by the
 review utilities. Full feature extraction and model fitting additionally depend
@@ -62,11 +64,11 @@ remaining externally supplied inputs and validation steps.
 
 ## Reproducibility scope
 
-The scripts retain the study's original directory layout and therefore refer to
-input/output locations under `artifacts/`. Configure a dedicated output
-directory for a new experiment. This release
-does not include thesis or paper sources, PDFs, trained checkpoints, saved
-predictions, bootstrap draws, or third-party data archives.
+Full execution requires original datasets, intermediate tables, circuit caches,
+and experiment configuration. See [Data access](docs/DATA_SOURCES.md) for the
+inputs required by each stage. The scripts use `artifacts/` paths for study
+inputs and generated results. This code release contains the implementation and
+setup documentation; datasets and saved model outputs are supplied separately.
 
 See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for third-party material
 and redistribution constraints.

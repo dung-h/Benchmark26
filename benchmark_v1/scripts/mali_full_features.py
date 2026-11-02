@@ -209,7 +209,11 @@ def _supermarq_with_global_wire_indices(circuit: QuantumCircuit) -> SimpleNamesp
 
 
 def extract_global_features(circuit: QuantumCircuit, extractor: dict[str, Any]) -> list[float]:
-    """Return the pinned 51-vector or a fail-closed reason."""
+    """Return 44 gate counts, qubit count, depth and five SupermarQ descriptors.
+
+    Descriptor order: program communication, critical depth, entanglement ratio,
+    parallelism and liveness. Invalid or unsupported inputs raise ValueError.
+    The feature schema is fixed; training later determines active columns."""
     operations = circuit.count_ops()
     gates = extractor["get_openqasm_gates"]()
     g = sum(int(value) for name, value in operations.items() if name not in {"barrier", "measure"})
@@ -279,7 +283,12 @@ def snapshot_t1_t2(row: dict[str, str], registry: dict[str, dict[str, str]]) -> 
 
 
 def compact_graph_record(circuit: QuantumCircuit, physical_t1_t2: dict[int, tuple[float, float]]) -> tuple[dict[str, np.ndarray], dict[str, Any]]:
-    """Port the pinned DAG node encoding on current public Qiskit DAG APIs.
+    """Encode operation nodes and per-wire input/output nodes of a circuit DAG.
+
+    Directed edges follow operation dependencies along quantum wires. A repeated
+    source/destination pair becomes one edge, even if it shares multiple wires.
+    Node features describe operation type, wire position and supplied T1/T2
+    values; the graph is a circuit dependency graph, not a hardware coupling map.
 
     Node insertion order is checked against the pinned source conventions:
     input/output pairs by global wire order followed by operation nodes in
@@ -683,7 +692,12 @@ def extract_global_features_from_s71(record: dict[str, Any], representation: dic
 
 
 def expand_dense_x(record: dict[str, np.ndarray]) -> np.ndarray:
-    """Expand one sparse record to the exact 178-float node matrix."""
+    """Expand sparse node records into the model's 178-column input.
+
+    Columns 0:46 encode node type; 46:173 encode wire positions; 173:177 hold
+    the two operands' T1/T2 values; column 177 records the node index. Missing
+    operand information follows the upstream encoder's zero convention.
+    """
     node_type = record["node_type"]
     count = len(node_type)
     x = np.zeros((count, 178), dtype=np.float32)
