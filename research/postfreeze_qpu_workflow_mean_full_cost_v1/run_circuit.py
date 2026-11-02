@@ -11,7 +11,7 @@ import numpy as np
 import torch
 OUT=ART/'full_cost_v1'/'circuit_qiskit25_rpc_v1'
 
-def alarm(*_):raise TimeoutError('request exceeded 600seconds')
+def alarm(*_):raise TimeoutError('request exceeded 600 seconds')
 def parity(actual,expected,method):
     fields=['native5'] if method=='R0' else ([] if method=='C0' else ['globals'])
     for k in fields:

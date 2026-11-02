@@ -1,4 +1,4 @@
-"""Replay and time saved analytical scalar mappings on all4515 rows; no refit."""
+"""Replay and time saved analytical scalar mappings on all 4515 rows; no refit."""
 import sys,time,json,math,csv,statistics
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2];OUT=ROOT/'artifacts/postfreeze_qpu_workflow_mean_cost_v1/completion_v2'

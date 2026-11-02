@@ -4,7 +4,10 @@ from pathlib import Path
 
 def main():
  parser=argparse.ArgumentParser();parser.add_argument('--root',type=Path,default=Path(__file__).resolve().parents[1]);a=parser.parse_args();root=a.root
- index=json.loads((root/'provenance/cost_source_index.json').read_text());checks=0
+ index_path=root/'provenance/cost_source_index.json'
+ if not index_path.is_file():
+  parser.error('Cost verification requires the external study bundle: provenance/cost_source_index.json and its indexed tables. See docs/DATA_SOURCES.md.')
+ index=json.loads(index_path.read_text());checks=0
  for r in index['files']:
   p=root/r['destination'];assert p.is_file() and not p.is_symlink(),p
   assert hashlib.sha256(p.read_bytes()).hexdigest()==r['sha256'],p;checks+=1

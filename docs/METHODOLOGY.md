@@ -9,6 +9,8 @@
 3. Construct logical-circuit groups.  Variants that differ only in gate angles
    may be placed in the same group, so that closely related logical inputs do
    not occur on opposite sides of a group-disjoint split.
+   Code and tables use `group_id` or `structural_group` for these evaluation
+   groups; these names do not imply a different grouping method.
 4. Derive logical/global features and graph inputs from the qualified circuit
    representation.  Fit all transforms on the training partition only.
 5. Create outer and inner splits, then fit the neural, classical, and
@@ -38,9 +40,12 @@
 - A runtime label is interpreted only within its recorded source-specific
   measurement boundary.  Do not merge different runtime clocks merely because
   they use the same unit.
-- The code snapshot preserves original directory names used during the study.
-  Those names do not turn a result directory into a generic output location.
-  Fresh work must use a new directory and must not overwrite a locked result.
+- Directory names under `research/` identify the original experiment modules.
+  The JSON files under `benchmark_v1/protocol/` describe earlier component
+  studies, including a 4,515-row cohort. The unified experiment implementation
+  is under `research/postfreeze_qpu_workflow_mean_expansion_v1/`; its execution
+  lock and input tables are external dependencies. Earlier component protocols
+  should not be used as the configuration for the unified experiment.
 - The analytical routes distinguish raw nominal quantities, shot-scaled
   quantities, and train-only calibrated predictors.  These are not equivalent
   estimands.

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Run the frozen Ma–Li full-feature graph and matched-MLP OOF cells.
 
-This runner is deliberately inert without both a PASS C4 receipt and an
-explicit coordinator GPU handoff ID. It never starts timing or changes frozen
-data/splits/protocols. The neural environment is selected by the caller.
+Training requires a successful feature-validation receipt (C4) and a recorded
+GPU execution authorization. These receipts belong to the external execution
+bundle. The caller selects the neural environment. This runner does not measure
+prediction latency or alter the supplied data and split definitions.
 """
 from __future__ import annotations
 

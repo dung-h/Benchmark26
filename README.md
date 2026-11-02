@@ -5,6 +5,10 @@ benchmarking quantum-program runtime estimators. It covers circuit-input
 preparation, grouped evaluation splits, learned and analytical estimators, and
 prediction-cost measurement.
 
+This is a reference implementation with external data dependencies. Running the
+full study requires the original datasets, intermediate tables, circuit caches,
+and execution configuration described in [Data access](docs/DATA_SOURCES.md).
+
 The benchmark pipeline is:
 
 ```text
@@ -38,6 +42,14 @@ Further details are available in:
 
 ## Environment and data access
 
+Check source syntax and identify representative external dependencies:
+
+```bash
+python3 scripts/check_setup.py
+```
+
+This check does not execute experiments or certify that all study inputs are present.
+
 `requirements-review.txt` contains the lightweight dependencies used by the
 review utilities. Full feature extraction and model fitting additionally depend
 on Qiskit, PyTorch, PyTorch Geometric, CUDA, and source-specific environments
@@ -51,8 +63,8 @@ remaining externally supplied inputs and validation steps.
 ## Reproducibility scope
 
 The scripts retain the study's original directory layout and therefore refer to
-input/output locations under `artifacts/`. A new experiment should use a new
-output directory and must not overwrite a locked result directory. This release
+input/output locations under `artifacts/`. Configure a dedicated output
+directory for a new experiment. This release
 does not include thesis or paper sources, PDFs, trained checkpoints, saved
 predictions, bootstrap draws, or third-party data archives.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build C7-C10 logical-input sidecars and supplemental grouped splits; no fitting."""
+"""Build qualified logical-input tables and supplemental grouped splits; no fitting."""
 from __future__ import annotations
 
 import argparse

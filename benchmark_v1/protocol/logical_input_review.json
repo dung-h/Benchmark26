@@ -1,0 +1,70 @@
+{
+  "contract_id": "logical-input-review",
+  "status": "S5-S7_locked_preparation_only",
+  "training_authorized": false,
+  "preparation_status": "C7-C10_materialized_and_validated; see artifacts/real_qpu/logical_inputs/validation.json",
+  "preparation_result": {
+    "status": "PASS",
+    "rows": 8767,
+    "feature_available": 7350,
+    "feature_unavailable": 1417,
+    "graph_files": 470,
+    "outer_components": 1275,
+    "outer_folds": 5,
+    "inner_folds": 4,
+    "training_authorized": false
+  },
+  "replaces_existing_results_or_splits": false,
+  "inputs": {
+    "feature_contract": {"path": "benchmark_v1/protocol/mali_full_features.json", "sha256": "2ae0d35eb83124e5ca592dc00f9e0b44f46dbd296011e536c3ad5a54a0252c6f"},
+    "feature_encoder": {"path": "benchmark_v1/scripts/mali_full_features.py", "sha256": "7aacb91d57b4efed1cc0c7d5314633bf81fd475a5e4c1b0c904065dde33735d1"},
+    "width_contract": {"path": "benchmark_v1/protocol/qonductor_logical_recovery.json", "sha256": "10f20a32a37bbba0f9d0dcdd5089cffc2e7ee45a9177dc9e99ac2dced96a52ef"},
+    "recovery_manifest": {"path": "artifacts/real_qpu/logical_recovery/manifest.json", "sha256": "8cbc5340a9bf90b0892a382ff177029c369c2de38f32c91e63dbb98dc7faa684"},
+    "recovery_rows": {"path": "artifacts/real_qpu/logical_recovery/recovery_rows.csv", "sha256": "b78f084605a0f63af8780d0842694085cf0f54b77033d4ceb20bb0911b8ac6aa"},
+    "candidate_manifest": {"path": "artifacts/real_qpu/logical_recovery/candidate_recipe_manifest.json", "sha256": "2689f1e97ba8b115ebd7a654230773a03d0c4379f30a438d611e45477aac6a68"},
+    "snapshot_registry": {"path": "artifacts/benchmark_v3/recovery_real_qpu_20260929_v3/c133_snapshot_registry_v3.csv", "sha256": "3ba985a105d06f536b14ffdde85e463a4d0444078c1c3865427090ad1c438937"}
+  },
+  "identity": {
+    "archive_resolved_recipe": {"rows": 230, "disposition": "archive_supported_recipe_adaptation", "historical_logical_dag_exact": false, "preparation_allowed": true},
+    "generated_unverified": {"rows": 2835, "disposition": "candidate_recipe_sensitivity_only", "historical_logical_dag_exact": false, "preparation_allowed": true},
+    "withheld_instance_or_angles": {"rows": 860, "disposition": "unavailable_for_this_logical_input_method", "preparation_allowed": false},
+    "unresolved": {"rows": 557, "disposition": "unavailable_for_this_logical_input_method", "preparation_allowed": false},
+    "denominator_qonductor": 4482,
+    "fixed_zero_input_distribution_agreement": "Supports recipe plausibility for 230 rows, not full channel, historical DAG, noisy behavior or runtime-cost identity. No automatic identity promotion.",
+    "capacity_erratum": "recovery_rows.backend_capacity_qubits copies canonical.width_qubits without semantic correction; do not use it as capacity or a logical-width bound. Resolve capacity from hash-checked snapshot configuration/registry; preserve the old ledger. Width rules used measurement AST, not this field."
+  },
+  "representation": {
+    "reader_label": "Ma-Li full-feature logical-recipe adaptation",
+    "fidelity_class": "architecture_adaptation",
+    "raw_global_width": 51,
+    "global_order_from": "benchmark_v1/protocol/mali_full_features.json:global_features.ordered_fields",
+    "global_input": "Generated indep QASM before removal of barriers/final measurements; retain all 44 named gate counts and seven structural metrics. No compiled summary substitutions.",
+    "graph_input": "Same QASM after upstream barrier/final-measurement removal; original directed DAG and 178-node encoding, n_qubit=127. No transpilation or seven-global fallback.",
+    "source": "32c392a6ece276f1ff046d4e30052d0571ff6dc6",
+    "reuse": "Reuse pinned global extractor and compact_graph_record for encoding only, not materializer input route or prior execution authorization. Old angle-insensitive DAG pickles are not this representation.",
+    "backend_context": "Explicit nominal-index adaptation: logical wire i receives nominal snapshot qubit i T1/T2 in microseconds. This matches the index-based upstream convention but is NOT recovered physical layout or job-day calibration. Never copy a submitted physical index onto logical i without an independently recovered map.",
+    "calibration_alternative": "No mean/zero calibration substitution within this method; a context-free or backend-mean model would require its own method ID and matched comparison.",
+    "unsupported": "Unknown gates, control flow, missing/invalid T1/T2, width above actual target capacity/127, degenerate or out-of-range global metrics => explicit unavailable with original reason, never invented zeros/clipping.",
+    "preprocessing": "Fit mask/normalization only inside fit partition; preserve raw 51 fields. Graph and global-only MLP share rows, fit/validation partitions, loss, seeds and epoch selection. Shots absent upstream is a limitation, not an undisclosed added input.",
+    "canary": "All 56 candidate QASMs: verify file hash, finite 51 globals and graph schema with synthetic positive T1/T2 only for encoder testing. Synthetic values are never fit inputs. Actual per-row snapshot support is a later mandatory preparation gate."
+  },
+  "split": {
+    "existing_split": "Keep immutable; remains valid evidence for its previously defined physical/workflow representation, not an approved logical-candidate unseen-circuit split.",
+    "logical_split_required": true,
+    "outer_folds": 5,
+    "split_seed": 42,
+    "neural_seeds": [42, 1234, 31415],
+    "group_rule": "Over the entire 8767 ledger, union existing exact-QASM/workflow groups, accepted shared recipe-QASM hashes, exact instruction digests preserving allocation, ordered qargs/cargs, gate names, numeric parameters and conditions, AND parameter-invariant model-input structure digests across sources. The latter prevents train/test sharing when Ma-Li graph/global inputs omit rotation angles. Do not use family/width or output-distribution matches. Backend/shots do not break a circuit group. Record why each edge was added. Candidate grouping is conservative input-reuse grouping, not a historical identity claim.",
+    "assignment": "Deterministic greedy source-stratified grouped assignment on canonical row IDs and union-component IDs; sort largest relative source groups first, assign each to minimize squared normalized source-count imbalance, break ties by SHA-256(component, fold, seed=42). No runtime target/error inspection. Each outer train gets 4 grouped inner folds, matching the locked polynomial degree-selection contract; inner fold 0 is the graph/MLP validation fold. Never select folds by target values or measured prediction errors.",
+    "gates": "No component crosses outer or inner partitions; all 8767 IDs assigned once; >=5 eligible groups for outer and each inner construction; nonempty eligible fit/validation/test for each method. Otherwise stop preparation with explicit support report, no row-level fallback.",
+    "comparison": "Every newly fitted method uses the SAME new outer/inner manifests and unchanged targets. Rerun polynomial and matched MLP for a logical graph comparison; do not compare its scores against old-split OOF predictions. Analytical raw predictions may be rescored by row ID; any fitted calibration must be refit in new outer-train only.",
+    "panels": "C8 materialized all 7350 eligible logical inputs: Ma-Li340, QPack3945, Qonductor230 archive-supported plus2835 separate candidate sensitivity. The other1417 Qonductor rows stay unavailable and remain in the 8767 attempt denominator. These counts describe feature inputs, not verified historical logical identities or successful future predictions."
+  },
+  "routine_queue": [
+    {"id": "C7", "task": "Create derived eligibility and corrected capacity sidecar for all4482; preserve recovery artifacts and copy their evidence tier, not a recovered label."},
+    {"id": "C8", "task": "Materialize nominal-index 51 globals + DAG for archive230 first, then candidate2835 separately; hash actual snapshot assets, verify global/graph input lifecycle and record every failure. No fit."},
+    {"id": "C9", "task": "Materialize supplemental 8767 outer/inner group closure/splits and a cross-source duplicate/support audit; reuse original Ma-Li logical QASM and only independently qualified QPack recipe inputs. No frozen split mutation."},
+    {"id": "C10", "task": "Validate C7-C9, compile new graph/MLP/polynomial cell manifests with method/source/representation/split/environment hashes. Training remains false until an explicit execution instruction under those new manifests."}
+  ],
+  "scheduling": "C7 and read-only C9 identity inventory may run concurrently; C8 follows C7 snapshot checks; final C9 consumes exact C8 input digests; C10 joins them. Total CPU<=4 threads and RAM<=4GiB while unrelated training runs. No GPU, simulator timing, live QPU, CURRENT/export changes, deletion, commit or push."
+}

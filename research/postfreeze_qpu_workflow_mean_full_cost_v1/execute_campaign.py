@@ -1,4 +1,4 @@
-"""Durable sequential queue: wait for D, C canary, then covered C sessions."""
+"""Sequential cost-measurement queue: wait for prerequisite measurements, validate a circuit-to-prediction trial, then measure the remaining sessions."""
 import os,sys,time,json,subprocess,signal
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]

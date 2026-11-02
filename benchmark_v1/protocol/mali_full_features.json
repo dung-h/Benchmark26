@@ -1,0 +1,289 @@
+{
+  "contract_id": "mali-full-feature-unified",
+  "status": "scientific_contract_locked_execution_not_authorized",
+  "execution_authorized": false,
+  "method_variants": {
+    "mali_full_features_graph": {
+      "reader_label": "Ma–Li full-feature unified graph adaptation",
+      "fidelity_class": "architecture_adaptation",
+      "claim_boundary": "Pinned upstream 51-global extractor and graph/global/fusion architecture ported to pinned compiled/physical views; not source-native logical-input reproduction or paper-split replication."
+    },
+    "mali_full_features_mlp": {
+      "reader_label": "Ma–Li full-feature matched global MLP",
+      "fidelity_class": "matched_feature_baseline",
+      "claim_boundary": "Upstream global-only model option with the same 51-global raw schema, fitting partitions, preprocessing, objective, optimizer, epoch selection and seeds as the full-feature graph."
+    }
+  },
+  "source": {
+    "repository": "https://github.com/mooselab/Quantum-Execution-Time-Prediction",
+    "revision": "32c392a6ece276f1ff046d4e30052d0571ff6dc6",
+    "local_checkout_for_git_show_only": "/home/server/Documents/Quantum-Execution-Time-Prediction",
+    "read_policy": "Read pinned git blobs, not a possibly modified working-tree helper/model. Port import and API compatibility explicitly; no IBM credential or live-provider import side effect.",
+    "blob_sha256": {
+      "data_preparation/helper.py": "c34cc98df02b016ee9c94dc9ca27efdbbb7e6c6439831f09d3c92ed3a78f74ad",
+      "data_preparation/utils.py": "d70db4646f0b9d3deb548d6d960711a43ad818cef344113a6fa1e9f9ae64bcb7",
+      "data_preparation/circ_dag_converter.py": "1b29a1c1869baeafdfbf825353f8024b9613b602cfea608e48f6bc23d54e7a85",
+      "model/transformer_model.py": "d6d250b2cb3082efc756ae9c5c269d4fe40bbdf49c743c535cddf6a0691c5683",
+      "model/builder.py": "2d0e748e1525ccd9ede921919c3e2aee65c929987d7a5d150b8d1e8461d6d07e",
+      "model/trainer.py": "849631f93ad3da38aa0273b2ae6ba14d990468a72bb786f57f65ef7d3e004c47",
+      "model/train.py": "4efae78ecd75d0eac7180425b19e709cda3ce816b131924a3b438907bbb95ac0",
+      "model/parameter/default/config.yaml": "26b0d40480659a0b15bd6aec4815f892b26df61cf416874c40bfc36b59ddceeb"
+    },
+    "existing_reusable_transform_reference": {
+      "path": "benchmark_v1/scripts/evaluate_mali_gnn_foldwise.py",
+      "sha256": "a91e85fdb1021607f8f5c621e2dd5eec648b06ba2d7f94002ff79176b2bbf4c7",
+      "function": "fit_fold_transform",
+      "scope": "Train-only statistics/zero-variance handling reference, not the 340-only runner or its generated validation assignment."
+    }
+  },
+  "input_pins": {
+    "canonical": {
+      "path": "artifacts/benchmark_v1/canonical_corpus_8767_20260926/canonical_observations.csv",
+      "sha256": "920d745e03dd00e8155118d9323baea18ff865e4df2620f3a059bd5503a05ba4"
+    },
+    "representation_rows": {
+      "path": "artifacts/benchmark_v3/real_qpu/compiled_unified/representation_rows.csv",
+      "sha256": "cad9f42f414c5fc551aef1a52d715dcb13aee6636cda9972d8bf970e2d84e802"
+    },
+    "representation_manifest": {
+      "path": "artifacts/benchmark_v3/real_qpu/compiled_unified/manifest.json",
+      "sha256": "b716dd93206a67d98dd22e1c83e3d7cdd9bbd7eb058b7f31ac56cdd0f776961e"
+    },
+    "graph_hash_manifest": {
+      "path": "artifacts/benchmark_v3/real_qpu/compiled_unified/graph_file_hashes.json",
+      "sha256": "0299f1e29358b174c5a1515ce45e6504de4c2b5566e90c1d09cdac396fb46ebb"
+    },
+    "snapshot_registry": {
+      "path": "artifacts/benchmark_v3/recovery_real_qpu_20260929_v3/c133_snapshot_registry_v3.csv",
+      "sha256": "3ba985a105d06f536b14ffdde85e463a4d0444078c1c3865427090ad1c438937"
+    },
+    "outer_split": {
+      "path": "artifacts/benchmark_v2/real_qpu/unified_outer_split_v2.csv",
+      "sha256": "d72b7ba6f90d5bf6ed2f3b602196a05bee11a0f441ee4e5caaca6978b6b0e25a"
+    },
+    "inner_split": {
+      "path": "artifacts/benchmark_v2/real_qpu/unified_inner_split_v2.csv",
+      "sha256": "aaff2b0950379ac7ad8992698bc140687a4cd1b6696b8abeff7cb96270af3cab"
+    }
+  },
+  "external_assets": {
+    "qonductor_archive": {
+      "sha256": "c9f259d38b24658e303c73c020c0c35e38d26d835061b19afc67626f8b70f51b",
+      "local_resolution_hint": "/home/server/Documents/Qonductor-SC25/data/database/circuits.zip",
+      "repository_relative_path": "data/database/circuits.zip",
+      "retrieval": "Use the pinned Qonductor dataset/source closure in qonductor_native_features.json; verify archive and each canonical member digest. This contract does not bundle the external archive."
+    }
+  },
+  "dataset": {
+    "assigned_observations": 8767,
+    "source_counts": {"mali_real_qpu": 340, "qonductor_single_circuit_ibm": 4482, "qpack_mcp": 3945},
+    "identity_column": "canonical_row_id",
+    "canonical_target_column": "target_seconds",
+    "evaluation_target_clock": "archived_observed_service_execution_time",
+    "method_output_clock": "predicted_archived_observed_service_execution_seconds",
+    "route": "For Ma-Li340 and QPack3945, load the saved compiled_qasm3_file and verify compiled_qasm3_sha256 relative to compiled_unified, then apply allocated-wire restoration. Qonductor4482 has no saved compiled_qasm3_file: load the exact circuits.zip member referenced by canonical qasm_path_or_member and verify qasm_bytes_sha256; use pinned upstream QASM2-then-QASM3 parsing. Never regenerate/transpile a replacement circuit.",
+    "physical_wire_restoration": {
+      "required": true,
+      "shared_contract": "benchmark_v1/protocol/qonductor_native_features.json",
+      "problem": "Saved hardware-QASM3 uses $N operands and omits trailing idle allocation. The audited importer preserves N but allocates only max referenced N+1. An inspected QPack register-width7 row using $0/$1 imports as two qubits, changing Ma-Li allocated-width metrics. A sparse $0/$6 fixture retains index6; do not claim arbitrary index compression.",
+      "adapter": "Parse QASM3 AST; prepend a uniquely named quantum register of pinned representation_rows.register_width and replace each hardware Identifier('$N') with that register[N]. Preserve classical declarations and operation/condition structure. Do not use textual replacement, transpile, generate gates, reindex physical N or drop unused wires.",
+      "scope": "Saved compiled Ma-Li/QPack hardware-QASM3 only. Submitted Qonductor archive inputs retain original parsing/declarations; do not infer an extra allocation from backend capacity.",
+      "validation": "Every N must be integer in [0, register_width); restored qc.num_qubits must equal pinned register_width and global qc.find_bit qarg positions must equal original physical N. Named-register forms must be validated against the same wire map rather than padded by guesswork.",
+      "failure": "Unavailable_physical_wire_restoration_mismatch with exact expected/observed signature and reason; never continue with compressed width or misassigned T1/T2.",
+      "feature_signature_gate": "Before feature extraction require parity of allocated quantum width, classical width, operation name/arity/order, physical qarg and carg identities, directive/condition semantics, operation counts and saved directed operation-DAG dependencies against pinned compiled IR/graph evidence. Preserve original record-to-node correspondence. Neither digest mismatch alone nor count-only equality is sufficient.",
+      "allowed_ir_digest_difference": "Round-trip global phase and numeric angle representation may change the full compiler digest without changing these declared features. Accept only explicitly documented differences limited to phase/parameters omitted by BOTH 51-global and178-node encoders, with the full feature-signature gate passing; never extend this exception to gates/wires/depth/conditions or parameter-dependent structure.",
+      "no_new_measurement": true
+    },
+    "source_stages": {
+      "mali_real_qpu": "Exact original logical QASM already deterministically transpiled to pinned nominal target; extract from the pinned compiled result, not original logical QASM in this method.",
+      "qonductor_single_circuit_ibm": "Exact submitted physical QASM from the pinned circuits.zip archive member, with canonical per-member byte hash; no saved compiled QASM3 or new transpilation is assumed.",
+      "qpack_mcp": "Six angle-insensitive representative QAOA structural reconstructions transpiled to nominal target; reconstruction-qualified, not exact submitted angles/routing."
+    },
+    "source_stage_recording": "Record source identity and actual feature/graph stage separately; legacy lifecycle_stage describes source provenance and must not relabel this model's physical input as logical.",
+    "shots": "Not an original model feature or normalization target. Train directly against recorded mixed-shot service seconds; report shot strata. No division by 1024 or multiplication by query shots. A 51+shots model requires its own contract and fits.",
+    "runtime_label_features_forbidden": true,
+    "dynamic_row": "qonductor_single_circuit_ibm|row4477",
+    "dynamic_reason": "dynamic_control_not_representable_by_static_upstream_encoder",
+    "all_rows_require_terminal_attempt": true
+  },
+  "global_features": {
+    "raw_width": 51,
+    "extractor": "helper.create_feature_dict and utils.calc_supermarq_features from pinned blobs, API port with parity fixtures",
+    "ordered_fields": [
+      "u3", "u2", "u1", "cx", "id", "u0", "u", "p", "x", "y", "z", "h", "s", "sdg", "t", "tdg", "rx", "ry", "rz", "sx", "sxdg", "cz", "cy", "swap", "ch", "ccx", "cswap", "crx", "cry", "crz", "cu1", "cp", "cu3", "csx", "cu", "rxx", "rzz", "rccx", "rc3x", "c3x", "c3sqrtx", "c4x", "xx_plus_yy", "ecr",
+      "num_qubits", "depth", "program_communication", "critical_depth", "entanglement_ratio", "parallelism", "liveness"
+    ],
+    "input_stage": "Pinned circuit BEFORE graph-specific RemoveBarriers and RemoveFinalMeasurements; do not reuse seven-global summary fields as substitutes.",
+    "count_rule": "44 exact operation-name counts in dictionary order; absent named operation zero; no gate-equivalence pooling. Global count SWAP means literal swap, unlike Qonductor's field of that name.",
+    "num_qubits": "qc.num_qubits allocated register width, not active width and not qc.width including classical bits",
+    "depth": "qc.depth() unfiltered, including measurement according to pinned compatible Qiskit semantics",
+    "metric_symbols": {
+      "n": "qc.num_qubits",
+      "G": "sum(qc.count_ops().values()) minus barrier and measure counts",
+      "M": "qc.num_nonlocal_gates() using pinned Qiskit-compatible definition",
+      "D": "qc.depth filtered to names other than barrier and measure",
+      "D_multi": "qc.depth filtered to qarg arity >1 and name != barrier",
+      "A": "sum(len(qargs)) over instructions excluding barrier and measure",
+      "C": "sum of distinct connectivity neighbor counts; add both endpoints only for exactly-two-qarg operations. Higher arity operations do not generate all-pairs links."
+    },
+    "metric_formulas": {
+      "program_communication": "C / (n * (n - 1))",
+      "critical_depth": "0.0 if M == 0 else D_multi / M",
+      "entanglement_ratio": "M / G",
+      "parallelism": "(G / D - 1) / (n - 1)",
+      "liveness": "A / (D * n)"
+    },
+    "degenerate_policy": "n<=1 or G<=0 or D<=0 yields unavailable_degenerate_upstream_metric; no invented epsilon or undefined value set to zero. Each metric must be finite and within [0,1], and M<=G; exact violations are unavailable_upstream_metric_range, not clipping.",
+    "dead_helper": "circ_dag_converter.get_global_features allocates only six fields and is not the 51-feature helper. Do not use it as this contract's extractor."
+  },
+  "graph": {
+    "builder": "Pinned circ_dag_converter.circ_to_dag_with_data conventions with explicit offline API adapter",
+    "n_qubit": 127,
+    "node_width": 178,
+    "node_order": "Pinned upstream DAG insertion enumeration, not a new topological positional encoding. Record adapter enumeration and golden parity on fixtures.",
+    "node_fields": [
+      {"offset": 0, "width": 46, "meaning": "in,out then 44 gate names in global dictionary order"},
+      {"offset": 46, "width": 127, "meaning": "first-encounter compact used-wire index one/two-hot; not raw physical-index one-hot"},
+      {"offset": 173, "width": 4, "meaning": "T1(first),T2(first),T1(second),T2(second)"},
+      {"offset": 177, "width": 1, "meaning": "node enumeration index after pruning"}
+    ],
+    "wire_mapping": "Use global qc.find_bit wire indices to map physical circuit wires to snapshot qubits, then upstream first-encounter compact remapping for the 127-hot representation. Multiple registers cannot use ambiguous private register-local _index; document this compatibility correction.",
+    "pruning": "Remove barriers and final measurements before DAG creation; retain in/out nodes for used quantum wires; remove idle quantum wire in/out pairs. Reject remaining mid-circuit measurement/classical nodes/conditions rather than dropping dynamic semantics.",
+    "edge_rule": "Directed upstream DAG dependencies; collapse multiple wire edges between same pair into a simple DiGraph. No reversed, undirected, self-added or branch edges. Preserve valid node correspondence without string-label/integer collisions.",
+    "padding_quirks_preserved": {
+      "in_out": "Set compact wire-hot and first T1/T2 pair, second pair zero.",
+      "one_operand_operation": "Set gate type and index only. Upstream else branch fills wire/T1T2 ONLY if len(qargs)==2; one-qubit op wire and T1T2 remain zero.",
+      "two_operand_operation": "Set both compact wire positions and two T1/T2 pairs in qarg order.",
+      "higher_operand_named_operation": "Upstream known gate type and index remain set, but wire/T1T2 slots zero, exactly as one-operand case. Record this lossy quirk; never silently introduce a third-qubit encoding."
+    },
+    "gate_error": "use_gate_error exists in default YAML but model/node builder do not encode numerical gate errors; noise_dict gate entries equal 1 and are not input features. Do not add gate-duration/error slots under an original label.",
+    "unsupported_operations": "Any post-pruning name absent from 44-gate dictionary, control-flow block/condition, remaining measure/reset/delay/store or nonquantum node yields graph unavailable with actual name/reason; missing information is not an all-zero gate type.",
+    "recorded_inventory": {
+      "max_register_width": 127,
+      "saved_gate_count_unsupported_rows": {"if_else": 1},
+      "saved_gate_count_reset_or_delay_rows": 0,
+      "largest_operation_count": 1431974,
+      "largest_rows": ["qonductor_single_circuit_ibm|row39", "qonductor_single_circuit_ibm|row40", "qonductor_single_circuit_ibm|row41"],
+      "largest_gate_names": ["barrier", "ecr", "measure", "rz", "sx", "x"],
+      "meaning": "Read-only saved-count support inventory, not successful materialization/CUDA training. ECR is explicitly in upstream dictionary. No prepromised 8766 successful graph predictions."
+    }
+  },
+  "calibration": {
+    "selection": "Same backend and snapshot ID/properties SHA already pinned in representation_rows plus snapshot_registry. No test-error selection, live calls or later replacement by a nicer snapshot.",
+    "claim": "tier_3_backend_matched_nominal, not historical execution-day calibration",
+    "properties_resolution": "Resolve registry properties_path by portable content SHA; preserve a local resolution map. Verify each raw JSON hash against target_properties_sha256 before extraction.",
+    "units": "Convert T1/T2 property values with explicitly parsed units to microseconds; record both original unit/value and canonical numeric microseconds. Upstream reads raw property value and common IBM snapshots use us, so canonicalization is disclosed and us fixtures must be exactly unchanged.",
+    "validity": "Each quantum wire needed by graph must exist in same-backend snapshot and contain finite positive T1 and T2. Missing/nonfinite/invalid-unit property yields graph unavailable_missing_backend_property. Never copy another wire/backend, fill zero, use backend means or predict properties.",
+    "not_a_feature": ["snapshot hash", "source ID", "runtime label", "historical timestamp", "backend string one-hot"],
+    "mlp_policy": "Global-only MLP does not need node calibration. A graph-specific calibration/resource failure must not fabricate a failure for an otherwise valid MLP; retain individual availability and compare their actual successful intersection. Common global/dynamic failures affect both."
+  },
+  "architecture": {
+    "source_class": "model.transformer_model.Simple_Model",
+    "graph_flags": {"use_graph_features": true, "use_global_features": true, "use_gate_type": true, "use_qubit_index": true, "use_T1T2": true, "use_gate_index": true},
+    "layers": 3,
+    "transformer_convs": "178->178, 178->178, 178->178 TransformerConv, source/default heads=1, concat=true, dropout=0, no edge features, source/default root_weight and bias; ReLU after each",
+    "pool": "global_mean_pool",
+    "global_branch": "retained-global-width ->64->64 with ReLU after each layer",
+    "graph_fusion_head": "concat178+64=242 ->512->512->128->1; ReLU after first three linear layers; final output unconstrained",
+    "mlp_head": "retained-global-width ->64->64->512->512->128->1; ReLU after all except final output",
+    "no_substitution": "No 64-wide graph layers, seven globals, log target, GAT/GRU replacement, hidden shots or source/backend embedding."
+  },
+  "preprocessing": {
+    "fit_scope": "Only eligible fit rows inside frozen outer-train with inner_fold!=0. Never outer-test or inner-validation.",
+    "global_mask": "Retain raw field if sum over fit rows >0, exactly upstream refine_training_data policy; log raw 51-field order and retained index list per fold. Do not infer a mask from all corpus.",
+    "global_statistics": "One observation weight per fit row; unbiased sample mean/std in float64, transformed storage float32.",
+    "node_statistics": "Pool all nodes in fit graphs, node-weighted; stable streaming float64 mean/unbiased sample std without concatenating giant graphs.",
+    "zero_variance_policy": "std<=1e-6 => transformed column zero in fit/validation/test; otherwise (value-fit_mean)/fit_std. Disclosed correction to upstream std+1e-8 instability; no test-based fallback scaling.",
+    "target_transform": "identity seconds",
+    "heldout_labels": "Separate scoring ledger; held-out graph.y sentinel zero and inference takes no labels. No preprocessing, node order or property selection consumes labels.",
+    "transform_pins": "Persist fit row IDs/hash, retained columns, means/stds/variable masks, node counts, protocol/input hashes; seeds share a deterministic fold transform."
+  },
+  "training": {
+    "outer_folds": [0, 1, 2, 3, 4],
+    "seeds": [42, 1234, 31415],
+    "cell_product": "two methods x five outer folds x three seeds =30 complete neural fits",
+    "fit_valid_test": "For outer f: test is frozen outer_fold=f; select inner manifest rows whose outer_fold=f, restricted to outer-train. Validation inner_fold=0, fit inner_fold in {1,2,3}. The matched graph and MLP use identical fit/validation identities from common successfully materialized global+node inputs; log any feature/calibration-ineligible training identities for both. Resource failures cannot shrink this common fitting set. MLP inference may also predict additional test rows with valid globals but graph-specific unavailable inputs, retaining separate coverage. Assert exact unified_leakage_group_id disjointness and complete matching canonical identities.",
+    "model_selection": "Hyperparameters fixed to pinned default YAML; no HPO and no outer-test tuning. Train 500 epochs; save epoch minimizing inner-validation raw-seconds MSE (earliest on exact tie). Evaluate test once with that best checkpoint. No early termination on score and no all-outer-train refit.",
+    "epochs": 500,
+    "optimizer": {"name": "Adam", "learning_rate": 0.0005, "weight_decay": 0.0001},
+    "scheduler": "constant LambdaLR equivalent",
+    "loss": "unweighted mean squared error on raw observed seconds",
+    "effective_batch_size": 2,
+    "precision": "float32; AMP disabled",
+    "initialization": "Reset Python, NumPy, Torch CPU/CUDA RNG for each seed before model construction; deterministic seeded epoch permutations shared by both variants. Record framework deterministic capability and any nondeterministic kernels rather than claiming bitwise CUDA reproducibility.",
+    "prediction_policy": "Keep unconstrained raw-seconds model output, including finite negative output, for primary scoring; count negative predictions. No undeclared clipping, log inverse or per-source calibrator.",
+    "seed_reduction": "Row-wise median of all three required seed predictions; preserve per-seed outputs/dispersion. An incomplete seed set is partial, not a three-seed result.",
+    "execution_device": "CUDA mandatory for both neural variants; CPU analytical/classical regression is unaffected",
+    "checkpoint": "Atomic latest every <=10 epochs with model/optimizer/scheduler/RNG, epoch/next position, best validation state, transform, seed/fold/method and code/data/protocol hashes; validate identities before resume."
+  },
+  "resource_policy": {
+    "gpu_training_workers": 1,
+    "gpu_used_budget_gib": 12,
+    "gpu_free_reserve_gib": 4,
+    "cpu_workers": 2,
+    "native_threads_per_worker": 2,
+    "aggregate_cpu_rss_budget_gib": 28,
+    "available_ram_reserve_gib": 8,
+    "graph_nodes_per_microbatch": 250000,
+    "microbatch": "Split an effective batch of two into microbatches/singletons as necessary; accumulate summed per-observation losses divided by actual effective batch size, then one optimizer step. Last odd batch uses its actual size. Never change sample weighting or drop a giant graph.",
+    "activation_recomputation": {
+      "permitted": true,
+      "operation": "torch.utils.checkpoint.checkpoint over each complete TransformerConv+ReLU layer; use_reentrant=False, preserve_rng_state=True. No checkpointing that replaces a layer, changes graph edges/input/node178/precision or samples nodes.",
+      "mode_selection": "On the predeclared largest complete-graph CUDA resource canary, try no recomputation first. If it violates the pinned resource budget, try layer recomputation. Selection uses resource feasibility only, never validation/test scores; freeze selected mode for all graph fitting cells and record it in each checkpoint/cell manifest.",
+      "gradient_parity_gate": "C4: in float32 compare outputs, summed loss, parameter gradients and one Adam step between recomputation-disabled and enabled on identical fixture/model/RNG/effective batch. Require torch.allclose rtol=1e-5, atol=1e-6 with identical finite masks. Preserve RNG and deterministic capability records; failed parity is a technical blocker, not permission to relax tolerances silently.",
+      "inference": "Record the selected fitting mode; ordinary eval/no_grad inference does not need activation recomputation and must preserve identical outputs. Recomputation changes training compute cost only; no training/inference cost is substituted for the archived runtime target.",
+      "failure": "If intact singleton remains infeasible with validated recomputation, retain the whole-cell fit resource_failure rule; do not downgrade178 architecture to64, truncate, drop or approximate a graph."
+    },
+    "giant_graphs": "A graph over node budget runs alone; no truncation/subsampling/partial neighborhoods. Raw 178-float features already require about1GiB for1.43M operations before in/out nodes, edges and activations. Finite CUDA canary on largest graph is required; resource failure is explicit, not assumed success from free VRAM.",
+    "fit_resource_failure": "If a required eligible fit graph cannot be processed intact under pinned resources after declared singleton policy, mark entire method/fold/seed terminal resource_failure. Do not remove it from training silently. OOF inference-only resource failures are per-row and retain denominator.",
+    "timeouts": "No scientific per-graph training timeout. Worker heartbeat/checkpoint stall detection diagnoses failure but is not permission to discard slow rows. Changing resources/batch/epochs requires recorded contract amendment.",
+    "exclusive_timing": "No simulator timing concurrent with any training or heavy extraction. No new simulator measurements/live QPU under this contract."
+  },
+  "acceptance": {
+    "before_execution": [
+      "all pinned source/assets hashes match and same 8767 canonical IDs/targets/outer assignments are retained",
+      "golden 51-field order/metric parity for one-qubit degenerate, empty, barrier/final measurement, CX/ECR, and known three-qubit gate fixtures",
+      "golden178-node graph fixture for in/out, one/two/higher operand padding, directed duplicate edges and multiple registers",
+      "source/backend canaries verify exact QASM and snapshot properties hashes, unit conversion and fail-closed unknown cases",
+      "train-only transform regression injects held-out perturbations without changing fitted statistics/mask",
+      "rawseconds loss/optimizer/global-only architecture parity and microbatch weighted-gradient equivalence",
+      "CUDA finite forward/backward including giant graph or explicit whole-cell resource-failure disposition",
+      "atomic resume equivalence and no held-out label access"
+    ],
+    "execution_sequence_if_later_authorized": "Materialize all8767 row-status attempts first; then fold0 x three seeds x both methods; automatic remaining folds only after technical QA. Low validation/test accuracy is not failure of gate.",
+    "no_fits_in_this_pass": true,
+    "physical_wire_and_feature_signature_gate_required": true,
+    "activation_recomputation_gradient_parity_required_if_enabled": true,
+    "fail_closed": true
+  },
+  "evaluation": {
+    "full_envelope": 8767,
+    "metrics": ["coverage", "failure/unavailable_rate", "MAE_seconds", "MedAE_seconds", "RMSE_seconds", "R2_seconds", "p90_abs_error", "p99_abs_error", "max_abs_error", "negative_prediction_count"],
+    "log_metric_policy": "Optional log error only on declared valid-domain rows and explicit metric denominator; raw negative predictions cannot be silently log-transformed/clipped.",
+    "paired": "Hash common successful test-row identities for every comparison; never compare different denominators as a ranking.",
+    "strata": ["source", "backend", "family", "width", "shots", "representation support", "largest/rare rows"],
+    "summaries": "Pooled and source-stratified metrics with equal-source macro; source-stratified leakage-group paired bootstrap, frozen bootstrap registry stream. Preserve raw OOF labels/predictions/seed reduction provenance.",
+    "ablation_boundary": "Existing seven-global compiled model differs in node widths, architecture, target and schedule; comparing it with this run is descriptive, not a causal seven-versus51 feature ablation."
+  },
+  "fidelity_deviations": [
+    "Unified8677 sources rather than author340 QPU subset; common compiled/physical views rather than original logical graphs",
+    "Reconstruction-qualified QPack structures rather than recovered submitted angles",
+    "Backend-matched nominal offline snapshots and canonical microsecond values rather than exact historical live calibration",
+    "Frozen grouped outer/inner benchmark splits and three seeds instead of author random8:1:1 and seed1234",
+    "Fit-only normalization/pruning and zero-variance centering replace whole-dataset preprocessing and epsilon amplification",
+    "Global wire resolution/portable Qiskit API import adapters repair version/private-index assumptions, without changing declared feature meaning",
+    "CUDA instead of defaultconfig CPU; resource-safe exact gradient microbatching may replace materialized batch2",
+    "Selected best inner-validation weights loaded explicitly; upstream trainer's commented model save/stale-file test behavior is not reproduced",
+    "Full51 raw input is retained as declared even though train-only positive-sum mask can reduce effective per-fold width",
+    "Original one/higher-operand metadata padding and absence of shots/gateerror feature are preserved and disclosed, not silently corrected"
+  ],
+  "outputs": {
+    "root": "artifacts/real_qpu/mali_full_features",
+    "required": ["method_cards.json", "input_manifest.json", "feature_dictionary.json", "feature_status_ledger.csv", "fold_seed_manifests.json", "oof_attempts.csv", "per_seed_predictions.csv", "metrics.csv", "source_metrics.csv", "paired_intersections.csv", "README.md"],
+    "raw_width_and_stage_recorded_per_row": true,
+    "checkpoint_publication": "Optional content-hash-pinned external assets; exclude caches/canary/polling scratch from public allowlist.",
+    "historical_artifacts_mutated": false,
+    "CURRENT_mutated": false,
+    "commit_push_authorized": false
+  }
+}

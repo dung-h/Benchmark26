@@ -6,20 +6,26 @@ SHA-256 pins used for the benchmark inputs.  The helper
 the checkout and checks their bytes.  It does not run circuits or create new
 runtime labels.
 
-After acquisition, the following utilities document the intended checks:
+The acquisition utility can display its options from this checkout:
 
 ```bash
 python scripts/fetch_upstream_data.py --help
-python scripts/verify_upstream_labels.py --help
-python scripts/build_review_selection_ledger.py --help
-python scripts/verify_dataset_lineage.py --help
 ```
 
-Some source archives use Git LFS and some derived circuit/feature caches are
-not redistributable in this release.  The code deliberately fails rather than
-silently replacing a missing exact input with a newly transpiled circuit or an
-unverified reconstruction.  A reviewer should record missing inputs as a
-reproduction limitation, not treat a generated proxy as the historical input.
+The remaining verification scripts require externally supplied study tables.
+`verify_upstream_labels.py` compares original labels with the canonical tables;
+`build_review_selection_ledger.py` needs those tables and qualification results;
+`verify_dataset_lineage.py` needs the cohort and source tables. `verify_cost.py`
+requires `provenance/cost_source_index.json` and its indexed cost tables.
+`verify_reference.py`, `verify_analytical_kernel.py`, and `validate_portable.py`
+also require saved predictions, resampling draws, or kernel fixtures.
+These inputs are not included in this code release. Downloading upstream files
+alone does not regenerate the intermediate tables. Scripts retain their original
+relative input paths; inspect these before preparing an external study bundle.
+
+Some source archives use Git LFS. Large derived circuit caches are also external
+to this release. Missing pinned inputs must be supplied before executing the
+corresponding stage. Reconstructed circuits require their own provenance records.
 
 The source pins establish provenance of downloaded files.  They do not prove
 that source datasets share a common runtime boundary; that must be assessed

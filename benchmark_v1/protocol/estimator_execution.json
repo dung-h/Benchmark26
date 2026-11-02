@@ -1,0 +1,792 @@
+{
+  "contract_id": "full-feature-estimator-execution",
+  "status": "strong_scientific_contracts_locked_routine_implementation_pending",
+  "scientific_contracts_locked": true,
+  "implementation_complete": false,
+  "execution_authorized": false,
+  "authorization_rule": "This strong pass locks design, not fitting permission. A later explicit user execution request is recorded in the bounded run manifest against these contract hashes. It need not mutate the frozen design cards. Implement and pass all technical gates before starting fits.",
+  "method_contracts": {
+    "mali": {
+      "path": "benchmark_v1/protocol/mali_full_features.json",
+      "sha256": "2ae0d35eb83124e5ca592dc00f9e0b44f46dbd296011e536c3ad5a54a0252c6f"
+    },
+    "qonductor": {
+      "path": "benchmark_v1/protocol/qonductor_native_features.json",
+      "sha256": "f7d62c2a10eef7e347b8e691c1e0463777abd86d6328ef9c3051e194997b0484"
+    },
+    "simulator_ports": {
+      "path": "benchmark_v1/protocol/simulator_estimator_ports.json",
+      "sha256": "0d12bb3beb9ea3131450e777d9ae83393430b01702aea78d6bbf492d8716b425"
+    },
+    "findings": {
+      "path": "benchmark_v1/protocol/analytical_findings.json",
+      "sha256": "d4d09524f89e3816e66822ff8e26d381365923922392adabf2f6c67ccd425d4e"
+    }
+  },
+  "contract_errata": [
+    {
+      "child_contract": "simulator_ports",
+      "original_sha256": "379e2f5d1e7b3cb3ebc16a552dc416164a4a31a31a039b585490f1edb05410d6",
+      "corrected_sha256": "0d12bb3beb9ea3131450e777d9ae83393430b01702aea78d6bbf492d8716b425",
+      "decision_path": "benchmark_v1/decisions/SPIRIT_POOLING_CONTRACT_ERRATUM.md",
+      "decision_sha256": "cfc47a2d698d504ad2db14355d56044cea2cb514415f50da01a329797ba4c0ab",
+      "effect": "Corrects the factual pooling description to the pinned upstream mean+max+sum concatenation; model, inputs, labels, folds, seeds and hyperparameters are unchanged."
+    }
+  ],
+  "input_pins": {
+    "canonical": {
+      "path": "artifacts/benchmark_v1/canonical_corpus_8767_20260926/canonical_observations.csv",
+      "sha256": "920d745e03dd00e8155118d9323baea18ff865e4df2620f3a059bd5503a05ba4"
+    },
+    "outer_split": {
+      "path": "artifacts/benchmark_v2/real_qpu/unified_outer_split_v2.csv",
+      "sha256": "d72b7ba6f90d5bf6ed2f3b602196a05bee11a0f441ee4e5caaca6978b6b0e25a"
+    },
+    "inner_split": {
+      "path": "artifacts/benchmark_v2/real_qpu/unified_inner_split_v2.csv",
+      "sha256": "aaff2b0950379ac7ad8992698bc140687a4cd1b6696b8abeff7cb96270af3cab"
+    },
+    "seed_registry": {
+      "path": "benchmark_v1/registry/seed_registry.json",
+      "sha256": "ae48f16dac27cdf3c9f42ce89acf4a67cb1b318f9c23f32e88d2c61d4323e864"
+    },
+    "current_guard": {
+      "path": "benchmark_v1/registry/CURRENT.json",
+      "sha256": "8a4ba7288e46324c49e290a1244c518b9f01b73a7f27a9b4a79984a13135c9e3"
+    },
+    "fidelity_guard": {
+      "path": "benchmark_v1/registry/method_fidelity_registry_v2.json",
+      "sha256": "98f3460c8d9a0cbabb424555dd695cee573409ed65facdb60557d836f1750810"
+    },
+    "prior_large_canary": {
+      "path": "work/benchmark_recovery/r7_compiled_graph_mlp_v1/attempt_005/cuda_canary.json",
+      "sha256": "bd9127b4d578b8e32622a7ee6ea42315ecee0aeb3be91c95c99bee9a993adb30"
+    }
+  },
+  "dataset": {
+    "assigned_observations": 8767,
+    "source_counts": {
+      "mali_real_qpu": 340,
+      "qonductor_single_circuit_ibm": 4482,
+      "qpack_mcp": 3945
+    },
+    "identity_column": "canonical_row_id",
+    "target_column": "target_seconds",
+    "evaluation_target_clock": "archived_observed_service_execution_time",
+    "fixed_split_rule": "Reuse exact outer and inner assignments. All sources train jointly; source-stratified tables slice the unified OOF outputs, not separate fitted models.",
+    "eligibility": "Method-specific extraction eligibility. Never inherit graph-unavailable status into an otherwise supported scalar method.",
+    "dynamic": {
+      "row": "qonductor_single_circuit_ibm|row4477",
+      "mali": "Static upstream graph/global comparison remains unavailable; no V4.",
+      "qonductor": "Exact submitted QASM extraction is supported as opaque top-level structural input; audit vector [133,197,12,8192,1]. This does not model conditional branch runtime."
+    },
+    "physical_wire_adapter": "Implement the Qonductor-card AST allocated-register restoration once, reuse it for Ma-Li. Preserve physical N and allocated trailing idle wires; require saved graph-signature and classical/condition checks. Do not interpret parser-dependent full IR digest changes as permission for semantic drift."
+  },
+  "training": {
+    "outer_folds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "neural_seeds": [
+      42,
+      1234,
+      31415
+    ],
+    "neural_device": "cuda",
+    "cpu_classical_allowed": true,
+    "mali": "500 epochs, effective batch2, Adam5e-4/weight_decay1e-4, float32 raw-seconds MSE, fixed hyperparameters, best inner_fold0 validation checkpoint; fit transforms on inner fitting rows only. Graph178 and matched global MLP, no logarithmic target.",
+    "mali_matched_fit": "Same globally and graph-materialization-eligible fitting/validation IDs for both variants. Record exact fit IDs/hash. Graph resource failures cannot remove required fitting observations; MLP may still finish independently without inventing graph success.",
+    "qonductor": "Raw-seconds OLS polynomial. Three degrees [2,3,4] x four grouped inner folds; select mean seconds-R2, exact tie lower degree; final refit on all eligible outer-train. No scaling or clipping, preserve constant circuit_count.",
+    "spirit": "Runtime-only qubit-graph local MPS port, explicit 37-type parser extension. Fixed source-derived architecture and hyperparameters; inner-only epoch selection/refit per simulator card.",
+    "softlocked": "Published 50 fields and fixed source GradientBoosting hyperparameters; outer-train-only scaler, five CPU fits, no local tuning.",
+    "prediction_policy": "Preserve every method's declared output transform. Finite negative raw Ma-Li/Qonductor predictions remain scored as returned and flagged; log metrics have separate valid-domain denominators. Do not enforce a generic nonnegative gate.",
+    "seed_reduction": "Row-wise median of all three required neural seed predictions; retain seed dispersion. Incomplete seed sets are partial, not a reported three-seed score.",
+    "fits": {
+      "qpu_neural": 30,
+      "qpu_polynomial_final": 5,
+      "qpu_polynomial_inner": 60,
+      "simulator_spirit_inner_selection": 15,
+      "simulator_spirit_final_refit": 15,
+      "simulator_softlocked": 5,
+      "total_internal_fits": 130,
+      "new_simulator_measurements": 0,
+      "existing_azizov_reused_neural_outer_cells": 45,
+      "existing_azizov_reused_classical_outer_cells": 75
+    }
+  },
+  "environment": {
+    "feature_and_classical": {
+      "local_python_hint": "/home/server/Documents/.venv-qonductor/bin/python",
+      "python": "3.10.21",
+      "qiskit": "2.5.2",
+      "qiskit-ibm-runtime": "0.49.0",
+      "qiskit-qasm3-import": "0.6.0",
+      "openqasm3": "1.0.1",
+      "numpy": "2.2.6",
+      "scikit-learn": "1.7.2"
+    },
+    "neural": {
+      "local_python_hint": "/home/server/Documents/Quantum-Execution-Time-Prediction/.venv-mali-gpu/bin/python",
+      "python": "3.10.21",
+      "torch": "2.7.1+cu128",
+      "torch_geometric": "2.6.1",
+      "cuda_runtime": "12.8",
+      "reference_gpu": "NVIDIA GeForce RTX 5070 Ti"
+    },
+    "closure": "C1 records full requirements lock including scipy/networkx/parsers/BLAS and exact source blobs; these hints are not a portable executable path. Reuse pinned environments where possible, no CPU-only neural fallback.",
+    "numerical_reproduction": "Exact identities/hashes and same methodological outputs are required. State numerical tolerances and observed CUDA nondeterminism; do not promise bit-identical training across hardware.",
+    "prior_canary_boundary": "Pinned old large-graph canary is evidence for the former 64-wide adaptation only. It does not certify the new 178-wide full-feature model."
+  },
+  "resources": {
+    "gpu_training_workers": 1,
+    "gpu_used_budget_gib": 12,
+    "gpu_free_reserve_gib": 4,
+    "aggregate_rss_budget_gib": 28,
+    "available_ram_reserve_gib": 8,
+    "feature_workers": 2,
+    "native_threads_per_feature_worker": 2,
+    "classical_fit_native_threads": 4,
+    "gpu_loader_native_threads": 2,
+    "initial_cpu_concurrency": "Only one feature lane per available aggregate memory budget. Do not start two separate two-worker pools simultaneously; share the two-worker preprocessing pool across Ma-Li/Qonductor.",
+    "training_parallelism": "One GPU queue across Ma-Li graph/MLP and Spirit; bounded Qonductor/SoftLocked CPU fits or saved-result QA may run alongside it if RAM reserve remains satisfied.",
+    "memory_only_optimization": "Ma-Li whole-layer activation recomputation may be selected by largest-graph resource canary, preserving architecture and gradient parity. No node sampling, truncation or narrower graph to obtain a successful score.",
+    "large_fit_failure": "Any intact eligible graph still failing the declared canary/fit budget causes an explicit graph cell failure for folds requiring it. Do not drop it or substitute another model. Continue independent scalar/MLP cells and report coverage.",
+    "gpu_lease": "Reuse benchmark GPU lease helper; no timing workload may share GPU or heavy CPU resources with training.",
+    "training_timeout": "No per-graph scientific timeout. Record elapsed time and stall diagnostics; slow work is not an unavailable sample. Do not reuse the simulator's900-second timeout as a training cutoff.",
+    "eta": "Measure feature throughput and first complete training epochs/cells before quoting an ETA; no duration inferred solely from GPU utilization.",
+    "resume": "Atomic latest checkpoints every<=10epochs, full optimizer/scheduler/RNG/transform/data/source/protocol/fold/seed identities. Verify before resume; completed cells are never overwritten."
+  },
+  "qpu_cells": [
+    {
+      "cell_id": "mali_full_features_graph/fold_0/seed_42",
+      "method_id": "mali_full_features_graph",
+      "outer_fold": 0,
+      "seed": 42,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_graph/fold_0/seed_1234",
+      "method_id": "mali_full_features_graph",
+      "outer_fold": 0,
+      "seed": 1234,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_graph/fold_0/seed_31415",
+      "method_id": "mali_full_features_graph",
+      "outer_fold": 0,
+      "seed": 31415,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_graph/fold_1/seed_42",
+      "method_id": "mali_full_features_graph",
+      "outer_fold": 1,
+      "seed": 42,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_graph/fold_1/seed_1234",
+      "method_id": "mali_full_features_graph",
+      "outer_fold": 1,
+      "seed": 1234,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_graph/fold_1/seed_31415",
+      "method_id": "mali_full_features_graph",
+      "outer_fold": 1,
+      "seed": 31415,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_graph/fold_2/seed_42",
+      "method_id": "mali_full_features_graph",
+      "outer_fold": 2,
+      "seed": 42,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_graph/fold_2/seed_1234",
+      "method_id": "mali_full_features_graph",
+      "outer_fold": 2,
+      "seed": 1234,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_graph/fold_2/seed_31415",
+      "method_id": "mali_full_features_graph",
+      "outer_fold": 2,
+      "seed": 31415,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_graph/fold_3/seed_42",
+      "method_id": "mali_full_features_graph",
+      "outer_fold": 3,
+      "seed": 42,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_graph/fold_3/seed_1234",
+      "method_id": "mali_full_features_graph",
+      "outer_fold": 3,
+      "seed": 1234,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_graph/fold_3/seed_31415",
+      "method_id": "mali_full_features_graph",
+      "outer_fold": 3,
+      "seed": 31415,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_graph/fold_4/seed_42",
+      "method_id": "mali_full_features_graph",
+      "outer_fold": 4,
+      "seed": 42,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_graph/fold_4/seed_1234",
+      "method_id": "mali_full_features_graph",
+      "outer_fold": 4,
+      "seed": 1234,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_graph/fold_4/seed_31415",
+      "method_id": "mali_full_features_graph",
+      "outer_fold": 4,
+      "seed": 31415,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_mlp/fold_0/seed_42",
+      "method_id": "mali_full_features_mlp",
+      "outer_fold": 0,
+      "seed": 42,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_mlp/fold_0/seed_1234",
+      "method_id": "mali_full_features_mlp",
+      "outer_fold": 0,
+      "seed": 1234,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_mlp/fold_0/seed_31415",
+      "method_id": "mali_full_features_mlp",
+      "outer_fold": 0,
+      "seed": 31415,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_mlp/fold_1/seed_42",
+      "method_id": "mali_full_features_mlp",
+      "outer_fold": 1,
+      "seed": 42,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_mlp/fold_1/seed_1234",
+      "method_id": "mali_full_features_mlp",
+      "outer_fold": 1,
+      "seed": 1234,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_mlp/fold_1/seed_31415",
+      "method_id": "mali_full_features_mlp",
+      "outer_fold": 1,
+      "seed": 31415,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_mlp/fold_2/seed_42",
+      "method_id": "mali_full_features_mlp",
+      "outer_fold": 2,
+      "seed": 42,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_mlp/fold_2/seed_1234",
+      "method_id": "mali_full_features_mlp",
+      "outer_fold": 2,
+      "seed": 1234,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_mlp/fold_2/seed_31415",
+      "method_id": "mali_full_features_mlp",
+      "outer_fold": 2,
+      "seed": 31415,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_mlp/fold_3/seed_42",
+      "method_id": "mali_full_features_mlp",
+      "outer_fold": 3,
+      "seed": 42,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_mlp/fold_3/seed_1234",
+      "method_id": "mali_full_features_mlp",
+      "outer_fold": 3,
+      "seed": 1234,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_mlp/fold_3/seed_31415",
+      "method_id": "mali_full_features_mlp",
+      "outer_fold": 3,
+      "seed": 31415,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_mlp/fold_4/seed_42",
+      "method_id": "mali_full_features_mlp",
+      "outer_fold": 4,
+      "seed": 42,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_mlp/fold_4/seed_1234",
+      "method_id": "mali_full_features_mlp",
+      "outer_fold": 4,
+      "seed": 1234,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "mali_full_features_mlp/fold_4/seed_31415",
+      "method_id": "mali_full_features_mlp",
+      "outer_fold": 4,
+      "seed": 31415,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "qonductor_native_feature_unified_polynomial/fold_0",
+      "method_id": "qonductor_native_feature_unified_polynomial",
+      "outer_fold": 0,
+      "seed": null,
+      "device": "cpu",
+      "state": "not_started",
+      "inner_fits": 12,
+      "final_refits": 1
+    },
+    {
+      "cell_id": "qonductor_native_feature_unified_polynomial/fold_1",
+      "method_id": "qonductor_native_feature_unified_polynomial",
+      "outer_fold": 1,
+      "seed": null,
+      "device": "cpu",
+      "state": "not_started",
+      "inner_fits": 12,
+      "final_refits": 1
+    },
+    {
+      "cell_id": "qonductor_native_feature_unified_polynomial/fold_2",
+      "method_id": "qonductor_native_feature_unified_polynomial",
+      "outer_fold": 2,
+      "seed": null,
+      "device": "cpu",
+      "state": "not_started",
+      "inner_fits": 12,
+      "final_refits": 1
+    },
+    {
+      "cell_id": "qonductor_native_feature_unified_polynomial/fold_3",
+      "method_id": "qonductor_native_feature_unified_polynomial",
+      "outer_fold": 3,
+      "seed": null,
+      "device": "cpu",
+      "state": "not_started",
+      "inner_fits": 12,
+      "final_refits": 1
+    },
+    {
+      "cell_id": "qonductor_native_feature_unified_polynomial/fold_4",
+      "method_id": "qonductor_native_feature_unified_polynomial",
+      "outer_fold": 4,
+      "seed": null,
+      "device": "cpu",
+      "state": "not_started",
+      "inner_fits": 12,
+      "final_refits": 1
+    }
+  ],
+  "simulator_cells": [
+    {
+      "cell_id": "spirit_sprinters_mps_runtime/fold_0/seed_42",
+      "method_id": "spirit_sprinters_mps_runtime",
+      "outer_fold": 0,
+      "seed": 42,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "spirit_sprinters_mps_runtime/fold_0/seed_1234",
+      "method_id": "spirit_sprinters_mps_runtime",
+      "outer_fold": 0,
+      "seed": 1234,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "spirit_sprinters_mps_runtime/fold_0/seed_31415",
+      "method_id": "spirit_sprinters_mps_runtime",
+      "outer_fold": 0,
+      "seed": 31415,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "spirit_sprinters_mps_runtime/fold_1/seed_42",
+      "method_id": "spirit_sprinters_mps_runtime",
+      "outer_fold": 1,
+      "seed": 42,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "spirit_sprinters_mps_runtime/fold_1/seed_1234",
+      "method_id": "spirit_sprinters_mps_runtime",
+      "outer_fold": 1,
+      "seed": 1234,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "spirit_sprinters_mps_runtime/fold_1/seed_31415",
+      "method_id": "spirit_sprinters_mps_runtime",
+      "outer_fold": 1,
+      "seed": 31415,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "spirit_sprinters_mps_runtime/fold_2/seed_42",
+      "method_id": "spirit_sprinters_mps_runtime",
+      "outer_fold": 2,
+      "seed": 42,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "spirit_sprinters_mps_runtime/fold_2/seed_1234",
+      "method_id": "spirit_sprinters_mps_runtime",
+      "outer_fold": 2,
+      "seed": 1234,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "spirit_sprinters_mps_runtime/fold_2/seed_31415",
+      "method_id": "spirit_sprinters_mps_runtime",
+      "outer_fold": 2,
+      "seed": 31415,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "spirit_sprinters_mps_runtime/fold_3/seed_42",
+      "method_id": "spirit_sprinters_mps_runtime",
+      "outer_fold": 3,
+      "seed": 42,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "spirit_sprinters_mps_runtime/fold_3/seed_1234",
+      "method_id": "spirit_sprinters_mps_runtime",
+      "outer_fold": 3,
+      "seed": 1234,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "spirit_sprinters_mps_runtime/fold_3/seed_31415",
+      "method_id": "spirit_sprinters_mps_runtime",
+      "outer_fold": 3,
+      "seed": 31415,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "spirit_sprinters_mps_runtime/fold_4/seed_42",
+      "method_id": "spirit_sprinters_mps_runtime",
+      "outer_fold": 4,
+      "seed": 42,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "spirit_sprinters_mps_runtime/fold_4/seed_1234",
+      "method_id": "spirit_sprinters_mps_runtime",
+      "outer_fold": 4,
+      "seed": 1234,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "spirit_sprinters_mps_runtime/fold_4/seed_31415",
+      "method_id": "spirit_sprinters_mps_runtime",
+      "outer_fold": 4,
+      "seed": 31415,
+      "device": "cuda",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "softlocked_mps_runtime/fold_0/seed_42",
+      "method_id": "softlocked_mps_runtime",
+      "outer_fold": 0,
+      "seed": 42,
+      "device": "cpu",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "softlocked_mps_runtime/fold_1/seed_42",
+      "method_id": "softlocked_mps_runtime",
+      "outer_fold": 1,
+      "seed": 42,
+      "device": "cpu",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "softlocked_mps_runtime/fold_2/seed_42",
+      "method_id": "softlocked_mps_runtime",
+      "outer_fold": 2,
+      "seed": 42,
+      "device": "cpu",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "softlocked_mps_runtime/fold_3/seed_42",
+      "method_id": "softlocked_mps_runtime",
+      "outer_fold": 3,
+      "seed": 42,
+      "device": "cpu",
+      "state": "not_started"
+    },
+    {
+      "cell_id": "softlocked_mps_runtime/fold_4/seed_42",
+      "method_id": "softlocked_mps_runtime",
+      "outer_fold": 4,
+      "seed": 42,
+      "device": "cpu",
+      "state": "not_started"
+    }
+  ],
+  "existing_results": {
+    "azizov": "Accept pinned executed local adaptation after independently recomputed source/split/seed metrics; no new fits.",
+    "analytical": "Saved diagnostic work only under analytical_findings card; no new calibration or correction fit.",
+    "native": "Keep Ma-Li340 and Qonductor4482 source-local artifacts as references; not unified8677 scores."
+  },
+  "technical_gates": [
+    {
+      "gate": "inputs_and_dependencies",
+      "task": "C1",
+      "checks": [
+        "All contract/source/data pins verified; missing external asset blocks the required stage, not a fabricated feature.",
+        "Source adapters imported without constructor training/provider side effects.",
+        "Portable environment and rights/reconstruction disclosures captured."
+      ]
+    },
+    {
+      "gate": "materialization",
+      "task": "C2/C3",
+      "checks": [
+        "One terminal status per8767 assigned observation, per-file hash and source stage retained.",
+        "51 Ma-Li raw globals and178-node schema exact; Qonductor actual five-column order exact.",
+        "Hardware-wire restoration, sparse/idle allocation and classical conditions preserve source feature semantics.",
+        "All source/backend canaries, largest graphs, row4477 and degenerate cases recorded."
+      ]
+    },
+    {
+      "gate": "runners",
+      "task": "C4",
+      "checks": [
+        "Frozen outer/inner group leakage tests; held-out perturbations cannot alter fit transforms/tuning.",
+        "CUDA forward/backward/resume and memory-only recomputation parity; no silent CPU fallback.",
+        "Graph/MLP matched fitting row hashes and batches; no truncation/drop-last bias.",
+        "Source-defined Spirit graph/AST extension and SoftLocked50-field metadata parity; no held-out quality features."
+      ]
+    },
+    {
+      "gate": "initial_cells",
+      "task": "C5/C6/C7",
+      "checks": [
+        "Qonductorfold0 twelveinner scores and finalrefit; allthreeMa-Liseeds fold0 for bothvariants.",
+        "Spiritfold0 threeseeds and SoftLockedfold0.",
+        "Coverage/status/identity/source/clock/finite numeric/resume QA; no MAE/R2 acceptance threshold."
+      ]
+    },
+    {
+      "gate": "automatic_completion",
+      "task": "remaining_folds",
+      "checks": [
+        "After later explicit execution permission and technical PASS, auto-continue folds1-4 without further role approval.",
+        "Every failed/pending cell stays visible. Record resource failures separately from unsupported representation.",
+        "Low accuracy and nonpositiveR2 are valid benchmark results, not reasons to change features or seed."
+      ]
+    },
+    {
+      "gate": "aggregation_and_review",
+      "task": "C8/C9/S6",
+      "checks": [
+        "Full-envelope coverage plus identical-row intersections, source metrics and source-balanced macro; secondsR2 separate from log metrics.",
+        "Paired clustered bootstrap direct point estimate separate from bootstrap mean; exploratory design disclosed.",
+        "Independent S6 scientific review before allowlisted C10 export. No self-signed builder review."
+      ]
+    }
+  ],
+  "routine_queue": [
+    {
+      "id": "C1",
+      "action": "Retrieve source closure and implement safe reusable adapters/dependency locks",
+      "depends_on": [],
+      "parallel_lane": "CPU source/dependency"
+    },
+    {
+      "id": "C2",
+      "action": "Materialize Ma-Li full globals/nodes/statuses",
+      "depends_on": [
+        "C1"
+      ],
+      "parallel_lane": "shared bounded CPU feature pool"
+    },
+    {
+      "id": "C3",
+      "action": "Materialize Qonductor exact native features/statuses",
+      "depends_on": [
+        "C1"
+      ],
+      "parallel_lane": "shared bounded CPU feature pool"
+    },
+    {
+      "id": "C4",
+      "action": "Implement and pass parity, firewall, CUDA, largest-graph and resume gates",
+      "depends_on": [
+        "C1",
+        "C2",
+        "C3"
+      ],
+      "parallel_lane": "CPU tests then exclusive GPU canaries"
+    },
+    {
+      "id": "C5",
+      "action": "Five Qonductor nested outer cells",
+      "depends_on": [
+        "C3",
+        "C4",
+        "later_explicit_execution_permission"
+      ],
+      "parallel_lane": "bounded CPU fits"
+    },
+    {
+      "id": "C6",
+      "action": "Thirty Ma-Li graph/MLP fold-seed cells",
+      "depends_on": [
+        "C2",
+        "C4",
+        "later_explicit_execution_permission"
+      ],
+      "parallel_lane": "exclusive GPU queue"
+    },
+    {
+      "id": "C7",
+      "action": "Fifteen Spirit and five SoftLocked local MPS cells",
+      "depends_on": [
+        "C1",
+        "C4",
+        "later_explicit_execution_permission"
+      ],
+      "parallel_lane": "Spirit GPU queue; SoftLocked CPU fits"
+    },
+    {
+      "id": "C8",
+      "action": "Saved-result QA and predeclared diagnostics, then new OOF aggregation",
+      "depends_on": [],
+      "parallel_lane": "bounded CPU analysis; may begin on existing outputs"
+    },
+    {
+      "id": "C9",
+      "action": "Regenerate two-domain reader tables and maintained dictionary/findings",
+      "depends_on": [
+        "C5",
+        "C6",
+        "C7",
+        "C8"
+      ],
+      "parallel_lane": "coordinator"
+    },
+    {
+      "id": "S6",
+      "action": "Independent final scientific/numerical review",
+      "depends_on": [
+        "C9"
+      ],
+      "parallel_lane": "independent reviewer"
+    },
+    {
+      "id": "C10",
+      "action": "Allowlisted export and clean-clone reproduction",
+      "depends_on": [
+        "S6"
+      ],
+      "parallel_lane": "coordinator"
+    }
+  ],
+  "permissions": {
+    "modify_historical_outputs": false,
+    "modify_canonical_or_splits": false,
+    "modify_CURRENT_or_fidelity_registry": false,
+    "new_simulator_measurements": false,
+    "live_qpu": false,
+    "v4_training": false,
+    "delete_local_history": false,
+    "commit_or_push": false
+  },
+  "outputs": {
+    "primary_reader": "Two maintained tables: unified archivedQPU on8767 attempts and simulator comparisons withinidentical fixedenginecontexts.",
+    "public_naming": "Semantic version-free method/domain paths; scientific versions/seeds/commits inmetadata.",
+    "scratch": "Implementationcanaries/checkpointpolling/caches stayoutsidepublicallowlist; scientificallynecessaryfailurereceiptsandregressiontests retained.",
+    "reproduction": "Separately identify table replay, source/feature reconstruction and fullGPUrefit; externalarchives/checkpoints are pinnedoptionaldownloads, not claimedbundled."
+  }
+}
