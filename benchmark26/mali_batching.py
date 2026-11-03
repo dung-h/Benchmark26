@@ -7,7 +7,7 @@ are durable evidence for this execution context, not replacement raw results.
 """
 
 from __future__ import annotations
-from benchmark26.paths import ARTIFACTS, PROTOCOLS
+from benchmark26.paths import ARTIFACTS, PROTOCOLS, recorded
 from pathlib import Path
 
 import argparse
@@ -142,7 +142,10 @@ def partitions_and_transform(context, fold):
         ):
             raise RuntimeError("parent_transform_identity_mismatch")
     else:
-        paths = [(context["feature_root"] / context["ledger"][cid]["graph_artifact"]).resolve() for cid in parts["fit"]]
+        paths = [
+            (recorded(a) if a.startswith("artifacts/") else context["feature_root"] / a).resolve()
+            for a in (context["ledger"][cid]["graph_artifact"] for cid in parts["fit"])
+        ]
         transform = {
             "global": glob,
             "node": base.fit_node_transform(paths, parts["fit"]),

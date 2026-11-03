@@ -45,7 +45,8 @@ All machine-specific locations are read from environment variables in `benchmark
 | `B26_QONDUCTOR_SOURCE` | `inputs/qonductor/` | Qonductor Git checkout at the pinned revision |
 | `B26_QONDUCTOR_ARCHIVE` | `$B26_QONDUCTOR_SOURCE/data/database/circuits.zip` | Hydrated circuit archive |
 | `B26_QONDUCTOR_DATABASE` | `$B26_QONDUCTOR_SOURCE/data/database/quantum_scheduler.db` | Qonductor database |
-| `B26_WORK` | `work/` | New outputs and checkpoints |
+| `B26_WORK` | `work/` | Scratch outputs (smoke example, verifier output) |
+| `B26_RUN_DIR` | unset | Output directory of a new fitting run (see [Run the pipeline](#run-the-pipeline)) |
 | `B26_NEURAL_PYTHON` | current interpreter | Interpreter whose packages are recorded for neural training |
 
 The bundle keeps the directory names of the original study (for example `postfreeze_qpu_workflow_mean_expansion_v1/`). Frozen protocols and receipts record paths in the original layout (`artifacts/...`, `benchmark_v1/protocol/...`); `benchmark26.paths.recorded()` maps them to the locations above.
@@ -61,6 +62,7 @@ python3 experiments/qpu/verify_dataset_lineage.py --output /tmp/b26/lineage
 python3 experiments/qpu/replay_statistics.py --receipt /tmp/b26/statistics.json
 python3 experiments/analytical/validate_portable.py
 python3 experiments/qpu/train_neural.py --stage preflight --evaluation E1
+python3 experiments/qpu/validate_completed.py --output /tmp/b26/validation   # add --replay-all for GPU inference replay
 ```
 
 | Command | Recomputes |
@@ -69,7 +71,8 @@ python3 experiments/qpu/train_neural.py --stage preflight --evaluation E1
 | `verify_dataset_lineage.py` | Source tables → cohort rows, QPack means and groups |
 | `replay_statistics.py` | Every metric, paired contrast and bootstrap interval from the saved predictions; hashes of all locked inputs and graphs |
 | `validate_portable.py` | Analytical metrics and intervals from the saved estimates |
-| `train_neural.py --stage preflight` | Readiness of neural fitting, without fitting |
+| `train_neural.py --stage preflight` | Cohort and split inputs, then training readiness: lock, inputs, graphs, code identity, run manifest, pinned model source, PyTorch and GPU; nothing is fitted |
+| `validate_completed.py` | Structure, identities and selections of all saved fitted outputs; with `--replay-all`, every saved neural prediction from its checkpoint |
 
 The following checks write their receipt into the bundle, as the original pipeline did. Run them on a copy of the bundle: `experiments/analytical/extract_raw.py --check-only`, `experiments/analytical/validate.py`, `validate_coverage.py`, `validate_qiskit_parity.py`, and `experiments/qpu/run_classical.py --stage preflight`.
 
@@ -77,7 +80,15 @@ On 3 November 2026 all eleven commands were run with this code against the origi
 
 ### Run the pipeline
 
-The main study runs in this order. Each step checks the outputs of the previous one.
+The original execution lock (`execution_lock_v2.json` in the bundle) pins the protocol, inputs, graphs and code of the saved study. The code in this repository was adapted after that lock (portable paths, formatting), so it cannot continue or overwrite the saved run. It can start a new run in a separate directory with the same protocol and inputs:
+
+```bash
+export B26_RUN_DIR=/path/to/new/run          # outside the bundle
+python3 experiments/qpu/prepare_run.py       # checks locked inputs and graphs, records the current code
+python3 experiments/qpu/train_neural.py --stage preflight --require-ready
+```
+
+`prepare_run.py` writes `run_manifest.json` with the SHA-256 of every code file named in the original lock. Fitting accepts exactly that code and stops if a file changes; use a new directory after changing code. All settings (cohort, splits, seeds, epochs, candidate sets) come from the original lock. The fitted models and predictions are a new experiment, not a check of the saved one.
 
 | Step | Command |
 | --- | --- |
@@ -85,17 +96,17 @@ The main study runs in this order. Each step checks the outputs of the previous 
 | Splits | `python3 experiments/qpu/prepare_splits.py`, then `validate_splits.py` |
 | Neural models | `python3 experiments/qpu/train_neural.py --stage train --evaluation E1` (also E2, E3) |
 | Regression selector | `python3 experiments/qpu/run_classical.py --stage train --evaluation E1` (also E2, E3) |
-| Completion check | `python3 experiments/qpu/validate_completed.py --output DIR` |
-| Metrics and contrasts | `python3 experiments/qpu/aggregate_results.py --output DIR` |
+| Completion check | `python3 experiments/qpu/validate_completed.py` |
+| Metrics and contrasts | `python3 experiments/qpu/aggregate_results.py` |
 | Analytical estimates | `experiments/analytical/extract_raw.py --full`, then `evaluate.py` |
 
-Neural training needs a CUDA GPU. Fitting writes new models and predictions; it is a new experiment, not a check of the saved one.
+With `B26_RUN_DIR` set, fitting, completion check and aggregation read and write `training/`, `classical/`, `validation/` and `analysis_v1/` under that directory; inputs are still read from the bundle. Without it they address the saved study, where fitting is refused and validation checks the saved outputs. Neural training needs a CUDA GPU with at least 12 GiB and the Ma–Li Git checkout (`B26_MALI_SOURCE`), from which the pinned model source is loaded.
 
 Shared modules can also be run directly, for example `python3 -m benchmark26.mali_materialize --help`.
 
 ## Code identity
 
-The frozen protocols and execution locks record SHA-256 hashes of the code that produced the study. The code here was adapted for portable paths and formatting, so its hashes differ from the recorded ones. Checks against the bundle therefore compare data and results, not code hashes. Files whose hashes are pinned by other frozen files (`protocols/`, including two reference programs in `protocols/reference_code/`) are kept byte-identical; `make check` verifies them.
+Frozen protocols and execution locks record SHA-256 hashes of the code that produced the study. The code here differs from those hashes. Checks against the saved study therefore compare data and results, not code; fitting with this code requires a new run as described above. Files whose hashes are pinned by other frozen files (`protocols/`, including two reference programs in `protocols/reference_code/`) are kept byte-identical; `make check` verifies them.
 
 ## Not reproducible from this repository
 

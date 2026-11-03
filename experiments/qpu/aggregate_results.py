@@ -15,7 +15,7 @@ from pathlib import Path
 import subprocess
 import sys
 import numpy as np
-from core import OUT, ROOT, rows, sha, stable, atomic_json, atomic_csv, load_context, parts_for
+from core import OUT, RUN, ROOT, rows, sha, stable, atomic_json, atomic_csv, load_context, parts_for
 from analysis_core import aligned, metrics, group_errors, bootstrap_draws, paired_intervals, CONTRASTS
 
 METHODS = ("M0", "M1", "G0", "G1", "R0", "C0")
@@ -32,8 +32,8 @@ NAMES = {
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--output", type=Path, default=OUT / "analysis_v1")
-    ap.add_argument("--validation", type=Path, default=OUT / "validation/final_v2/receipt.json")
+    ap.add_argument("--output", type=Path, default=RUN / "analysis_v1")
+    ap.add_argument("--validation", type=Path, default=RUN / "validation/final_v2/receipt.json")
     args = ap.parse_args()
     if args.output.exists():
         raise RuntimeError("Analysis output exists; refuse overwrite")
@@ -76,7 +76,7 @@ def main():
             for m in METHODS[:4]:
                 records = []
                 for seed in SEEDS:
-                    path = OUT / "training" / ev / f"fold_{fold}" / m / f"seed_{seed}" / "predictions.csv"
+                    path = RUN / "training" / ev / f"fold_{fold}" / m / f"seed_{seed}" / "predictions.csv"
                     current = aligned(rows(path), part["test"])
                     records.append(current)
                     byseed[m, seed].extend(current)
@@ -104,7 +104,7 @@ def main():
                         }
                     )
             for m, filename in [("R0", "regression_predictions.csv"), ("C0", "constant_predictions.csv")]:
-                path = OUT / "classical" / ev / f"fold_{fold}" / filename
+                path = RUN / "classical" / ev / f"fold_{fold}" / filename
                 records = aligned(rows(path), part["test"])
                 if m == "C0":
                     expected = float(np.median([targets[c] for c in part["train"]]))

@@ -6,14 +6,23 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-from benchmark26.paths import ARTIFACTS
+from benchmark26.paths import ARTIFACTS, RUN_DIR, recorded
 from pathlib import Path
 import csv, hashlib, json, math
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
+# Inputs of the study: cohort, splits, protocol and execution lock.
 OUT = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
 SPLITS = OUT / "splits"
+PROTOCOL = OUT / "PROTOCOL.md"
+LOCK = OUT / "execution_lock_v2.json"
+# Fitting outputs (training/, classical/, validation/, analysis_v1/). Without
+# B26_RUN_DIR these are the original study outputs.
+RUN = RUN_DIR if RUN_DIR is not None else OUT
+NEW_RUN = RUN_DIR is not None
+RUN_MANIFEST = RUN / "run_manifest.json"
+PREPARE_HINT = "set B26_RUN_DIR to a new directory and run experiments/qpu/prepare_run.py"
 
 
 def sha(path):
@@ -208,3 +217,109 @@ def parts_for(context, fold):
         "assignments": assignment,
         "inner_cv": inner_cv,
     }
+
+
+# Execution identity -------------------------------------------------------
+#
+# The original study fixed its protocol, inputs, graphs and code by SHA-256 in
+# LOCK before any outcome was seen. This repository's code was adapted after
+# that lock (portable paths, formatting), so it cannot continue the original
+# run. It can start a new run: prepare_run.py checks the locked inputs and
+# records the hashes of the current code in RUN/run_manifest.json. Fitting
+# scripts then accept exactly that code and write only under RUN.
+
+
+def load_lock() -> dict:
+    if not PROTOCOL.is_file() or not LOCK.is_file():
+        raise RuntimeError("expansion_protocol_not_locked")
+    return json.loads(LOCK.read_text(encoding="utf-8"))
+
+
+def locked_input_problems(lock: dict) -> list[str]:
+    """Differences between the bundle and the locked protocol, inputs and graphs."""
+    problems = []
+    if lock.get("status") != "LOCKED_PRE_OUTCOME":
+        problems.append(f"lock_status:{lock.get('status')}")
+    if lock.get("protocol_markdown_sha256") != sha(PROTOCOL):
+        problems.append("protocol_markdown_hash")
+    for kind in ("input_hashes", "unique_graph_hashes"):
+        for relative, digest in lock.get(kind, {}).items():
+            path = recorded(relative)
+            if not path.is_file():
+                problems.append(f"missing:{relative}")
+            elif sha(path) != digest:
+                problems.append(f"hash_mismatch:{relative}")
+    return problems
+
+
+def current_code_hashes(lock: dict) -> dict:
+    """SHA-256 of this repository's version of every code file named in the lock."""
+    out = {}
+    for relative in lock.get("code_hashes", {}):
+        path = recorded(relative)
+        out[relative] = sha(path) if path.is_file() else None
+    return out
+
+
+def historical_code_differences(lock: dict, current: dict | None = None) -> list[str]:
+    current = current_code_hashes(lock) if current is None else current
+    return sorted(k for k, v in lock.get("code_hashes", {}).items() if current.get(k) != v)
+
+
+def _run_dir_problem() -> str | None:
+    if not NEW_RUN:
+        return None
+    run, study = RUN.resolve(), OUT.resolve()
+    if run == study or study in run.parents or run in study.parents:
+        return f"B26_RUN_DIR must be outside the original study directory {study}"
+    return None
+
+
+def run_manifest_problems(lock: dict, current: dict | None = None, check_code: bool = True) -> list[str]:
+    """Why RUN/run_manifest.json does not authorize fitting with the current code."""
+    problem = _run_dir_problem()
+    if problem:
+        return [problem]
+    if not RUN_MANIFEST.is_file():
+        return [f"missing {RUN_MANIFEST}; {PREPARE_HINT}"]
+    manifest = json.loads(RUN_MANIFEST.read_text(encoding="utf-8"))
+    problems = []
+    if manifest.get("status") != "NEW_RUN_ADAPTED_CODE":
+        problems.append(f"run_manifest_status:{manifest.get('status')}")
+    if manifest.get("historical_lock_sha256") != sha(LOCK):
+        problems.append("run_manifest_names_a_different_historical_lock")
+    if not check_code:
+        return problems
+    current = current_code_hashes(lock) if current is None else current
+    changed = sorted(k for k, v in current.items() if manifest.get("code_hashes", {}).get(k) != v)
+    if changed:
+        problems.append(f"code_changed_since_run_manifest:{','.join(changed)}; use a new B26_RUN_DIR")
+    return problems
+
+
+def execution_identity(require_code: bool = True) -> tuple[dict, str]:
+    """Return ``(lock, identity_sha256)`` for fitting or for validating fitted outputs.
+
+    The locked protocol, inputs and graphs must always match. With
+    ``require_code`` (fitting), the code must also match: the original lock for
+    the original study outputs, or RUN/run_manifest.json for a new run. The
+    identity hash is the one that fitted outputs record as
+    ``protocol_lock_sha256``.
+    """
+    lock = load_lock()
+    problems = locked_input_problems(lock)
+    if problems:
+        raise RuntimeError("locked_inputs_differ:" + ";".join(problems[:5]))
+    if NEW_RUN:
+        problems = run_manifest_problems(lock, check_code=require_code)
+        if problems:
+            raise RuntimeError("new_run_not_prepared:" + ";".join(problems))
+        return lock, sha(RUN_MANIFEST)
+    if require_code:
+        differ = historical_code_differences(lock)
+        if differ:
+            raise RuntimeError(
+                f"historical_code_lock_mismatch:{differ[0]} (+{len(differ) - 1} more). "
+                f"This code cannot extend the original run; {PREPARE_HINT}"
+            )
+    return lock, sha(LOCK)

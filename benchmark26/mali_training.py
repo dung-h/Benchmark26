@@ -818,8 +818,12 @@ def _make_example(
         if row.get("graph_status") != "available":
             raise RuntimeError(f"graph_test_input_unavailable:{canonical_id}")
         artifact = row.get("graph_artifact", "")
-        graph_path = (feature_root / artifact).resolve()
-        if feature_root.resolve() not in graph_path.parents or not graph_path.is_file():
+        # Ledgers record bundle paths as ``artifacts/...``; resolve them in the
+        # configured bundle rather than under the code checkout.
+        in_bundle = artifact.startswith("artifacts/")
+        graph_path = (recorded(artifact) if in_bundle else feature_root / artifact).resolve()
+        allowed_root = (ARTIFACTS if in_bundle else feature_root).resolve()
+        if allowed_root not in graph_path.parents or not graph_path.is_file():
             raise RuntimeError(f"graph_artifact_missing_or_outside_root:{canonical_id}")
         if (verified_graph_paths is None or graph_path not in verified_graph_paths) and sha256_file(
             graph_path

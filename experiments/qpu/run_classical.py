@@ -13,8 +13,19 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-OUT = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
-from core import atomic_csv, atomic_json, load_context, load_targets, parts_for, rows, sha, stable
+from core import (
+    OUT,
+    RUN,
+    atomic_csv,
+    atomic_json,
+    execution_identity,
+    load_context,
+    load_targets,
+    parts_for,
+    rows,
+    sha,
+    stable,
+)
 from benchmark26.qonductor_regression import fit_one_candidate, source_grids_and_models
 
 NATIVE = OUT / "cohort/native_baseline_features.csv"
@@ -36,7 +47,7 @@ def load_matrix(context):
 
 def run_case(ev, fold, context, matrix, lock_sha, templates, candidates, families):
     parts = parts_for(context, fold)
-    folder = OUT / "classical" / ev / f"fold_{fold}"
+    folder = RUN / "classical" / ev / f"fold_{fold}"
     folder.mkdir(parents=True, exist_ok=True)
     train = parts["train"]
     test = parts["test"]
@@ -215,15 +226,10 @@ def main():
             "no_fit_or_score": True,
             "selector_source_revision": "pinned Qonductor-SC25 adapter already audited in strict logical benchmark",
         }
-        atomic_json(OUT / "classical/preflight_receipt.json", receipt)
+        atomic_json(RUN / "classical/preflight_receipt.json", receipt)
         print(json.dumps(receipt, indent=2))
         return
-    lock = json.loads((OUT / "execution_lock_v2.json").read_text())
-    if lock.get("status") != "LOCKED_PRE_OUTCOME":
-        raise RuntimeError("study_not_locked")
-    from train_neural import protocol_lock
-
-    _lock, lock_sha = protocol_lock()
+    _lock, lock_sha = execution_identity()
     evals = [args.evaluation] if args.evaluation else ["E1", "E2", "E3"]
     templates, _, _ = source_grids_and_models()
     doc = json.loads((ARTIFACTS / "real_qpu/qualified_logical_panel/candidates.json").read_text())
@@ -239,7 +245,7 @@ def main():
             result = run_case(ev, fold, context, matrix, lock_sha, templates, candidates, families)
             completed.append(result)
             atomic_json(
-                OUT / "classical/run_progress.json",
+                RUN / "classical/run_progress.json",
                 {
                     "status": "running",
                     "completed_cases": len(completed),
@@ -250,7 +256,7 @@ def main():
             )
             print(json.dumps(result), flush=True)
     atomic_json(
-        OUT / "classical/completion_receipt.json",
+        RUN / "classical/completion_receipt.json",
         {
             "status": "COMPLETE_20_OF_20",
             "cases": completed,

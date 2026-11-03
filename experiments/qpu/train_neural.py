@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-from benchmark26.paths import ARTIFACTS, recorded
+from benchmark26.paths import recorded
 from pathlib import Path
 
 import argparse
@@ -23,14 +23,31 @@ import time
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-OUT = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
-PROTOCOL = OUT / "PROTOCOL.md"
-LOCK = OUT / "execution_lock_v2.json"
 sys.path.insert(0, str(HERE))
 from benchmark26 import mali_training as base  # noqa: E402
 from benchmark26 import mali_batching as batching  # noqa: E402
 from benchmark26.shots import append_shots, expand_global_projection, fit_shot_transform, transform_shots  # noqa: E402
-from core import atomic_csv, atomic_json, load_context, load_targets, parts_for, rows, sha, stable  # noqa: E402
+from core import (  # noqa: E402
+    LOCK,
+    NEW_RUN,
+    OUT,
+    PREPARE_HINT,
+    RUN,
+    atomic_csv,
+    atomic_json,
+    current_code_hashes,
+    execution_identity,
+    historical_code_differences,
+    load_context,
+    load_lock,
+    load_targets,
+    locked_input_problems,
+    parts_for,
+    rows,
+    run_manifest_problems,
+    sha,
+    stable,
+)
 
 SEEDS = (42, 1234, 31415)
 EPOCHS = 500
@@ -137,25 +154,69 @@ def environment_receipt(torch) -> dict:
     }
 
 
-def protocol_lock() -> tuple[dict, str]:
-    if not PROTOCOL.is_file() or not LOCK.is_file():
-        raise RuntimeError("expansion_protocol_not_locked")
-    lock = json.loads(LOCK.read_text(encoding="utf-8"))
-    if lock.get("status") != "LOCKED_PRE_OUTCOME" or lock.get("protocol_markdown_sha256") != sha(PROTOCOL):
-        raise RuntimeError("expansion_protocol_lock_mismatch")
-    expected = lock.get("code_hashes", {})
+def protocol_lock(require_code: bool = True) -> tuple[dict, str]:
+    """Locked settings and the identity hash that fitted outputs record."""
+    lock, identity_sha = execution_identity(require_code=require_code)
     if int(lock.get("neural", {}).get("effective_batch", -1)) != EFFECTIVE_BATCH:
         raise RuntimeError("effective_batch_does_not_match_locked_profile")
-    for relative, digest in expected.items():
-        if sha(recorded(relative)) != digest:
-            raise RuntimeError(f"locked_code_hash_mismatch:{relative}")
-    for relative, digest in lock.get("input_hashes", {}).items():
-        if sha(recorded(relative)) != digest:
-            raise RuntimeError(f"locked_input_hash_mismatch:{relative}")
-    for relative, digest in lock.get("unique_graph_hashes", {}).items():
-        if sha(recorded(relative)) != digest:
-            raise RuntimeError(f"locked_graph_hash_mismatch:{relative}")
-    return lock, sha(LOCK)
+    return lock, identity_sha
+
+
+def training_readiness() -> dict:
+    """Report, without fitting or GPU computation, whether training can start."""
+    lock = load_lock()
+    inputs = locked_input_problems(lock)
+    current = current_code_hashes(lock)
+    differ = historical_code_differences(lock, current)
+    blocking = []
+    if inputs:
+        blocking.append("bundle differs from the locked protocol, inputs or graphs")
+    if int(lock.get("neural", {}).get("effective_batch", -1)) != EFFECTIVE_BATCH:
+        blocking.append("QPU_EXPANSION_BATCH differs from the locked effective batch")
+    report = {
+        "historical_lock_sha256": sha(LOCK),
+        "locked_inputs_and_graphs": "match" if not inputs else inputs[:10],
+        "code_identical_to_historical_lock": len(current) - len(differ),
+        "code_differing_from_historical_lock": differ,
+        "output_directory": str(RUN),
+        "mode": "new run" if NEW_RUN else "original study outputs",
+    }
+    if NEW_RUN:
+        manifest = run_manifest_problems(lock, current)
+        report["run_manifest"] = "valid" if not manifest else manifest
+        blocking += manifest
+    elif differ:
+        blocking.append(f"code differs from the historical lock; {PREPARE_HINT}")
+    relative = "model/transformer_model.py"
+    try:
+        blob = subprocess.run(
+            ["git", "-C", str(base.MALI_SOURCE), "show", f"{base.PINNED_MODEL_REVISION}:{relative}"],
+            capture_output=True,
+            check=True,
+        ).stdout
+        report["pinned_model_source"] = "match" if base.sha256_bytes(blob) == base.SOURCE_PINS[relative] else "differs"
+    except (OSError, subprocess.CalledProcessError):
+        report["pinned_model_source"] = f"unavailable in {base.MALI_SOURCE}"
+    if report["pinned_model_source"] != "match":
+        blocking.append("pinned Ma-Li model source not found; set B26_MALI_SOURCE to the Ma-Li Git checkout")
+    try:
+        import torch
+
+        report["torch"] = torch.__version__
+        report["cuda_available"] = bool(torch.cuda.is_available())
+        if report["cuda_available"]:
+            props = torch.cuda.get_device_properties(0)
+            report["gpu"] = {"name": props.name, "total_gib": round(props.total_memory / 2**30, 2)}
+            if props.total_memory / 2**30 < GPU_BUDGET_GIB:
+                blocking.append(f"GPU has less than the locked {GPU_BUDGET_GIB} GiB budget")
+        else:
+            blocking.append("CUDA GPU not available (no CPU fallback)")
+    except ImportError:
+        report["torch"] = None
+        blocking.append("PyTorch is not installed")
+    report["blocking"] = blocking
+    report["ready_to_train"] = not blocking
+    return report
 
 
 def fit_transform(context, parts, fold):
@@ -195,7 +256,7 @@ def make_model(treatment, transform, seed, torch):
 
 
 def fit_transform_for_cell(context, parts, fold, evaluation):
-    path = OUT / "training" / evaluation / f"fold_{fold}" / "transform.json"
+    path = RUN / "training" / evaluation / f"fold_{fold}" / "transform.json"
     fitted = fit_transform(context, parts, fold)
     if path.exists():
         saved = json.loads(path.read_text(encoding="utf-8"))
@@ -322,7 +383,7 @@ def initialization_gate(context, parts, transform, treatment, seed, torch):
 
 
 def cell_paths(evaluation, treatment, fold, seed, canary=False):
-    parent = OUT / "training" / ("canary_v2" if canary else evaluation)
+    parent = RUN / "training" / ("canary_v2" if canary else evaluation)
     return parent / f"fold_{fold}" / treatment / f"seed_{seed}"
 
 
@@ -585,11 +646,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--stage", choices=("preflight", "canary", "first_cell", "train"), required=True)
     parser.add_argument("--evaluation", choices=("E1", "E2", "E3"), default="E1")
+    parser.add_argument("--require-ready", action="store_true", help="preflight: exit 2 unless training could start")
     args = parser.parse_args()
     context, _targets, split_receipt = load_context(args.evaluation, include_targets=False)
     if args.stage == "preflight":
-        print(json.dumps(split_receipt, indent=2))
-        return
+        readiness = training_readiness()
+        print(json.dumps({"data_and_splits": split_receipt, "training_readiness": readiness}, indent=2))
+        return 0 if readiness["ready_to_train"] or not args.require_ready else 2
     lock, lock_sha = protocol_lock()
     import torch
 
@@ -603,7 +666,7 @@ def main():
     try:
         gpu = base.validate_gpu_budget(torch, budget_gib=GPU_BUDGET_GIB, reserve_gib=GPU_RESERVE_GIB)
         environment = environment_receipt(torch)
-        atomic_json(OUT / "training/execution_environment.json", {**environment, "gpu_validation": gpu})
+        atomic_json(RUN / "training/execution_environment.json", {**environment, "gpu_validation": gpu})
         if args.stage == "canary":
             fold = 0
             parts = parts_for(context, fold)
@@ -646,10 +709,10 @@ def main():
                 "evaluation": args.evaluation,
                 "lock_sha256": lock_sha,
             }
-            atomic_json(OUT / "training/canary_receipt_v2.json", receipt)
+            atomic_json(RUN / "training/canary_receipt_v2.json", receipt)
             print(json.dumps(receipt, indent=2))
             return
-        canary_path = OUT / "training/canary_receipt_v2.json"
+        canary_path = RUN / "training/canary_receipt_v2.json"
         if not canary_path.is_file():
             raise RuntimeError("random_row_canary_missing")
         canary = json.loads(canary_path.read_text(encoding="utf-8"))
@@ -664,7 +727,7 @@ def main():
         total = 240
         completed = sum(
             1
-            for p in (OUT / "training").glob("*/fold_*/[MG][01]/seed_*/manifest.json")
+            for p in (RUN / "training").glob("*/fold_*/[MG][01]/seed_*/manifest.json")
             if json.loads(p.read_text()).get("status") == "complete"
         )
         for ev in evals:
@@ -695,7 +758,7 @@ def main():
                             raise RuntimeError(f"neural_cell_incomplete:{fold}:{treatment}:{seed}")
                         completed += 1
                         atomic_json(
-                            OUT / "training/run_progress.json",
+                            RUN / "training/run_progress.json",
                             {
                                 "status": "running",
                                 "completed_cells": completed,
@@ -730,7 +793,7 @@ def main():
                         )
         if args.stage == "train":
             atomic_json(
-                OUT / "training/run_progress.json",
+                RUN / "training/run_progress.json",
                 {
                     "status": "COMPLETE_240_OF_240",
                     "completed_cells": completed,
@@ -744,4 +807,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

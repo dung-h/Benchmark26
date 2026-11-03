@@ -30,6 +30,9 @@ ARTIFACTS = _env_path("B26_ARTIFACTS", ROOT / "artifacts")
 COHORT_PLAN = _env_path("B26_COHORT_PLAN", ROOT / "inputs/cohort_plan")
 # Scratch area for new outputs.
 WORK = _env_path("B26_WORK", ROOT / "work")
+# Output directory of a new fitting run with this code (see experiments/qpu/prepare_run.py).
+# Unset: fitting scripts address the original study outputs and require the original code.
+RUN_DIR = Path(os.environ["B26_RUN_DIR"]).expanduser() if os.environ.get("B26_RUN_DIR") else None
 
 # Upstream source checkouts and archives.
 MALI_SOURCE = _env_path("B26_MALI_SOURCE", ROOT / "inputs/mali")

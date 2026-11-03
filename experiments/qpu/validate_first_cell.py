@@ -6,16 +6,14 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-from benchmark26.paths import ARTIFACTS
 from pathlib import Path
 import csv, json, math, sys
 
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
-OUT = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
 import torch
 from benchmark26 import mali_training as base
-from core import atomic_json, load_context, parts_for, rows, sha, stable
+from core import OUT, RUN, atomic_json, load_context, parts_for, rows, sha, stable
 from train_neural import ExampleCache, make_model, protocol_lock
 
 
@@ -24,10 +22,10 @@ def main():
     if targets is not None or split.get("target_values_read") is not False:
         raise RuntimeError("validator_must_not_read_target_values")
     parts = parts_for(context, 0)
-    folder = OUT / "training/E1/fold_0/M0/seed_42"
+    folder = RUN / "training/E1/fold_0/M0/seed_42"
     manifest = json.loads((folder / "manifest.json").read_text())
     identity = manifest["identity"]
-    lock, lock_sha = protocol_lock()
+    lock, lock_sha = protocol_lock(require_code=False)
     if manifest.get("status") != "complete" or identity.get("protocol_lock_sha256") != lock_sha:
         raise RuntimeError("first_cell_or_lock_not_complete")
     if (
@@ -43,7 +41,7 @@ def main():
     best = min(range(len(vals)), key=lambda i: (vals[i], i)) + 1
     if manifest.get("best_epoch") != best or identity.get("canary") is not False:
         raise RuntimeError("checkpoint_selection_rule_mismatch")
-    transform = json.loads((OUT / "training/E1/fold_0/transform.json").read_text())
+    transform = json.loads((RUN / "training/E1/fold_0/transform.json").read_text())
     if transform["fit_ids_sha256"] != base.stable_hash(parts["fit"]):
         raise RuntimeError("preprocess_not_fit_only")
     saved = rows(folder / "predictions.csv")
@@ -96,7 +94,7 @@ def main():
         "protocol_lock_sha256": lock_sha,
         "split_receipt_sha256": sha(OUT / "splits/split_validation_receipt.json"),
     }
-    atomic_json(OUT / "training/first_cell_validation_receipt.json", receipt)
+    atomic_json(RUN / "training/first_cell_validation_receipt.json", receipt)
     print(json.dumps(receipt, indent=2))
 
 
