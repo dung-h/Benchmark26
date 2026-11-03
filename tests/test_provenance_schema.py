@@ -1,4 +1,5 @@
 """Tests for provenance descriptors, source pins, and protocol schemas."""
+
 import json
 import hashlib
 from pathlib import Path
@@ -49,8 +50,8 @@ def test_qualification_provenance_and_hash():
 
 
 def test_component_protocols_validity():
-    protocol_dir = ROOT / "benchmark_v1/protocol"
-    assert protocol_dir.is_dir(), "benchmark_v1/protocol must exist"
+    protocol_dir = ROOT / "protocols"
+    assert protocol_dir.is_dir(), "protocols/ must exist"
 
     protocol_files = list(protocol_dir.glob("*.json"))
     assert len(protocol_files) >= 6, f"Expected at least 6 protocol files, found {len(protocol_files)}"

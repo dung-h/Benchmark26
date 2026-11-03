@@ -1,4 +1,5 @@
 """Tests for analytical critical path DAG recurrence logic."""
+
 import numpy as np
 
 

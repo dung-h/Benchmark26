@@ -1,46 +1,38 @@
-# 3 November 2026 — Dependency closure
-
-Added `materialize_mali_full_features.py` (portable paths), the three pinned reference registries (byte-identical to the pinned hashes) and `circuit_representation_v3.json`, plus a hash-pin test. Documented the strict `check_setup --require-study-inputs` mode and what remains outside the release.
-
-# 3 November 2026 — Experiment layout
-
-Merged PR #3, then separated current experiments (`experiments/qpu`, `analytical`, `latency`), shared kernels/helpers (`benchmark_v1`) and earlier timing campaigns (`legacy`). Split reference specifications from runtime path templates. Updated imports, CLI targets, tests and documentation. Scientific result snapshots and external output namespace identifiers retain their original values.
-
-# 3 November 2026 — Portable paths and runnable smoke flow
-
-Added a configurable synthetic split–fit–evaluate–report smoke pipeline. Renamed the CLI scope in documentation to match its actual behavior. Data roots and CPU/GPU interpreters use documented environment overrides; removed personal virtualenv and home-directory paths. Corrected the reference study config to match producing code (seeds, G0/G1, E3 cases). Added a main/supporting code map and relocation/CLI tests. Historical scientific outputs are unchanged.
-
-# 3 November 2026 — Prediction latency
-
-Added portable prediction-latency measurement/composition tools and aggregate E1 results. Anonymous group means allow reconstruction of the neural paired bootstrap intervals. Composite CPU-stage costs retain their eight-worker measurement condition. See docs/PREDICTION_LATENCY.md.
-
 # Changelog
 
-All notable changes to the Benchmark26 repository are documented in this file.
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow the package version in `pyproject.toml`.
+
+## [0.3.0] - 2026-11-03
+
+### Changed
+- Shared code moved from `benchmark_v1/` into the `benchmark26` package with descriptive module names (for example `run_mali_full_features.py` → `mali_training.py`). `benchmark26.paths.ORIGINAL_MODULES` lists the old names.
+- Protocols and registries moved to `protocols/`. Five protocols edited in 0.2.0 were restored byte for byte, which repairs the SHA-256 chain that the runners verify.
+- All machine-specific locations are read in `benchmark26/paths.py`. Scripts that ignored `B26_ARTIFACTS` or required the bundle to sit inside the checkout now work with an external bundle; receipts keep the original path names.
+- Python code formatted with ruff (syntax tree unchanged).
+- Documentation consolidated into `README.md` and three guides in `docs/`.
+
+### Added
+- Missing pinned files: two method contracts, the compiled-representation materializer, the fold-0 validator and the Ma–Li feature materializer.
+- `make check` verifies the protocol hash chain; `tests/test_protocol_integrity.py` does the same in CI.
+- `--output`/`--receipt` options for verifiers that previously wrote only into the study bundle.
+- Environment variables `B26_COHORT_PLAN` and `B26_WORK`.
+
+### Removed
+- `legacy/` (earlier timing campaigns, not used by the current code). Available at tag `archive/legacy-timing-campaigns`.
+- `scripts/verify_reference.py` and `scripts/verify_dataset_lineage.py`, duplicates of `experiments/qpu/replay_statistics.py` and `verify_dataset_lineage.py`.
+- Placeholder author email and ORCID.
 
 ## [0.2.0] - 2026-11-02
 
 ### Added
-- Standard project packaging with `pyproject.toml` and optional dependency sets (`test`, `dev`, `analysis`, `full`).
-- Unified test suite in `tests/` covering schema validation, recipe screen integrity, group-disjoint split invariants, and metric calculations.
-- Declarative experiment configurations in `configs/` (`unified_benchmark.yaml` and `analytical_evaluation.yaml`).
-- Makefile with streamlined targets: `make check`, `make test`, `make test-unit`, `make fetch-sources-dry`, and `make help`.
-- Automated GitHub Actions CI workflow for linting, syntax validation, and unit test execution across Python 3.10 and 3.11.
-- Standard project metadata: `LICENSE` (MIT), `CITATION.cff`, and this `CHANGELOG.md`.
-- Canonical benchmark execution CLI: `scripts/run_benchmark_pipeline.py`.
-- Step-by-step reproduction guide in `docs/REPRODUCTION.md`.
+- Packaging, unit tests, Makefile, CI, license, citation metadata.
+- Synthetic smoke pipeline and portable path variables.
+- Prediction-latency tools and exported aggregate results.
 
 ### Changed
-- Refactored `scripts/verify_cost.py` to handle missing external study tables with informative error guidance instead of uncaught tracebacks.
-- Replaced ambiguous sprint jargon in docstrings and JSON protocols with standard scientific terminology.
-- Bridged methodology documentation and codebase naming (`logical-circuit group` <-> `structural_group`).
-- Clarified third-party notices distinguishing upstream software licenses from measurement dataset permissions.
+- Experiments separated from shared code and earlier timing campaigns.
 
 ## [0.1.0] - 2026-11-01
 
 ### Added
-- Initial release of the quantum program runtime estimation benchmark methodology and implementation scaffold.
-- Support for 3,443 unified observations across 203 logical-circuit groups spanning Ma–Li, Qonductor, and QPack datasets.
-- Implementations for neural estimators (Graph MLP, Global MLP), classical selector (Qonductor adaptation), and analytical duration routes (Qiskit Target, QCRE unitary, NoTaDS paper/code).
-- Cryptographic provenance manifests in `upstream/data_sources.json` pinning 249 source files and archives.
+- Initial code release: cohort of 3,443 observations in 203 groups; neural, regression and analytical estimators; source pins for 249 upstream files.

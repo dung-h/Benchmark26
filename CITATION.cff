@@ -1,9 +1,9 @@
 cff-version: 1.2.0
 message: "If you use this benchmark methodology, code, or experimental protocol, please cite it as below."
-title: "Benchmark26: A Unified Quantum Program Runtime Estimation Benchmark"
-abstract: "A rigorous, leakage-safe benchmarking framework for learning-based and analytical quantum program runtime estimators on physical quantum processing units (QPUs). Features group-disjoint evaluation across 3,443 observations and 203 logical-circuit groups spanning Ma-Li, Qonductor, and QPack corpora."
-version: 0.2.0
-date-released: "2026-11-02"
+title: "Benchmark26: QPU runtime estimator benchmark"
+abstract: "Code and aggregate results for comparing neural, regression and analytical QPU runtime estimators on 3,443 archived observations in 203 logical-circuit groups from the Ma-Li, Qonductor and QPack sources."
+version: 0.3.0
+date-released: "2026-11-03"
 license: "MIT"
 repository-code: "https://github.com/dung-h/Benchmark26"
 keywords:
@@ -16,4 +16,3 @@ keywords:
 authors:
   - family-names: "Hoang"
     given-names: "Dung"
-    orcid: "https://orcid.org/0000-0000-0000-0000"

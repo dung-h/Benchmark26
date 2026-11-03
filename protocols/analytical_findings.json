@@ -1,0 +1,83 @@
+{
+  "contract_id": "analytical-and-learned-findings",
+  "status": "locked_for_saved_result_diagnostics",
+  "execution_authorized": false,
+  "scope": "Read-only checks and descriptive analysis of pinned outputs; no fitted correction or new circuit measurement.",
+  "retrospective_design": true,
+  "claim_boundary": "The design follows inspection of existing test results. These are exploratory diagnostics, not preregistered confirmatory hypotheses or causal feature importance.",
+  "papers": {
+    "scholten": {
+      "url": "https://arxiv.org/html/2307.04980",
+      "locations": ["Section II, equations 5 and 6", "Section III-A, shot-count and fixed-overhead discussion"],
+      "paper_formula": "T_hat = M * S * D_eff / C; D_eff = mean_depth(kernel) / mean_depth(QV_v) * v; v = ceil(sqrt(2 * template_repetitions * n))",
+      "local_formula": "shots * compiled_quantum_wire_depth / nominal_CLOPS",
+      "difference": "Generic wire depth is not the paper's QV-normalized effective depth. The local single-circuit route sets M=1 and retains mixed, explicitly identified nominal CLOPS definitions.",
+      "prohibited_interpretation": "Poor generic-depth adaptation scores do not establish that the original QV-normalized model fails on its original workload."
+    },
+    "hyb_hanas": {
+      "url": "https://arxiv.org/html/2603.00625v1",
+      "locations": ["Section 2.4", "Algorithm 2, steps 1-4"],
+      "stable_formula": "log(T_eff) = log(T_gate) + T_gate/T2 - sum_b N_b * log1p(-mean_error_b)",
+      "difference": "Minimum-active-T2, bucket error aggregation and composite nominal calibration are local disclosed choices. The effective sampling penalty is not an observed physical retry or provider service clock.",
+      "checks": ["A positive count with bucket error 1 gives zero survival, not a numerical overflow", "Finite log cost above log(float64.max) is exponentiation overflow, not missing calibration", "Routing cost is not added twice: T_logical + T_routing equals T_gate in the selected component", "No parameter-shift or total-training multiplier is inserted into the one-circuit target"],
+      "prohibited_interpretation": "A calibration repair does not prove that exponentially penalized effective cost predicts observed execution time."
+    },
+    "qcre": {
+      "url": "https://arxiv.org/html/2505.16908v1",
+      "locations": ["Section III, equation 2", "Section IV-C", "Section V-A"],
+      "paper_mechanism": "Per-wire weighted critical path; weights can be gate-duration ratios, and durations produce an ASAP critical-path timing estimate.",
+      "difference": "Agreement with Qiskit scheduling is an implementation/timing check, not proof of observed service-time accuracy. A dimensionless weighted rank has no MAE in seconds.",
+      "checks": ["SI seconds versus dt conversion is explicit", "Virtual RZ may have zero duration; zero is not missing", "Directive synchronization follows the declared schedule contract", "Measurement/reset/delay inclusion follows the specific method, not a blanket cross-method rule"]
+    }
+  },
+  "input_pins": {
+    "scholten_attempts": {"path": "artifacts/real_qpu/scholten_nominal/attempts.csv", "sha256": "516ad7a47f2f4b66d518626d12a017f129d343148875221a72f87f4f971213c2"},
+    "scholten_protocol": {"path": "benchmark_v1/protocol/scholten_unified_nominal.json", "sha256": "4bc35e8576df8c943818800fb521298d93e6b793df02de56d564c6960fce5e40"},
+    "scholten_runner": {"path": "benchmark_v1/scripts/run_scholten_unified.py", "sha256": "bd52979ba4e7e0e2000d03dbeffbe5e20747c251a2d38f71023d07cd8f832152"},
+    "analytical_scientific_review": {"path": "artifacts/benchmark_v3/real_qpu/analytical_extension/scientific_review.json", "sha256": "818a2a2dc856960f1ab2a1a74c62f3da4aed876479f2cf692a1c9acdda8c74c9"},
+    "analytical_components": {"path": "artifacts/benchmark_v3/real_qpu/analytical_extension/components.csv", "sha256": "c98fe9babbbc8ed8e50a653bbd1d345ba96ab5eea3723f037e96bbd7e9da7444"},
+    "seed_registry": {"path": "benchmark_v1/registry/seed_registry.json", "sha256": "ae48f16dac27cdf3c9f42ce89acf4a67cb1b318f9c23f32e88d2c61d4323e864"}
+  },
+  "verified_saved_result_findings": {
+    "scholten": {
+      "assigned": 8767,
+      "predicted": 6121,
+      "unavailable": 2646,
+      "missing_throughput_by_backend": {"ibm_belem": 442, "ibm_lima": 626, "ibm_quito": 1577},
+      "dynamic_unavailable": 1,
+      "source_median_prediction_to_observed_ratio": {"mali_real_qpu": 540.9710066377481, "qonductor_single_circuit_ibm": 29.704961040703253, "qpack_mcp": 19.82471708307829},
+      "largest_error_example": {"canonical_row_id": "qonductor_single_circuit_ibm|row40", "shots": 4000, "wire_depth": 136337, "nominal_CLOPS": 5000, "prediction_seconds": 109069.6, "observed_seconds": 103.21582757799999},
+      "interpretation": "Arithmetic follows the frozen generic-depth formula. The extreme mismatch is not fixed by relabelling wire depth as QV layers or adjusting throughput after inspecting errors."
+    },
+    "hyb": {
+      "composite_finite_log_equations": 8766,
+      "composite_zero_survival": 0,
+      "composite_overflow_without_decoherence": 268,
+      "interpretation": "Saved composite calibration resolves nominal zero-survival coverage but does not resolve the effective-cost versus execution-clock mismatch."
+    }
+  },
+  "diagnostic_slices": {
+    "categorical": ["source", "backend", "verified_family_or_unknown", "snapshot_definition", "representation_route", "outer_fold", "terminal_reason"],
+    "width_bins": [0, 9, 16, 32, 64, 127],
+    "operation_bins": [0, 100, 1000, 10000, 100000, 1000000, null],
+    "shots_bins": [0, 100, 1024, 4096, 10000, null],
+    "numeric_bin_convention": "(previous boundary, boundary], final null means +infinity; also retain exact shots values",
+    "always_list": ["qonductor_single_circuit_ibm|row39", "qonductor_single_circuit_ibm|row40", "qonductor_single_circuit_ibm|row41", "qonductor_single_circuit_ibm|row4477"],
+    "tail_rows": "Top 20 by absolute error per method; mark this label-selected slice retrospective, not a training exclusion rule",
+    "duplicate_support": "Count train/test exact feature or representation signatures per frozen outer fold. Different contracts require their own signatures, including Ma-Li node calibration. Do not claim workflow-grouped splits are unseen-structure holdouts.",
+    "rare_class_definition": "At most five distinct frozen leakage groups, not at most five rows; annotate deterministic structural rarity separately from label-selected error rarity."
+  },
+  "comparison": {
+    "assigned_envelope": 8767,
+    "rows": "Join by canonical observation ID, verify target/source/outer-fold equality and hash sorted successful intersection IDs before comparing",
+    "metrics": ["coverage", "terminal_reason_counts", "MAE_seconds", "MedAE_seconds", "RMSE_seconds", "R2_seconds", "log1p_MAE", "p90_absolute_error_seconds", "p99_absolute_error_seconds", "max_absolute_error_seconds", "source_balanced_macro_MAE_seconds"],
+    "r2_edge_policy": "null with explicit reason when fewer than two observations or zero target variance; do not coerce to a perfect or zero score",
+    "negative_and_log_policy": "Score finite negative raw predictions unchanged in seconds metrics and report negative-output rate. Compute log1p-MAE only on target>=0 and prediction>=0 with explicit log_metric_n and invalid-domain count; never silently clip to produce log metrics.",
+    "macro_policy": "Report an equal-source macro only if every canonical source has at least one successful scored row; otherwise null and show missing sources",
+    "bootstrap": {"replicates": 10000, "cluster": "unified_leakage_group_id sampled within each source", "point_estimate": "direct observed paired delta", "separate_fields": ["observed_delta", "bootstrap_mean_delta", "ci_low", "ci_high", "bootstrap_seed", "row_ids_sha256"], "seed": "first 4 bytes, big-endian uint32, of SHA256(root_seed|bootstrap_stream|analytical-and-learned-findings|method_A|method_B|row_ids_sha256)", "interval": "percentile 2.5 and 97.5; exploratory, not multiplicity-corrected"},
+    "graph_mlp": "Same raw 51-global matrix, row eligibility, target transform, seeds, batches and schedule. Different errors can test the incremental graph branch only under that matched contract.",
+    "graph_structure_claim_boundary": "The added graph branch also receives node types, wire positions, T1/T2 and node indices. This comparison does not isolate connectivity or edge direction alone. Such a claim requires separately controlled node-only/calibration-matched ablations, not an inference from the graph-versus-global-MLP score.",
+    "existing_seven_feature_scores": "Descriptive only relative to the new full-source model, since graph widths, encoders and target transforms differ."
+  },
+  "no_error_driven_repair": ["No upper clipping or global factor chosen from outer-test errors", "No throughput-definition conversion", "No feature/snapshot selection by held-out score", "No flattening dynamic control", "No new QV reference measurement or circuit compilation in this diagnostic queue", "No imputed prediction for failed/unavailable rows", "No claim of causal feature importance from correlation"]
+}
