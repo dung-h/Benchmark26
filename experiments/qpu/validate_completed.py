@@ -19,7 +19,7 @@ import time
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-from core import OUT, load_context, parts_for, rows, sha, stable, atomic_json, atomic_csv
+from core import RUN, load_context, parts_for, rows, sha, stable, atomic_json, atomic_csv
 
 SEEDS = (42, 1234, 31415)
 TREATMENTS = ("M0", "M1", "G0", "G1")
@@ -52,7 +52,7 @@ def finite_state(value, torch):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--output", type=Path, default=OUT / "validation/final_v2")
+    ap.add_argument("--output", type=Path, default=RUN / "validation/final_v2")
     ap.add_argument("--replay-all", action="store_true", help="Inference only, all saved held-out predictions")
     args = ap.parse_args()
     dest = args.output.resolve()
@@ -70,7 +70,7 @@ def main():
 
     torch.set_num_threads(8)
     torch.set_num_interop_threads(1)
-    lock, lock_sha = producer.protocol_lock()
+    lock, lock_sha = producer.protocol_lock(require_code=False)
     lease = acquire_gpu_lease("expanded-qpu-final-saved-checkpoint-replay") if args.replay_all else None
     cases = []
     cells = []
@@ -98,7 +98,7 @@ def main():
                     backend = context["cases"][fold]
                     assert all(panel[c]["backend"] == backend for c in parts["test"])
                     assert all(panel[c]["backend"] != backend for c in parts["train"])
-                transform_path = OUT / "training" / ev / f"fold_{fold}" / "transform.json"
+                transform_path = RUN / "training" / ev / f"fold_{fold}" / "transform.json"
                 transform = json.loads(transform_path.read_text())
                 # Recompute from fit IDs, using no label reader. Independent direct global/shot moment checks below.
                 assert transform == producer.fit_transform(context, parts, fold)
@@ -133,7 +133,7 @@ def main():
                 )
                 for treatment in TREATMENTS:
                     for seed in SEEDS:
-                        folder = OUT / "training" / ev / f"fold_{fold}" / treatment / f"seed_{seed}"
+                        folder = RUN / "training" / ev / f"fold_{fold}" / treatment / f"seed_{seed}"
                         mp = folder / "manifest.json"
                         expected_paths.add(mp)
                         manifest = json.loads(mp.read_text())
@@ -307,7 +307,7 @@ def main():
                             flush=True,
                         )
                 # Audit cached classical selection scores; do not fit another estimator.
-                cf = OUT / "classical" / ev / f"fold_{fold}"
+                cf = RUN / "classical" / ev / f"fold_{fold}"
                 cm = json.loads((cf / "regression_manifest.json").read_text())
                 assert cm["status"] == "complete" and cm["test_labels_passed_to_selector_or_fit"] is False
                 assert cm["identity"]["protocol_lock_sha256"] == lock_sha
@@ -359,10 +359,10 @@ def main():
                     }
                 )
             assert len(tested) == len(set(tested)) == 3443 and set(tested) == all_ids
-        actual_paths = set((OUT / "training").glob("E*/fold_*/*/seed_*/manifest.json"))
+        actual_paths = set((RUN / "training").glob("E*/fold_*/*/seed_*/manifest.json"))
         assert actual_paths == expected_paths and len(cells) == 240 and len(selectors) == 20
         assert all(n == 3443 for n in coverage.values()) and len(coverage) == 36
-        _, final_lock_sha = producer.protocol_lock()
+        _, final_lock_sha = producer.protocol_lock(require_code=False)
         assert final_lock_sha == lock_sha
         atomic_csv(dest / "neural_cells.csv", cells)
         atomic_csv(dest / "split_and_preprocessing_cases.csv", cases)

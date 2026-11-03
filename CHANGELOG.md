@@ -2,6 +2,16 @@
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow the package version in `pyproject.toml`.
 
+## [0.3.1] - 2026-11-03
+
+### Fixed
+- Neural and regression fitting failed before any GPU work with `locked_code_hash_mismatch`: the original execution lock pins the code of the saved study, and this code was adapted after it. Fitting now distinguishes two modes. Without `B26_RUN_DIR` it addresses the original study outputs and still requires the original code. With `B26_RUN_DIR`, `experiments/qpu/prepare_run.py` checks the locked protocol, inputs and graphs and records the current code in a run manifest; fitting then accepts exactly that code and writes only under the new directory. The original lock is not modified.
+- `train_neural.py --stage preflight` reported success after checking data and splits only. It now also reports training readiness (lock, inputs, graphs, code identity, run manifest, PyTorch, CUDA, GPU memory); `--require-ready` exits 2 when training could not start.
+- `validate_completed.py` and `aggregate_results.py` validate saved outputs by data identity instead of failing on the code lock.
+
+### Added
+- `B26_RUN_DIR`, `experiments/qpu/prepare_run.py`, `tests/test_run_identity.py`.
+
 ## [0.3.0] - 2026-11-03
 
 ### Changed
