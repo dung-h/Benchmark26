@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Target-free CUDA batch profile for the expanded cohort (E1 fold-0 fit only)."""
 from __future__ import annotations
-import json, os, resource, statistics, sys, time
+
+import os as _b26_os
 from pathlib import Path
+import json, os, resource, statistics, sys, time
 
 HERE=Path(__file__).resolve().parent
 ROOT=HERE.parents[1]
-OUT=ROOT/"artifacts/postfreeze_qpu_workflow_mean_expansion_v1"
+OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
 sys.path.insert(0,str(ROOT/"benchmark_v1/scripts"))
 sys.path.insert(0,str(HERE))
 sys.path.insert(0,str(ROOT/"research/postfreeze_mali_shots_ablation_v1"))

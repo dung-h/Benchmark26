@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Label-blind replay of the first full cell's selected checkpoint/predictions."""
 from __future__ import annotations
-import csv,json,math,sys
+
+import os as _b26_os
 from pathlib import Path
+import csv,json,math,sys
 ROOT=Path(__file__).resolve().parents[2];HERE=Path(__file__).resolve().parent
-OUT=ROOT/"artifacts/postfreeze_qpu_workflow_mean_expansion_v1"
+OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
 sys.path[:0]=[str(ROOT/"benchmark_v1/scripts"),str(HERE),str(ROOT/"research/postfreeze_mali_shots_ablation_v1")]
 import torch
 import run_mali_full_features as base

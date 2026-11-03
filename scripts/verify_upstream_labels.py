@@ -4,19 +4,21 @@
 Does not regenerate logical candidates, prove equivalence, parse DAGs, train,
 rebuild splits, execute quantum circuits, or modify any original input file.
 """
+
+import os as _b26_os
+from pathlib import Path
 import argparse
 import collections
 import csv
 import hashlib
 import json
 import math
-from pathlib import Path
 import sqlite3
 import statistics
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-STUDY = ROOT / 'artifacts/postfreeze_qpu_workflow_mean_expansion_v1'
+STUDY = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
 
 
 def rows(path):
@@ -73,7 +75,7 @@ def main():
 
     if args.mali_root:
         assets = {a['path']: a for a in manifest['assets'] if a['source'] == 'mali'}
-        legacy = {r['canonical_observation_id']: r for r in rows(ROOT / 'artifacts/real_qpu/qualified_logical_panel/panel.csv')}
+        legacy = {r['canonical_observation_id']: r for r in rows(Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/qualified_logical_panel/panel.csv')}
         # Source ETL order is Osaka CSV then Kyoto CSV; IDs are positional in this locked order.
         # Runtime values are checked AFTER this join; they are never used as join keys.
         original = []
@@ -100,7 +102,7 @@ def main():
         assets = {a['path']: a for a in manifest['assets'] if a['source'] == 'qonductor'}
         database = asset_path('qonductor', args.qonductor_root, assets['data/database/quantum_scheduler.db'])
         archive = asset_path('qonductor', args.qonductor_root, assets['data/database/circuits.zip'])
-        canonical = {r['canonical_row_id']: r for r in rows(ROOT / 'artifacts/benchmark_v1/canonical_corpus_8767_20260926/qonductor_single_circuit_ibm.csv')}
+        canonical = {r['canonical_row_id']: r for r in rows(Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v1/canonical_corpus_8767_20260926/qonductor_single_circuit_ibm.csv')}
         with sqlite3.connect(database.resolve().as_uri() + '?mode=ro', uri=True) as connection:
             connection.row_factory = sqlite3.Row
             db = {int(r['job_id']): dict(r) for r in connection.execute('''
@@ -132,7 +134,7 @@ def main():
 
     if args.qpack_root:
         assets = {a.get('workflow_hash'): a for a in manifest['assets'] if a['source'] == 'qpack' and a['selection'] == 'INCLUDED_WORKFLOW'}
-        canonical = rows(ROOT / 'artifacts/benchmark_v1/canonical_corpus_8767_20260926/qpack_mcp.csv')
+        canonical = rows(Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v1/canonical_corpus_8767_20260926/qpack_mcp.csv')
         buckets = collections.defaultdict(list)
         for row in canonical:
             raw = json.loads(row['raw_row_json'])

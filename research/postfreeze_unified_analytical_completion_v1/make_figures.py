@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """Render concise diagnostic figures from saved unified predictions/metrics."""
-import csv
+
+import os as _b26_os
 from pathlib import Path
+import csv
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-ROOT=Path(__file__).resolve().parents[2];N=ROOT/'artifacts/postfreeze_unified_analytical_completion_v1';D=N/'figures';D.mkdir(exist_ok=True)
+ROOT=Path(__file__).resolve().parents[2];N=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_unified_analytical_completion_v1';D=N/'figures';D.mkdir(exist_ok=True)
 def read(p):
  with open(p,newline='',encoding='utf-8') as f:return list(csv.DictReader(f))
-metrics=read(N/'metrics.csv');pred=read(N/'predictions.csv');base=read(ROOT/'artifacts/postfreeze_qpu_workflow_mean_expansion_v1/analysis_v1/reduced_predictions.csv')
+metrics=read(N/'metrics.csv');pred=read(N/'predictions.csv');base=read(Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1/analysis_v1/reduced_predictions.csv')
 def metric(ev,case,m):return next(r for r in metrics if r['evaluation']==ev and r['case']==case and r['method_id']==m)
 labels=[('Qonductor (R0)','R0'),('Train median (C0)','C0'),('Target path raw','QISKIT_SINGLE'),('Target path × shots','QISKIT_SINGLE_SHOT_SCALED'),('Target path × shots + affine','QISKIT_SINGLE_SHOT_SCALED_AFFINE'),('QCRE unitary × shots + affine','QCRE_UNITARY_SINGLE_SHOT_SCALED_AFFINE'),('NoTaDS code × shots + affine','NOTADS_CODE_FILTERED_DEPTH_SHOT_SCALED_AFFINE')]
 fig,ax=plt.subplots(figsize=(13,5.6));x=np.arange(len(labels));w=.36

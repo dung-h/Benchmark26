@@ -7,6 +7,9 @@ joins against the frozen strict panel. No labels enter feature construction.
 """
 from __future__ import annotations
 
+import os as _b26_os
+import sys as _b26_sys
+
 import argparse
 import concurrent.futures
 import csv
@@ -26,13 +29,13 @@ from sklearn.model_selection import ParameterSampler
 from threadpoolctl import threadpool_limits
 
 ROOT = Path(__file__).resolve().parents[2]
-PANEL = ROOT / "artifacts/real_qpu/strict_logical_panel"
+PANEL = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/strict_logical_panel'
 CONTRACT = ROOT / "benchmark_v1/protocol/strict_method_completion.json"
 PARENT = ROOT / "benchmark_v1/protocol/strict_logical_benchmark.json"
 AUTH = PANEL / "execution_authorization.json"
-FEATURES = ROOT / "artifacts/real_qpu/qonductor_native_features/feature_rows.csv"
-REPRESENTATIONS = ROOT / "artifacts/benchmark_v3/real_qpu/compiled_unified/representation_rows.csv"
-SOURCE_ROOT = ROOT.parent / "Qonductor-SC25"
+FEATURES = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/qonductor_native_features/feature_rows.csv'
+REPRESENTATIONS = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v3/real_qpu/compiled_unified/representation_rows.csv'
+SOURCE_ROOT = Path(_b26_os.environ.get("B26_QONDUCTOR_SOURCE", str(ROOT / "inputs/qonductor")))
 OUTPUT = PANEL / "qonductor"
 SOURCE_REVISION = "5d1ac8a90cd574a23e7544e1044681641354ff67"
 SOURCE_FILE = "src/execution_time/regression_estimator.py"

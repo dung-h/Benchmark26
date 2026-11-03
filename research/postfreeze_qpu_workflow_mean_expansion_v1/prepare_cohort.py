@@ -8,22 +8,24 @@ snapshot; no runtime value is passed to feature extraction.
 """
 from __future__ import annotations
 
+import os as _b26_os
+from pathlib import Path
+
 import csv, hashlib, json, math, os, sys
 from collections import Counter, defaultdict
-from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 RESEARCH = ROOT / "research/postfreeze_qpu_workflow_mean_expansion_v1"
-OUT = ROOT / "artifacts/postfreeze_qpu_workflow_mean_expansion_v1"
+OUT = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
 PLAN_DIR = ROOT / "docs/final_completion/qpu_workflow_mean_expansion_v1"
 PANEL_IN = PLAN_DIR / "proposed_observations.csv"
-FEATURES_IN = ROOT / "artifacts/real_qpu/logical_inputs/feature_attempts.csv"
-NATIVE_IN = ROOT / "artifacts/real_qpu/qonductor_native_features/feature_rows.csv"
-GROUPS_IN = ROOT / "artifacts/real_qpu/logical_inputs/model_input_groups.csv"
-QPACK_IN = ROOT / "artifacts/benchmark_v1/canonical_corpus_8767_20260926/qpack_mcp.csv"
-REP_IN = ROOT / "artifacts/benchmark_v3/real_qpu/compiled_unified/representation_rows.csv"
-SNAPSHOT_REGISTRY = ROOT / "artifacts/benchmark_v3/recovery_real_qpu_20260929_v3/c133_snapshot_registry_v3.csv"
-GRAPHSTATE_QASM = ROOT / "artifacts/postfreeze_qonductor_generator_version_semantics_v1/generated/1.0.3/graphstate__q3.qasm"
+FEATURES_IN = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/logical_inputs/feature_attempts.csv'
+NATIVE_IN = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/qonductor_native_features/feature_rows.csv'
+GROUPS_IN = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/logical_inputs/model_input_groups.csv'
+QPACK_IN = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v1/canonical_corpus_8767_20260926/qpack_mcp.csv'
+REP_IN = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v3/real_qpu/compiled_unified/representation_rows.csv'
+SNAPSHOT_REGISTRY = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v3/recovery_real_qpu_20260929_v3/c133_snapshot_registry_v3.csv'
+GRAPHSTATE_QASM = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qonductor_generator_version_semantics_v1/generated/1.0.3/graphstate__q3.qasm'
 
 sys.path.insert(0, str(ROOT / "benchmark_v1/scripts"))
 
@@ -232,8 +234,8 @@ def main():
     write_csv(OUT/"cohort/feature_collision_audit.csv",collision_rows or [{"identity_kind":"none","feature_sha256":"","distinct_groups":0,"group_ids":""}])
     write_csv(OUT/"cohort/qpack_feature_source_map.csv",[{"workflow_mean_id":r["canonical_observation_id"],"feature_source_observation_id":r["feature_source_observation_id"],"constituent_count":r["constituent_count"],"backend":r["backend"],"shots":r["shots"],"mapping_rule":"minimum canonical observation ID among same QPack workflow; feature constancy audited across all constituents"} for r in panel if r["source_id"]=="qpack_mcp"])
     inputs=[PANEL_IN,FEATURES_IN,NATIVE_IN,GROUPS_IN,QPACK_IN,REP_IN,SNAPSHOT_REGISTRY,GRAPHSTATE_QASM,
-      ROOT/"artifacts/real_qpu/qualified_logical_panel/panel.csv",
-      ROOT/"artifacts/postfreeze_qonductor_generator_version_semantics_v1/semantics_v2_legacy_parser/observation_semantic_results.csv",
+      Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/qualified_logical_panel/panel.csv',
+      Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qonductor_generator_version_semantics_v1/semantics_v2_legacy_parser/observation_semantic_results.csv',
       ROOT/"benchmark_v1/scripts/mali_full_features.py",ROOT/"benchmark_v1/scripts/prepare_logical_benchmark.py"]
     receipt={"status":"PASS_TARGET_FREE_FEATURE_PREFLIGHT","observations":len(panel),"groups":len({r['group_id'] for r in panel}),
       "source_counts":dict(sources),"available_feature_rows":len(ledger),"feature_width":51,"graph_node_width":178,

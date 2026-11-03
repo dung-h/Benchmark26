@@ -1,4 +1,7 @@
 """Target-free reconstruction of exact existing input stages, no quantum execution."""
+
+import os as _b26_os
+import sys as _b26_sys
 import csv,json,sys,zipfile,hashlib
 from pathlib import Path
 import numpy as np
@@ -15,7 +18,7 @@ _tree=ast.parse(_recovery_source.read_text())
 _scope={'QuantumCircuit':QuantumCircuit}
 _nodes=[n for n in _tree.body if isinstance(n,ast.FunctionDef) and n.name in {'qpack_circuit','regular_graph_edges'}]
 exec(compile(ast.fix_missing_locations(ast.Module(body=_nodes,type_ignores=[])),str(_recovery_source),'exec'),_scope)
-c135=SimpleNamespace(MALI_QASM_ROOT=ROOT.parent/'Quantum-Execution-Time-Prediction/data/quantum_circuits',qpack_circuit=_scope['qpack_circuit'])
+c135=SimpleNamespace(MALI_QASM_ROOT=Path(_b26_os.environ.get("B26_MALI_QASM", str(ROOT / "inputs/mali/data/quantum_circuits"))),qpack_circuit=_scope['qpack_circuit'])
 from qiskit import qasm2,qasm3
 
 def read(path,columns=None):
@@ -29,14 +32,14 @@ class Routes:
         cols=['canonical_row_id','source_id','qasm_path_or_member','qasm_bytes_sha256','shots']
         self.canonical={r['canonical_row_id']:r for r in read(mf.CANONICAL,cols)}
         self.rep={r['canonical_row_id']:r for r in read(mf.REPRESENTATION)}
-        self.attempts={r['canonical_observation_id']:r for r in read(ROOT/'artifacts/real_qpu/logical_inputs/feature_attempts.csv')}
-        p=ROOT/'artifacts/real_qpu/logical_recovery/candidate_recipe_manifest.json'
+        self.attempts={r['canonical_observation_id']:r for r in read(Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/logical_inputs/feature_attempts.csv')}
+        p=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/logical_recovery/candidate_recipe_manifest.json'
         self.candidates={r['qasm_sha256']:p.parent/r['path'] for r in json.loads(p.read_text())['records']}
         self.registry=mf.load_snapshot_registry();self.extractor,_=mf.load_pinned_global_extractor()
         self.archive=zipfile.ZipFile(mf.QONDUCTOR_ZIP)
         from qonductor_native_adapter import load_pinned_qonductor_methods
         contract=json.loads((ROOT/'benchmark_v1/protocol/qonductor_native_features.json').read_text())
-        self.native_extractor,_,self.native_parser,_=load_pinned_qonductor_methods(ROOT.parent/'Qonductor-SC25',contract['source_pin'])
+        self.native_extractor,_,self.native_parser,_=load_pinned_qonductor_methods(Path(_b26_os.environ.get("B26_QONDUCTOR_SOURCE", str(ROOT / "inputs/qonductor"))),contract['source_pin'])
         from qasm3_hardware_wire_adapter import restore_saved_qasm3_hardware_wires
         self.restore=restore_saved_qasm3_hardware_wires
     def get(self,panel,ledger,method):
@@ -52,7 +55,7 @@ class Routes:
         else:
             h=self.attempts.get(fid,{}).get('candidate_or_recipe_hash',expected)
             if h in self.candidates:raw=self.candidates[h].read_bytes()
-            else:raw=(ROOT/'artifacts/postfreeze_qonductor_generator_version_semantics_v1/generated/1.0.3/graphstate__q3.qasm').read_bytes()
+            else:raw=(Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qonductor_generator_version_semantics_v1/generated/1.0.3/graphstate__q3.qasm').read_bytes()
             stage='qualified_logical_reconstruction'
         if digest(raw)!=expected:raise RuntimeError('logical_byte_hash_mismatch:'+fid)
         calibration,_=mf.snapshot_t1_t2(rep,self.registry)

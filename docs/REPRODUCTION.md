@@ -1,12 +1,10 @@
-# Benchmark Reproduction Manual
+# Reproduction guide
 
-This guide describes the complete procedure for verifying and reproducing the **Benchmark26** study on quantum program runtime estimation across physical quantum processors (QPUs).
-
----
+The checkout supports local code checks, a synthetic smoke pipeline, upstream source verification and reconstruction of the exported latency intervals. Replaying the full measured QPU experiment additionally requires the external prepared study bundle and compatible model/feature environments. See [code map](CODE_MAP.md) and [path configuration](PATHS.md) before invoking research scripts.
 
 ## 1. System Requirements & Tested Environment
 
-The benchmark suite has been verified on the following reference configuration:
+The following environments and requirements describe the relevant study components; the smoke pipeline and review tests do not require a GPU:
 
 | Component | Verified Specification | Notes |
 |:---|:---|:---|
@@ -26,7 +24,7 @@ To ensure maximum transparency, reproducibility is divided into three distinct l
 ```
 [Level 1: Code & Logic Verification]  ──►  [Level 2: Upstream Source Audit]  ──►  [Level 3: Full Experiment Replay]
    (Clean checkout, zero network,            (Downloads 249 original files,             (Requires external study tables
-      runs in under 10 seconds)                verifies SHA256 & provenance)             & trained model checkpoints)
+      runs in a small local run)                verifies SHA256 & provenance)             & trained model checkpoints)
 ```
 
 ### Level 1: Code & Logic Verification (Offline, Clean Checkout)
@@ -40,10 +38,10 @@ pip install -e ".[test]"
 # 2. Check Python syntax, JSON protocol schemas, and study input declarations
 make check
 
-# 3. Check benchmark pipeline readiness status
+# 3. Inspect representative external-input availability
 make status
 
-# 4. Run the automated unit test suite (18+ tests covering schemas, leakage, and metrics)
+# 4. Run the automated unit test suite (tests covering schemas, leakage, and metrics)
 make test
 ```
 
@@ -51,7 +49,7 @@ make test
 - Syntactic correctness of all 82+ Python files and all component protocol JSONs.
 - Integrity of `upstream/data_sources.json` and `upstream/qualification_provenance.json`.
 - Structural validity of `upstream/qonductor_recipe_screen.csv` (4,482 observation decisions).
-- Mathematical invariance of group-disjoint splitting (zero group overlap across folds).
+- Group-disjoint E1 split logic on test fixtures; E2 intentionally allows shared groups.
 - Correctness of multi-group error weighting and analytical critical-path DAG recurrence.
 
 ---
@@ -79,25 +77,23 @@ python3 scripts/fetch_upstream_data.py --source all --destination /path/outside/
 
 Reproducing the full end-to-end benchmark from model training to held-out evaluation requires the external study bundle (containing `panel.csv`, `feature_ledger.csv`, and `execution_lock_v2.json`) as described in [DATA_SOURCES.md](DATA_SOURCES.md).
 
-When the study bundle is extracted into `artifacts/`:
+When the prepared bundle is placed under `artifacts/` or the configured `B26_ARTIFACTS` root (and required input references and execution configuration are valid):
 
-| Paper / Thesis Result | Target Command | Input Files Required |
+| Result type | Target Command | Input Files Required |
 |:---|:---|:---|
-| **Table 1: Main Model Accuracy** (MAE, MedAE, RMSE, $R^2$) | `python3 research/postfreeze_qpu_workflow_mean_expansion_v1/aggregate_results.py` | `cohort/targets.csv`, `training/` predictions |
-| **Table 2: Group vs Random Holdout** (E1 vs E2 comparisons) | `python3 research/postfreeze_qpu_workflow_mean_expansion_v1/write_final_report.py` | `analysis_v1/reduced_predictions.csv` |
-| **Table 3: Inference Latency** (Clock B warm feature time) | `python3 scripts/verify_cost.py` | `provenance/cost_source_index.json`, `estimator_cost/` |
-| **Table 4: Analytical Duration Routes** (Qiskit, QCRE, NoTaDS) | `python3 research/postfreeze_unified_analytical_completion_v1/validate_portable.py` | `artifacts/postfreeze_unified_analytical_completion_v1/` |
+| **Main model accuracy** (MAE, MedAE, RMSE, $R^2$) | `python3 research/postfreeze_qpu_workflow_mean_expansion_v1/aggregate_results.py` | `cohort/targets.csv`, `training/` predictions |
+| **Group vs random holdout** (E1 vs E2 comparisons) | `python3 research/postfreeze_qpu_workflow_mean_expansion_v1/write_final_report.py` | `analysis_v1/reduced_predictions.csv` |
+| **Earlier warm-feature inference cost** | `python3 scripts/verify_cost.py` | `provenance/cost_source_index.json`, `estimator_cost/` |
+| **Analytical duration routes** (Qiskit, QCRE, NoTaDS) | `python3 research/postfreeze_unified_analytical_completion_v1/validate_portable.py` | `artifacts/postfreeze_unified_analytical_completion_v1/` |
 | **Dataset Selection Ledger** (8,767 -> 3,443 rows) | `python3 scripts/build_review_selection_ledger.py --output verification/ledger.csv` | Canonical tables, `qonductor_recipe_screen.csv` |
 
 ---
 
-## 3. Methodological Integrity & Non-Leakage Guarantees
+## 3. Evaluation rules
 
-1. **Strict Group-Disjoint Splits:** All circuits sharing the same logical structure (including gate-angle parameter variations) are assigned to the same evaluation partition. This prevents models from memorizing topological circuit profiles.
-2. **Train-Only Transformations:** All feature scalers, imputers, and regression degree selectors are fitted exclusively on outer-training folds. No test data is visible during training or feature normalization.
-3. **Multi-Scale Weighting:** Results are reported under pooled, source-balanced (equal weight per upstream corpus), and group-balanced (equal weight per circuit structure) weighting to ensure evaluations are not dominated by any single repetitive circuit family.
+E1 keeps logical-circuit groups disjoint between fitting and held-out evaluation. E2 uses source-stratified random observations and intentionally permits familiar groups. E3 holds out backend contexts; it may retain related structures on other backends.
 
----
+Feature transformations and model selection use the permitted training partitions. Neural inner-fit preprocessing and validation selection are separated from the outer test set; the classical selector refits its selected model on outer-training data. Report pooled, source-balanced and group-balanced errors with their weighting explicitly stated. They answer different questions about the empirical mixture.
 
 ## 4. Troubleshooting & FAQ
 

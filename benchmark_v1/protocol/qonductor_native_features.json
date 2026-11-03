@@ -32,7 +32,7 @@
   "external_assets": {
     "qonductor_archive": {
       "sha256": "c9f259d38b24658e303c73c020c0c35e38d26d835061b19afc67626f8b70f51b",
-      "local_resolution_hint": "/home/server/Documents/Qonductor-SC25/data/database/circuits.zip",
+      "local_resolution_hint": "${B26_QONDUCTOR_ARCHIVE:-inputs/qonductor/data/database/circuits.zip}",
       "repository_relative_path": "data/database/circuits.zip",
       "retrieve_recipe": "Retrieve the pinned Qonductor repository/dataset archive, resolve this relative asset, and verify archive SHA256 plus every canonical member digest before loading. Absence or hash mismatch blocks reproduction; do not manufacture a replacement archive. Preserve direct DB-to-member provenance from the existing Qonductor audit.",
       "bundled_by_contract": false

@@ -7,12 +7,14 @@ are durable evidence for this execution context, not replacement raw results.
 """
 from __future__ import annotations
 
+import os as _b26_os
+from pathlib import Path
+
 import argparse
 from collections import OrderedDict
 import copy
 import json
 import math
-from pathlib import Path
 import time
 import tempfile
 
@@ -20,8 +22,8 @@ import run_mali_full_features as base
 
 ROOT = base.ROOT
 CONTRACT = ROOT / "benchmark_v1/protocol/mali_batch_optimization.json"
-DEFAULT_FEATURES = ROOT / "artifacts/real_qpu/mali_full_features_unified"
-DEFAULT_OUTPUT = ROOT / "artifacts/real_qpu/mali_full_features_large_batch"
+DEFAULT_FEATURES = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/mali_full_features_unified'
+DEFAULT_OUTPUT = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/mali_full_features_large_batch'
 METHOD_IDS = {name: name + "_large_batch" for name in base.METHODS}
 
 

@@ -11,6 +11,9 @@ is intentionally explicit because its source grid is very large.
 """
 from __future__ import annotations
 
+import os as _b26_os
+import sys as _b26_sys
+
 import argparse
 import datetime as dt
 import hashlib
@@ -33,7 +36,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import PolynomialFeatures
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_DATA = Path("/home/server/Documents/Capstone-Project/eda/phase2_dataset_audit/extracts/01_qonductor_single_circuit_ibm_job_time.parquet")
+DEFAULT_DATA = Path(_b26_os.environ.get("B26_QONDUCTOR_TABLE", str(ROOT / "inputs/qonductor_observations.parquet")))
 DEFAULT_SPLIT = ROOT / "benchmark_v1/splits/qonductor_single_circuit_ibm.csv"
 DEFAULT_VERSION = ROOT / "benchmark_v1/registry/data_versions/archived_qpu_v1.json"
 

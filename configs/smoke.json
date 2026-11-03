@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "dataset": "synthetic",
+  "seed": 42,
+  "groups": 16,
+  "observations_per_group": 4,
+  "test_groups": 4,
+  "model": "least_squares"
+}

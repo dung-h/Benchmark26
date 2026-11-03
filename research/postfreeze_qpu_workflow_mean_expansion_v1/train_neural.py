@@ -2,6 +2,9 @@
 """Train MLP and Graph+MLP, with or without shots, on the supplied E1/E2/E3 splits."""
 from __future__ import annotations
 
+import os as _b26_os
+from pathlib import Path
+
 import argparse
 import copy
 import csv
@@ -13,11 +16,10 @@ import resource
 import subprocess
 import sys
 import time
-from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-OUT = ROOT / "artifacts/postfreeze_qpu_workflow_mean_expansion_v1"
+OUT = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
 PROTOCOL = OUT / "PROTOCOL.md"
 LOCK = OUT / "execution_lock_v2.json"
 sys.path.insert(0, str(ROOT / "benchmark_v1/scripts"))

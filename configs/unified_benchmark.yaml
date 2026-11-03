@@ -1,4 +1,5 @@
-# Canonical Experimental Configuration: Unified QPU Benchmark
+# Reference specification for the measured unified study.
+# Documentation only: the review CLI does not execute this YAML.
 schema_version: "1.0"
 study_id: "unified_qpu_runtime_benchmark_v1"
 
@@ -24,7 +25,7 @@ cohort:
 
 splits:
   strategy: "group_disjoint_holdout"
-  leakage_guard: "Circuits sharing logical structure (even with varying parameter angles) never cross train/test splits"
+  leakage_guard: "E1 keeps logical-circuit groups disjoint; E2 intentionally allows group overlap and E3 holds out backend contexts"
   evaluations:
     E1:
       description: "Logical-circuit group holdout (strict unseen-structure evaluation)"
@@ -36,11 +37,12 @@ splits:
       inner_folds: 4
     E3:
       description: "QPU backend holdout (generalization across quantum backends)"
-      outer_folds: 5
+      outer_cases: 10
       inner_folds: 4
   seeds:
-    training: [42, 43, 44]
-    inner_validation: 0
+    training: [42, 1234, 31415]
+    inner_validation_E1_E2: [43, 44, 45, 46, 47]
+    inner_validation_E3: [100, 101, 102, 103, 104, 105, 106, 107, 108, 109]
     bootstrap_resampling: 42
 
 methods:
@@ -51,8 +53,8 @@ methods:
     weight_decay: 0.0001
     loss: "unweighted raw-seconds MSE"
     architectures:
-      G1: "Graph-augmented MLP (51 global features + TransformerConv node embeddings)"
-      G2: "Graph-augmented MLP with explicit shot scaling"
+      G0: "Graph-augmented MLP (51 global features + TransformerConv node embeddings)"
+      G1: "Matched graph-augmented MLP with an additional standardized shot input"
       M0: "Baseline MLP on 51 global features"
       M1: "Matched MLP on global features with shot input"
   classical:
@@ -61,7 +63,7 @@ methods:
   analytical:
     qiskit_target: "Backend target nominal duration accumulation"
     qcre_unitary: "Critical-path operation duration sum"
-    notads: "Operation DAG filtered-depth analytical score"
+    notads: "Paper-style weighted unitary-layer score; released-code filtered depth is a separate variant"
     ibm_usage: "IBM cloud usage metric diagnostics"
 
 evaluation:

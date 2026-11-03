@@ -8,6 +8,9 @@ the exact 178-wide float tensor is expanded only for a fit batch.
 """
 from __future__ import annotations
 
+import os as _b26_os
+import sys as _b26_sys
+
 import ast
 import csv
 import hashlib
@@ -31,17 +34,17 @@ from qiskit.transpiler.passes import RemoveBarriers, RemoveFinalMeasurements
 
 ROOT = Path(__file__).resolve().parents[2]
 PROTOCOL_PATH = ROOT / "benchmark_v1/protocol/mali_full_features.json"
-UPSTREAM_ROOT = ROOT.parent / "Quantum-Execution-Time-Prediction"
-COMPILED_ROOT = ROOT / "artifacts/benchmark_v3/real_qpu/compiled_unified"
-CANONICAL = ROOT / "artifacts/benchmark_v1/canonical_corpus_8767_20260926/canonical_observations.csv"
+UPSTREAM_ROOT = Path(_b26_os.environ.get("B26_MALI_SOURCE", str(ROOT / "inputs/mali")))
+COMPILED_ROOT = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v3/real_qpu/compiled_unified'
+CANONICAL = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v1/canonical_corpus_8767_20260926/canonical_observations.csv'
 REPRESENTATION = COMPILED_ROOT / "representation_rows.csv"
 HASH_MANIFEST = COMPILED_ROOT / "graph_file_hashes.json"
-SNAPSHOT_REGISTRY = ROOT / "artifacts/benchmark_v3/recovery_real_qpu_20260929_v3/c133_snapshot_registry_v3.csv"
-QONDUCTOR_ZIP = ROOT.parent / "Qonductor-SC25/data/database/circuits.zip"
-OUT_ROOT = ROOT / "artifacts/real_qpu/mali_full_features"
+SNAPSHOT_REGISTRY = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v3/recovery_real_qpu_20260929_v3/c133_snapshot_registry_v3.csv'
+QONDUCTOR_ZIP = Path(_b26_os.environ.get("B26_QONDUCTOR_ARCHIVE", str(ROOT / "inputs/qonductor/data/database/circuits.zip")))
+OUT_ROOT = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/mali_full_features'
 ADAPTER_DIR = ROOT / "benchmark_v1/scripts"
-OUTER = ROOT / "artifacts/benchmark_v2/real_qpu/unified_outer_split_v2.csv"
-INNER = ROOT / "artifacts/benchmark_v2/real_qpu/unified_inner_split_v2.csv"
+OUTER = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v2/real_qpu/unified_outer_split_v2.csv'
+INNER = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v2/real_qpu/unified_inner_split_v2.csv'
 
 SOURCE_PINS = {
     "data_preparation/helper.py": "c34cc98df02b016ee9c94dc9ca27efdbbb7e6c6439831f09d3c92ed3a78f74ad",

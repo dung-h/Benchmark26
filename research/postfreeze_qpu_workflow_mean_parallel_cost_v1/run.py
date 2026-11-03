@@ -2,13 +2,16 @@
 
 Concurrent processing times are throughput diagnostics, not isolated latency.
 """
+
+import os as _b26_os
+import sys as _b26_sys
 import os,sys,json,time,csv,hashlib,signal,resource,subprocess,concurrent.futures as cf
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 CODE=Path(__file__).parent
-OUT=ROOT/'artifacts/postfreeze_qpu_workflow_mean_cost_v1/parallel8_v2'
-SRC=ROOT/'artifacts/postfreeze_qpu_workflow_mean_expansion_v1'
-FEATURE_ENV='/home/server/Documents/.venv-qonductor/bin/python'
+OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_cost_v1/parallel8_v2'
+SRC=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
+FEATURE_ENV=_b26_os.environ.get("B26_CPU_PYTHON", _b26_sys.executable)
 os.environ.update({k:'1' for k in ('OMP_NUM_THREADS','OPENBLAS_NUM_THREADS','MKL_NUM_THREADS','NUMEXPR_NUM_THREADS')})
 def rows(p):
  with Path(p).open(newline='') as f:return list(csv.DictReader(f))

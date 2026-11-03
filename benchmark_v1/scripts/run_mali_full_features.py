@@ -8,6 +8,9 @@ prediction latency or alter the supplied data and split definitions.
 """
 from __future__ import annotations
 
+import os as _b26_os
+import sys as _b26_sys
+
 import argparse
 import csv
 import hashlib
@@ -27,16 +30,16 @@ ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_DIR = ROOT / "benchmark_v1/scripts"
 PROTOCOL = ROOT / "benchmark_v1/protocol/mali_full_features.json"
 EXECUTION = ROOT / "benchmark_v1/protocol/estimator_execution.json"
-CANONICAL = ROOT / "artifacts/benchmark_v1/canonical_corpus_8767_20260926/canonical_observations.csv"
-OUTER = ROOT / "artifacts/benchmark_v2/real_qpu/unified_outer_split_v2.csv"
-INNER = ROOT / "artifacts/benchmark_v2/real_qpu/unified_inner_split_v2.csv"
-FEATURE_ROOT = ROOT / "artifacts/real_qpu/mali_full_features"
+CANONICAL = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v1/canonical_corpus_8767_20260926/canonical_observations.csv'
+OUTER = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v2/real_qpu/unified_outer_split_v2.csv'
+INNER = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v2/real_qpu/unified_inner_split_v2.csv'
+FEATURE_ROOT = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/mali_full_features'
 OUT_ROOT = FEATURE_ROOT
-AUTHORIZATION_PATH = ROOT / "artifacts/unified_runtime_estimation/execution_authorization.json"
-C1_C3_RECEIPT_PATH = ROOT / "artifacts/unified_runtime_estimation/c1_c3_gate_receipt.json"
-PREFLIGHT_HANDOFF_PATH = ROOT / "artifacts/unified_runtime_estimation/preflight_gpu_handoff.json"
-TECHNICAL_GATE_RECEIPT_PATH = ROOT / "artifacts/unified_runtime_estimation/technical_gate_receipt.json"
-INITIAL_CELLS_QA_PATH = ROOT / "artifacts/unified_runtime_estimation/initial_cells_qa_receipt.json"
+AUTHORIZATION_PATH = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'unified_runtime_estimation/execution_authorization.json'
+C1_C3_RECEIPT_PATH = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'unified_runtime_estimation/c1_c3_gate_receipt.json'
+PREFLIGHT_HANDOFF_PATH = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'unified_runtime_estimation/preflight_gpu_handoff.json'
+TECHNICAL_GATE_RECEIPT_PATH = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'unified_runtime_estimation/technical_gate_receipt.json'
+INITIAL_CELLS_QA_PATH = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'unified_runtime_estimation/initial_cells_qa_receipt.json'
 PINNED_MODEL_REVISION = "32c392a6ece276f1ff046d4e30052d0571ff6dc6"
 GATE_ID = "mali-full-features-c4-v1"
 REQUIRED_C4_CHECKS = {
@@ -393,7 +396,7 @@ def load_pinned_model():
     relative = "model/transformer_model.py"
     expected = SOURCE_PINS[relative]
     blob = subprocess.check_output(
-        ["git", "-C", str(ROOT.parent / "Quantum-Execution-Time-Prediction"), "show",
+        ["git", "-C", str(Path(_b26_os.environ.get("B26_MALI_SOURCE", str(ROOT / "inputs/mali")))), "show",
          f"{PINNED_MODEL_REVISION}:{relative}"]
     )
     if sha256_bytes(blob) != expected:

@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Audit provenance of the inherited five-column Qonductor-style baseline."""
 from __future__ import annotations
+
+import os as _b26_os
+from pathlib import Path
 import csv,hashlib,json
 from collections import Counter
-from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
-OUT=ROOT/"artifacts/postfreeze_qpu_workflow_mean_expansion_v1"
+OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
 def read(p):
  with p.open(newline="",encoding="utf-8") as f:return list(csv.DictReader(f))
 def sha(p):
@@ -14,7 +16,7 @@ def sha(p):
   for b in iter(lambda:f.read(1<<20),b""):h.update(b)
  return h.hexdigest()
 def main():
- panel=read(OUT/"cohort/panel.csv");features={r["canonical_row_id"]:r for r in read(ROOT/"artifacts/real_qpu/qonductor_native_features/feature_rows.csv")}
+ panel=read(OUT/"cohort/panel.csv");features={r["canonical_row_id"]:r for r in read(Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/qonductor_native_features/feature_rows.csv')}
  columns=("swap","depth","num_qubits","shots","circuit_count")
  ledger=[]
  for r in panel:
@@ -38,7 +40,7 @@ def main():
   "feature_columns":list(columns),"all_finite":True,"recorded_shots_match_panel":True,"circuit_count_is_one":True,
   "routes":[{"source":k[0],"input_stage":k[1],"representation_id":k[2],"rows":n} for k,n in sorted(routes.items())],
   "interpretation":"One frozen five-column feature schema is applied through source-specific, provenance-recorded circuit routes. Ma-Li uses saved nominal-target compiled QASM3; Qonductor uses exact submitted physical QASM; QPack uses a nominal-target compiled reconstruction from an angle-insensitive logical reconstruction. This is an inherited Qonductor-style estimator comparator, not a same-representation/capacity control for the Ma-Li-style neural models.",
-  "source_feature_file_sha256":sha(ROOT/"artifacts/real_qpu/qonductor_native_features/feature_rows.csv"),
+  "source_feature_file_sha256":sha(Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/qonductor_native_features/feature_rows.csv'),
   "native_matrix_sha256":sha(OUT/"cohort/native_baseline_features.csv"),"provenance_ledger_sha256":sha(out)}
  (OUT/"cohort/classical_input_audit.json").write_text(json.dumps(receipt,indent=2,sort_keys=True)+"\n")
  print(json.dumps(receipt,indent=2))

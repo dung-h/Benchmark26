@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Apply frozen scalar methods and fit outer-train-only affine adaptations."""
 from __future__ import annotations
-import csv,hashlib,json,math
+
+import os as _b26_os
 from pathlib import Path
+import csv,hashlib,json,math
 import numpy as np
-ROOT=Path(__file__).resolve().parents[2];NS=ROOT/'artifacts/postfreeze_unified_analytical_completion_v1';P=ROOT/'artifacts/postfreeze_qpu_workflow_mean_expansion_v1'
+ROOT=Path(__file__).resolve().parents[2];NS=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_unified_analytical_completion_v1';P=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
 def read(p):
  with open(p,newline='',encoding='utf-8') as f:return list(csv.DictReader(f))
 def write(p,rs):

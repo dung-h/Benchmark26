@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """Independent consistency checks for completed inference-cost summaries."""
+
+import os as _b26_os
+from pathlib import Path
 import csv
 import json
-from pathlib import Path
 
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
-ART = ROOT / "artifacts/postfreeze_qpu_workflow_mean_cost_v1/v2"
-SRC = ROOT / "artifacts/postfreeze_qpu_workflow_mean_expansion_v1"
+ART = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_cost_v1/v2'
+SRC = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
 OUT = ART / "summary"
 METHODS = {"M0", "M1", "G0", "G1", "R0", "C0"}
 

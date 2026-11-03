@@ -2,6 +2,9 @@
 """Build qualified logical-input tables and supplemental grouped splits; no fitting."""
 from __future__ import annotations
 
+import os as _b26_os
+from pathlib import Path
+
 import argparse
 import csv
 import hashlib
@@ -9,19 +12,18 @@ import json
 import os
 import sys
 from collections import Counter
-from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "benchmark_v1/scripts"))
 import mali_full_features as mf
 import run_recovery_c133_c135_v3 as c135
 
-CANON = ROOT / "artifacts/benchmark_v1/canonical_corpus_8767_20260926/canonical_observations.csv"
-REP = ROOT / "artifacts/benchmark_v3/real_qpu/compiled_unified/representation_rows.csv"
-QPACK = ROOT / "artifacts/benchmark_v1/qpack_mcp_structural_reconstruction_20260927/qpack_mcp_structural_rows.csv"
-RECOVERY = ROOT / "artifacts/real_qpu/logical_recovery/recovery_rows.csv"
-CANDIDATES = ROOT / "artifacts/real_qpu/logical_recovery/candidate_recipe_manifest.json"
-REGISTRY = ROOT / "artifacts/benchmark_v3/recovery_real_qpu_20260929_v3/c133_snapshot_registry_v3.csv"
+CANON = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v1/canonical_corpus_8767_20260926/canonical_observations.csv'
+REP = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v3/real_qpu/compiled_unified/representation_rows.csv'
+QPACK = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v1/qpack_mcp_structural_reconstruction_20260927/qpack_mcp_structural_rows.csv'
+RECOVERY = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/logical_recovery/recovery_rows.csv'
+CANDIDATES = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/logical_recovery/candidate_recipe_manifest.json'
+REGISTRY = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v3/recovery_real_qpu_20260929_v3/c133_snapshot_registry_v3.csv'
 CONTRACT = ROOT / "benchmark_v1/protocol/logical_input_review.json"
 
 
@@ -77,7 +79,7 @@ def canonical_instruction_digest(circuit, *, include_parameters=True) -> str:
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--output", type=Path, default=ROOT / "artifacts/real_qpu/logical_inputs")
+    ap.add_argument("--output", type=Path, default=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/logical_inputs')
     ap.add_argument("--stage", choices=["sidecar", "features", "groups", "splits", "validate", "all"], default="all")
     ap.add_argument("--max-rows", type=int, help="bounded canary only; cannot produce a release manifest")
     args = ap.parse_args()

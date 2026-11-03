@@ -1,7 +1,9 @@
 """Make aggregate cost evidence; never alter accuracy/prediction artifacts."""
-import csv,json,hashlib,statistics,collections,shutil
+
+import os as _b26_os
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[2];BASE=ROOT/'artifacts/postfreeze_qpu_workflow_mean_cost_v1';OUT=BASE/'synthesis_v1'
+import csv,json,hashlib,statistics,collections,shutil
+ROOT=Path(__file__).resolve().parents[2];BASE=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_cost_v1';OUT=BASE/'synthesis_v1'
 def read(p):
  with p.open(newline='') as f:return list(csv.DictReader(f))
 def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()

@@ -2,18 +2,20 @@
 """Pinned readers and identity helpers for expanded-cohort inference timing."""
 from __future__ import annotations
 
+import os as _b26_os
+from pathlib import Path
+
 import csv
 import hashlib
 import json
 import math
 import os
-from pathlib import Path
 
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
-SRC = ROOT / "artifacts/postfreeze_qpu_workflow_mean_expansion_v1"
-ART = ROOT / "artifacts/postfreeze_qpu_workflow_mean_cost_v1"
+SRC = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
+ART = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_cost_v1'
 PLAN = ROOT / "docs/final_completion/expanded_qpu_inference_cost_v1"
 SEEDS = (42, 1234, 31415)
 METHODS = ("M0", "M1", "G0", "G1", "R0", "C0")

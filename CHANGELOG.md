@@ -1,3 +1,7 @@
+# 3 November 2026 — Portable paths and runnable smoke flow
+
+Added a configurable synthetic split–fit–evaluate–report smoke pipeline. Renamed the CLI scope in documentation to match its actual behavior. Data roots and CPU/GPU interpreters use documented environment overrides; removed personal virtualenv and home-directory paths. Corrected the reference study config to match producing code (seeds, G0/G1, E3 cases). Added a main/supporting code map and relocation/CLI tests. Historical scientific outputs are unchanged.
+
 # 3 November 2026 — Prediction latency
 
 Added portable prediction-latency measurement/composition tools and aggregate E1 results. Anonymous group means allow reconstruction of the neural paired bootstrap intervals. Composite CPU-stage costs retain their eight-worker measurement condition. See docs/PREDICTION_LATENCY.md.

@@ -1,6 +1,8 @@
-import csv,json,hashlib
+
+import os as _b26_os
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[2];OUT=ROOT/'artifacts/postfreeze_qpu_workflow_mean_cost_v1/completion_v2';SRC=ROOT/'artifacts/postfreeze_qpu_workflow_mean_expansion_v1'
+import csv,json,hashlib
+ROOT=Path(__file__).resolve().parents[2];OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_cost_v1/completion_v2';SRC=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
 def read(p,cols=None):
  csv.field_size_limit(100_000_000)
  with Path(p).open(newline='') as f:
@@ -18,11 +20,11 @@ def main():
  for source in sorted({r['source_id'] for r in panel}):
   chosen=select([r for r in panel if r['source_id']==source],lambda r:int(ledger[r['canonical_observation_id']]['graph_node_count']),lambda r:ledger[r['canonical_observation_id']]['graph_artifact_sha256'])
   for r in chosen:c.append(dict(r,ledger=ledger[r['canonical_observation_id']],case=int(folds[r['canonical_observation_id']])))
- features=read(ROOT/'artifacts/postfreeze_notads_hyperq_track_a_v1/features.csv');rep={r['canonical_row_id']:r for r in read(ROOT/'artifacts/benchmark_v3/real_qpu/compiled_unified/representation_rows.csv')}
+ features=read(Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_notads_hyperq_track_a_v1/features.csv');rep={r['canonical_row_id']:r for r in read(Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v3/real_qpu/compiled_unified/representation_rows.csv')}
  a=[]
  for source in sorted({r['source_id'] for r in features}):
   a.extend(select([r for r in features if r['source_id']==source],lambda r:int(rep[r['canonical_observation_id']]['operation_count']),lambda r:r['physical_hash']))
- pins=[SRC/'cohort/panel.csv',SRC/'cohort/feature_ledger.csv',SRC/'splits/E1_outer.csv',ROOT/'artifacts/postfreeze_notads_hyperq_track_a_v1/features.csv',ROOT/'artifacts/benchmark_v3/real_qpu/compiled_unified/representation_rows.csv',ROOT/'artifacts/postfreeze_qpu_workflow_mean_cost_v1/parallel8_v2/completion_receipt.json']
+ pins=[SRC/'cohort/panel.csv',SRC/'cohort/feature_ledger.csv',SRC/'splits/E1_outer.csv',Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_notads_hyperq_track_a_v1/features.csv',Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v3/real_qpu/compiled_unified/representation_rows.csv',Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_cost_v1/parallel8_v2/completion_receipt.json']
  pins.extend(Path(__file__).parent.glob('*.py'))
  pins.append(OUT/'PROTOCOL.md')
  pins.extend((ROOT/'research/postfreeze_qpu_workflow_mean_full_cost_v1'/n) for n in ['circuit_routes.py','feature_proxy.py','feature_server.py'])

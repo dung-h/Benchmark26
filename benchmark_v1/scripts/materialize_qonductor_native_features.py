@@ -2,6 +2,9 @@
 """Build the five pinned Qonductor features for every canonical QPU row."""
 from __future__ import annotations
 
+import os as _b26_os
+import sys as _b26_sys
+
 import argparse
 import csv
 from collections import Counter
@@ -31,7 +34,7 @@ from threadpoolctl import threadpool_limits
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPTS = ROOT / "benchmark_v1" / "scripts"
 RESOURCE_CANARY_ROOT = ROOT / "work" / "benchmark_recovery" / "qonductor_native_resource_canaries"
-DEFAULT_C3_OUTPUT = ROOT / "artifacts" / "real_qpu" / "qonductor_native_features"
+DEFAULT_C3_OUTPUT = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / "real_qpu" / "qonductor_native_features"
 DEFAULT_C3_CHECKPOINT = ROOT / "work" / "benchmark_recovery" / "qonductor_native_features_checkpoint" / "parallel_feature_rows.jsonl"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
@@ -671,8 +674,8 @@ def validate_split_identity(canonical: list[dict[str, str]], outer: list[dict[st
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=None)
-    parser.add_argument("--source-root", type=Path, default=ROOT.parent / "Qonductor-SC25")
-    parser.add_argument("--archive", type=Path, default=ROOT.parent / "Qonductor-SC25/data/database/circuits.zip")
+    parser.add_argument("--source-root", type=Path, default=Path(_b26_os.environ.get("B26_QONDUCTOR_SOURCE", str(ROOT / "inputs/qonductor"))))
+    parser.add_argument("--archive", type=Path, default=Path(_b26_os.environ.get("B26_QONDUCTOR_ARCHIVE", str(ROOT / "inputs/qonductor/data/database/circuits.zip"))))
     parser.add_argument("--superseded-preflight-dir", type=Path, default=None)
     parser.add_argument("--native-threads", type=int, default=2, choices=(1, 2, 3, 4))
     parser.add_argument("--workers", type=int, default=2, choices=range(1, 13), help="maximum CPU extraction processes; memory admission controls actual concurrency")
@@ -773,7 +776,7 @@ def main() -> int:
     contract = json.loads(contract_path.read_text(encoding="utf-8"))
     execution = json.loads(execution_path.read_text(encoding="utf-8"))
     rss_cap_gib = args.aggregate_rss_cap_gib if args.aggregate_rss_cap_gib is not None else execution["resources"]["aggregate_rss_budget_gib"]
-    authorization_path = ROOT / "artifacts/unified_runtime_estimation/execution_authorization.json"
+    authorization_path = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'unified_runtime_estimation/execution_authorization.json'
     authorization = json.loads(authorization_path.read_text(encoding="utf-8"))
     if authorization.get("status") != "authorized_implementation_and_execution_subject_to_technical_gates":
         raise RuntimeError("explicit bounded execution authorization receipt is absent or invalid")

@@ -1,119 +1,50 @@
 #!/usr/bin/env python3
-"""Canonical entrypoint for the Quantum Runtime Estimation Benchmark pipeline."""
-from __future__ import annotations
-
+"""Inspect study inputs or run the synthetic smoke pipeline and review checks."""
 import argparse
 import json
-import sys
+import os
 from pathlib import Path
+import subprocess
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def check_stage_prerequisites():
-    """Inspect availability of inputs for each pipeline stage."""
-    stages = {
-        "1_acquire": {
-            "name": "Upstream Source Acquisition",
-            "ready": (ROOT / "upstream/data_sources.json").is_file(),
-            "runner": "scripts/fetch_upstream_data.py",
-            "notes": "Downloads pinned source files and verifies SHA256 hashes.",
-        },
-        "2_screen": {
-            "name": "Qonductor Recipe Qualification",
-            "ready": (ROOT / "upstream/qonductor_recipe_screen.csv").is_file(),
-            "runner": "upstream/qualification_provenance.json",
-            "notes": "4,482 candidate screening decisions (MQT 1.0.3 prepared readout state).",
-        },
-        "3_split": {
-            "name": "Group-Disjoint Split Construction",
-            "ready": (ROOT / "artifacts/postfreeze_qpu_workflow_mean_expansion_v1/cohort/panel.csv").is_file(),
-            "runner": "research/postfreeze_qpu_workflow_mean_expansion_v1/prepare_splits.py",
-            "notes": "Constructs E1 (group holdout), E2 (random), E3 (backend holdout) folds.",
-        },
-        "4_train": {
-            "name": "Neural & Classical Model Fitting",
-            "ready": (ROOT / "artifacts/postfreeze_qpu_workflow_mean_expansion_v1/cohort/feature_ledger.csv").is_file(),
-            "runner": "research/postfreeze_qpu_workflow_mean_expansion_v1/train_neural.py",
-            "notes": "Fits G1, G2, M0, M1 (neural) and R0 selector across outer folds.",
-        },
-        "5_analytical": {
-            "name": "Analytical Duration Evaluation",
-            "ready": (ROOT / "research/postfreeze_notads_hyperq_track_a_v1/path_kernel.cpp").is_file(),
-            "runner": "scripts/verify_analytical_kernel.py",
-            "notes": "Evaluates Qiskit Target, QCRE unitary, and NoTaDS depth metrics.",
-        },
-        "6_report": {
-            "name": "Metric Aggregation & Reporting",
-            "ready": (ROOT / "artifacts/estimator_cost/warm_accuracy_cost.csv").is_file(),
-            "runner": "scripts/verify_cost.py",
-            "notes": "Aggregates pooled, source-balanced, and group-balanced MAE and latency.",
-        },
-    }
-    return stages
-
-
-def print_status():
-    stages = check_stage_prerequisites()
-    print("=" * 80)
-    print("Benchmark26 — Pipeline Stage Readiness")
-    print("=" * 80)
-    print(f"{'Stage':<16} | {'Status':<12} | {'Runner / Target':<35} | {'Notes'}")
-    print("-" * 80)
-    for key, info in sorted(stages.items()):
-        status = "[READY]" if info["ready"] else "[REQUIRES BUNDLE]"
-        print(f"{info['name']:<16} | {status:<12} | {info['runner']:<35} | {info['notes']}")
-    print("-" * 80)
-    print("Note: Stages marked [REQUIRES BUNDLE] depend on external study tables.")
-    print("See docs/DATA_SOURCES.md and docs/REPRODUCTION.md for instructions.")
-    print("=" * 80)
-
-
 def main():
-    parser = argparse.ArgumentParser(
-        description="Unified runner for the Quantum Runtime Estimation Benchmark pipeline."
-    )
-    parser.add_argument(
-        "--status",
-        action="store_true",
-        help="Print the readiness status of all pipeline stages and exit.",
-    )
-    parser.add_argument(
-        "--stage",
-        choices=["acquire", "screen", "analytical", "status"],
-        default="status",
-        help="Pipeline stage to execute (default: status).",
-    )
-    parser.add_argument(
-        "--config",
-        type=Path,
-        default=ROOT / "configs/unified_benchmark.yaml",
-        help="Path to study configuration file (default: configs/unified_benchmark.yaml).",
-    )
-
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--status', action='store_true', help='Inspect external input availability')
+    parser.add_argument('--stage', choices=['status', 'smoke', 'screen', 'analytical', 'latency', 'acquire'], default='status')
+    parser.add_argument('--config', type=Path, help='JSON config consumed by --stage smoke')
+    parser.add_argument('--output', type=Path, help='New output directory for --stage smoke')
+    parser.add_argument('--inputs', type=Path, help='Destination directory for upstream acquisition')
     args = parser.parse_args()
-
-    if args.status or args.stage == "status":
-        print_status()
+    if args.config and args.stage != 'smoke':
+        parser.error('--config is consumed only by --stage smoke')
+    stage = 'status' if args.status else args.stage
+    if stage == 'status':
+        relative = ['artifacts/postfreeze_qpu_workflow_mean_expansion_v1/cohort/panel.csv',
+                    'artifacts/postfreeze_qpu_workflow_mean_expansion_v1/cohort/feature_ledger.csv',
+                    'artifacts/postfreeze_qpu_workflow_mean_expansion_v1/execution_lock_v2.json']
+        print(json.dumps({'mode': 'input_inventory', 'inputs': {p: (Path(os.environ.get('B26_ARTIFACTS', str(ROOT/'artifacts')))/Path(p).relative_to('artifacts')).is_file() for p in relative},
+                          'note': 'File presence is not a full execution-readiness check. See docs/CODE_MAP.md for experiment entrypoints.'}, indent=2))
         return 0
-
-    if args.stage == "acquire":
-        print("To download upstream sources, use:")
-        print("  python3 scripts/fetch_upstream_data.py --source all --destination /path/outside/inputs")
+    if stage == 'smoke':
+        if not args.output:
+            parser.error('--stage smoke requires --output NEW_DIRECTORY')
+        from smoke_pipeline import run
+        run(args.config or ROOT/'configs/smoke.json', args.output)
         return 0
-
-    if args.stage == "screen":
-        print("Validating recipe screen provenance...")
-        import subprocess
-        return subprocess.run([sys.executable, "-m", "pytest", "tests/test_qonductor_recipe_screen.py"]).returncode
-
-    if args.stage == "analytical":
-        print("Running analytical recurrence tests...")
-        import subprocess
-        return subprocess.run([sys.executable, "-m", "pytest", "tests/test_analytical_path_kernel.py"]).returncode
-
-    return 0
+    if stage == 'acquire':
+        if not args.inputs:
+            parser.error('--stage acquire requires --inputs DESTINATION')
+        command = [sys.executable, str(ROOT/'scripts/fetch_upstream_data.py'), '--source', 'all', '--destination', str(args.inputs)]
+    elif stage == 'latency':
+        command = [sys.executable, str(ROOT/'research/prediction_latency/verify_summary.py')]
+    else:
+        test = 'test_qonductor_recipe_screen.py' if stage == 'screen' else 'test_analytical_path_kernel.py'
+        command = [sys.executable, '-m', 'pytest', str(ROOT/'tests'/test)]
+    return subprocess.run(command, cwd=ROOT).returncode
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     raise SystemExit(main())

@@ -1,15 +1,17 @@
 """Replay and time saved analytical scalar mappings on all 4515 rows; no refit."""
-import sys,time,json,math,csv,statistics
+
+import os as _b26_os
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[2];OUT=ROOT/'artifacts/postfreeze_qpu_workflow_mean_cost_v1/completion_v2'
+import sys,time,json,math,csv,statistics
+ROOT=Path(__file__).resolve().parents[2];OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_cost_v1/completion_v2'
 sys.path.insert(0,str(Path(__file__).parent));from prepare import read,sha
 
 def main():
- folder=ROOT/'artifacts/real_qpu/qualified_logical_panel'
+ folder=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/qualified_logical_panel'
  refs=read(folder/'summary/oof_predictions.csv',['canonical_observation_id','outer_fold','method_id','predicted_seconds','status'])
  pred={(r['canonical_observation_id'],r['method_id']):float(r['predicted_seconds']) for r in refs if r['status']=='predicted' and (r['method_id'].startswith('qcre_') or r['method_id'].startswith('qiskit_'))}
  fits={(r['method_id'],int(r['outer_fold']),r['variant']):(float(r['slope']),float(r['intercept'])) for r in read(folder/'analytical/calibration_fits.csv') if r['variant'] in ('affine','log_affine')}
- features=read(ROOT/'artifacts/postfreeze_notads_hyperq_track_a_v1/features.csv');output=[]
+ features=read(Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_notads_hyperq_track_a_v1/features.csv');output=[]
  for r in features:
   cid=r['canonical_observation_id'];fold=int(r['outer_fold']);shots=float(r['shots'])
   for base in ('qcre_source_estimator','qiskit_estimate_duration_snapshot'):

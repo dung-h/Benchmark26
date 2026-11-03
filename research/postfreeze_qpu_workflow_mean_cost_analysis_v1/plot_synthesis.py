@@ -1,9 +1,11 @@
-import csv
+
+import os as _b26_os
 from pathlib import Path
+import csv
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-ROOT=Path(__file__).resolve().parents[2];OUT=ROOT/'artifacts/postfreeze_qpu_workflow_mean_cost_v1/synthesis_v1'
+ROOT=Path(__file__).resolve().parents[2];OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_cost_v1/synthesis_v1'
 names={'M0':'MLP','M1':'MLP + shots','G0':'Graph+MLP','G1':'Graph+MLP + shots','R0':'Selected classical','C0':'Training median'}
 def read(n):
  with (OUT/n).open() as f:return list(csv.DictReader(f))

@@ -1,8 +1,10 @@
 """Measure warm circuit-to-prediction latency on a fixed 12-observation diagnostic subset."""
-import os,sys,json,time,signal
+
+import os as _b26_os
 from pathlib import Path
+import os,sys,json,time,signal
 os.environ.update({k:'1' for k in ('OMP_NUM_THREADS','OPENBLAS_NUM_THREADS','MKL_NUM_THREADS','NUMEXPR_NUM_THREADS')})
-ROOT=Path(__file__).resolve().parents[2];OUT=ROOT/'artifacts/postfreeze_qpu_workflow_mean_cost_v1/completion_v2'
+ROOT=Path(__file__).resolve().parents[2];OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_cost_v1/completion_v2'
 sys.path[:0]=[str(ROOT/'research/postfreeze_qpu_workflow_mean_cost_v1'),str(ROOT/'research/postfreeze_qpu_workflow_mean_full_cost_v1'),str(Path(__file__).parent)]
 from common import atomic_json
 from loaders import StudyInputs

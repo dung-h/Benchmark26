@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Run the inherited six-family Qonductor-style selector and train-median baseline."""
 from __future__ import annotations
-import argparse,concurrent.futures,json,math,sys,time
+
+import os as _b26_os
 from pathlib import Path
+import argparse,concurrent.futures,json,math,sys,time
 import numpy as np
 HERE=Path(__file__).resolve().parent;ROOT=HERE.parents[1]
-OUT=ROOT/"artifacts/postfreeze_qpu_workflow_mean_expansion_v1"
+OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
 sys.path[:0]=[str(ROOT/"benchmark_v1/scripts"),str(HERE)]
 from core import atomic_csv,atomic_json,load_context,load_targets,parts_for,rows,sha,stable
 from run_strict_logical_qonductor import fit_one_candidate,source_grids_and_models
@@ -108,7 +110,7 @@ def main():
             ctx,_,rec=load_context(ev,include_targets=False);matrix=load_matrix(ctx)
             if len(matrix)!=3443:raise RuntimeError("classical_preflight_row_mismatch")
         templates,grids,_=source_grids_and_models()
-        candidates_doc=json.loads((ROOT/"artifacts/real_qpu/qualified_logical_panel/candidates.json").read_text())
+        candidates_doc=json.loads((Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/qualified_logical_panel/candidates.json').read_text())
         receipt={"status":"PASS_CLASSICAL_INPUT_AND_SELECTOR_PREFLIGHT","rows":3443,"feature_names":list(FEATURES),
           "families":list(templates),"candidate_counts":{k:len(v) for k,v in candidates_doc["candidates"].items()},
           "feature_provenance_sha256":sha(OUT/"cohort/classical_feature_provenance.csv"),"no_target_values_read":True,
@@ -119,7 +121,7 @@ def main():
     from train_neural import protocol_lock
     _lock,lock_sha=protocol_lock()
     evals=[args.evaluation] if args.evaluation else ["E1","E2","E3"]
-    templates,_,_=source_grids_and_models();doc=json.loads((ROOT/"artifacts/real_qpu/qualified_logical_panel/candidates.json").read_text())
+    templates,_,_=source_grids_and_models();doc=json.loads((Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/qualified_logical_panel/candidates.json').read_text())
     candidates=doc["candidates"];families=list(templates)
     if set(candidates)!=set(families):raise RuntimeError("classical_family_manifest_mismatch")
     completed=[]

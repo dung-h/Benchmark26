@@ -1,7 +1,9 @@
 """Validate record completeness and report scopes without promoting partial routes."""
-import json,csv,statistics,hashlib
+
+import os as _b26_os
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[2];OUT=ROOT/'artifacts/postfreeze_qpu_workflow_mean_cost_v1/completion_v2'
+import json,csv,statistics,hashlib
+ROOT=Path(__file__).resolve().parents[2];OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_cost_v1/completion_v2'
 def read(p):
  with p.open(newline='') as f:return list(csv.DictReader(f))
 def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()

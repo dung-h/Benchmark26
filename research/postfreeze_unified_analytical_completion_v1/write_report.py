@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Create final scientific report, provenance ledgers and checksums."""
 from __future__ import annotations
+
+import os as _b26_os
+from pathlib import Path
 import csv,hashlib,json,platform,subprocess
 from collections import Counter,defaultdict
 from datetime import datetime,timezone
-from pathlib import Path
 import importlib.metadata as md
-ROOT=Path(__file__).resolve().parents[2];NS=ROOT/'artifacts/postfreeze_unified_analytical_completion_v1';ST=ROOT/'artifacts/postfreeze_qpu_workflow_mean_expansion_v1'
+ROOT=Path(__file__).resolve().parents[2];NS=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_unified_analytical_completion_v1';ST=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
 def read(p):
  with open(p,newline='',encoding='utf-8') as f:return list(csv.DictReader(f))
 def write(p,rows):
@@ -183,14 +185,14 @@ These formulas estimate an IBM service-usage quantity under assumptions about ci
 Commands used:
 
 ```bash
-/home/server/Documents/.venv-qonductor/bin/python research/postfreeze_unified_analytical_completion_v1/extract_raw.py --check-only
-/home/server/Documents/.venv-qonductor/bin/python research/postfreeze_unified_analytical_completion_v1/extract_raw.py --canary
-/home/server/Documents/.venv-qonductor/bin/python research/postfreeze_unified_analytical_completion_v1/extract_raw.py --full
-/home/server/Documents/.venv-qonductor/bin/python research/postfreeze_unified_analytical_completion_v1/calibrate.py
-/home/server/Documents/.venv-qonductor/bin/python research/postfreeze_unified_analytical_completion_v1/evaluate.py
-/home/server/Documents/.venv-qonductor/bin/python research/postfreeze_unified_analytical_completion_v1/validate_qiskit_parity.py
-/home/server/Documents/.venv-qonductor/bin/python research/postfreeze_unified_analytical_completion_v1/validate.py
-/home/server/Documents/.venv-qonductor/bin/python research/postfreeze_unified_analytical_completion_v1/make_figures.py
+python3 research/postfreeze_unified_analytical_completion_v1/extract_raw.py --check-only
+python3 research/postfreeze_unified_analytical_completion_v1/extract_raw.py --canary
+python3 research/postfreeze_unified_analytical_completion_v1/extract_raw.py --full
+python3 research/postfreeze_unified_analytical_completion_v1/calibrate.py
+python3 research/postfreeze_unified_analytical_completion_v1/evaluate.py
+python3 research/postfreeze_unified_analytical_completion_v1/validate_qiskit_parity.py
+python3 research/postfreeze_unified_analytical_completion_v1/validate.py
+python3 research/postfreeze_unified_analytical_completion_v1/make_figures.py
 ```
 
 `extract_raw.py --full` intentionally refuses to overwrite an existing full extraction. Reproduction should use a clean, separately named namespace after pinning the same hashes.

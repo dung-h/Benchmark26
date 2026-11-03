@@ -1,8 +1,10 @@
 """Measure one CPU extraction route and check its output against saved reference features."""
-import os,sys,json,time,math,pickle,signal,resource,importlib.util
+
+import os as _b26_os
 from pathlib import Path
+import os,sys,json,time,math,pickle,signal,resource,importlib.util
 os.environ.update({k:'1' for k in ('OMP_NUM_THREADS','OPENBLAS_NUM_THREADS','MKL_NUM_THREADS','NUMEXPR_NUM_THREADS','QISKIT_NUM_PROCS')})
-ROOT=Path(__file__).resolve().parents[2];CODE=Path(__file__).parent;OUT=ROOT/'artifacts/postfreeze_qpu_workflow_mean_cost_v1/completion_v2'
+ROOT=Path(__file__).resolve().parents[2];CODE=Path(__file__).parent;OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_cost_v1/completion_v2'
 sys.path[:0]=[str(CODE),str(ROOT/'benchmark_v1/scripts'),str(ROOT/'research/postfreeze_qpu_workflow_mean_full_cost_v1'),str(ROOT/'research/postfreeze_estimator_processing_cost_v2')]
 from prepare import read,sha
 from circuit_routes import Routes
@@ -58,7 +60,7 @@ def main(kind,index,method,session,canary):
    ctx={'mat':mat,'backends':backends,'fits':{},'QuantumCircuit':QuantumCircuit}
    if method=='qcre':
     if sha(strict.QCRE_ROOT/'estimate.py')!=strict.QCRE_FILE_SHA256:raise RuntimeError('QCRE source changed')
-    sys.path.append('/home/server/Documents/.venv-cdaa-new/lib/python3.10/site-packages');sys.path.insert(0,str(strict.QCRE_ROOT))
+    sys.path.insert(0,str(strict.QCRE_ROOT))
     from estimate import estimate_runtime
     from bqskit.ext.qiskit import qiskit_to_bqskit
     dmaps={}
@@ -72,7 +74,7 @@ def main(kind,index,method,session,canary):
      dmaps[name]=dm
     ctx.update(estimate_runtime=estimate_runtime,converter=qiskit_to_bqskit,duration_maps=dmaps)
    name='qiskit_estimate_duration_snapshot__raw' if method=='qiskit' else 'qcre_source_estimator__raw'
-   refs=read(ROOT/'artifacts/real_qpu/qualified_logical_panel/summary/oof_predictions.csv',['canonical_observation_id','method_id','predicted_seconds','status'])
+   refs=read(Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/qualified_logical_panel/summary/oof_predictions.csv',['canonical_observation_id','method_id','predicted_seconds','status'])
    expected=float(next(x['predicted_seconds'] for x in refs if x['canonical_observation_id']==cid and x['method_id']==name and x['status']=='predicted'))
    def fn():return old.compile_and_estimate(record,name,ctx)[0]
    def verify(value):check(value,expected)

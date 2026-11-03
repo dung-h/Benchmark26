@@ -1,10 +1,13 @@
 """Run feature extraction in a separate Python environment; circuit-to-prediction timing includes inter-process communication."""
+
+import os as _b26_os
+import sys as _b26_sys
 import sys,subprocess,pickle,struct
 from pathlib import Path
 import numpy as np
 class Routes:
     def __init__(self):
-        self.worker=subprocess.Popen(['/home/server/Documents/.venv-qonductor/bin/python',str(Path(__file__).with_name('feature_server.py'))],stdin=subprocess.PIPE,stdout=subprocess.PIPE)
+        self.worker=subprocess.Popen([_b26_os.environ.get("B26_CPU_PYTHON", _b26_sys.executable),str(Path(__file__).with_name('feature_server.py'))],stdin=subprocess.PIPE,stdout=subprocess.PIPE)
     def call(self,op,args):
         data=pickle.dumps({'op':op,'args':args},protocol=4)
         self.worker.stdin.write(struct.pack('!Q',len(data))+data);self.worker.stdin.flush()

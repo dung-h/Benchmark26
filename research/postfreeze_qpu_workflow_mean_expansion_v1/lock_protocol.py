@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Create immutable pre-outcome code/data/protocol pins for expansion v1."""
 from __future__ import annotations
-import datetime as dt,hashlib,json,subprocess
+
+import os as _b26_os
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[2];OUT=ROOT/"artifacts/postfreeze_qpu_workflow_mean_expansion_v1"
+import datetime as dt,hashlib,json,subprocess
+ROOT=Path(__file__).resolve().parents[2];OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
 def sha(p):
  h=hashlib.sha256()
  with Path(p).open("rb") as f:

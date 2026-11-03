@@ -8,7 +8,6 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"research/postfreeze_q
 import datetime
 import json
 import math
-from pathlib import Path
 import numpy as np
 from core import OUT, ROOT, rows, sha, atomic_json
 

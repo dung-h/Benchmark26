@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """Score frozen analytical routes on the unified cohort and frozen splits."""
 from __future__ import annotations
+
+import os as _b26_os
+from pathlib import Path
 import csv, hashlib, json, math
 from collections import defaultdict
-from pathlib import Path
 import numpy as np
 from scipy.stats import pearsonr, spearmanr
 
 ROOT=Path(__file__).resolve().parents[2]
-NS=ROOT/'artifacts/postfreeze_unified_analytical_completion_v1'
-STUDY=ROOT/'artifacts/postfreeze_qpu_workflow_mean_expansion_v1'
+NS=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_unified_analytical_completion_v1'
+STUDY=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
 AN=STUDY/'analysis_v1'
 
 def read(path):

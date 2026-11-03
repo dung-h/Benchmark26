@@ -1,8 +1,10 @@
 """Sequential cost-measurement queue: wait for prerequisite measurements, validate a circuit-to-prediction trial, then measure the remaining sessions."""
-import os,sys,time,json,subprocess,signal
+
+import os as _b26_os
 from pathlib import Path
+import os,sys,time,json,subprocess,signal
 ROOT=Path(__file__).resolve().parents[2]
-OUT=ROOT/'artifacts/postfreeze_qpu_workflow_mean_cost_v1/full_cost_v1'/'circuit_qiskit25_rpc_v1'
+OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_cost_v1/full_cost_v1'/'circuit_qiskit25_rpc_v1'
 CODE=Path(__file__).parent
 
 def status(value):
@@ -52,7 +54,7 @@ def main():
     if gate['status']!='PASS':raise RuntimeError('C canary incomplete: inspect failures')
     # Conservative workload projection from the median/largest input canaries.
     import csv
-    with (ROOT/'artifacts/postfreeze_qpu_workflow_mean_expansion_v1/cohort/panel.csv').open() as f:
+    with (Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1/cohort/panel.csv').open() as f:
         panel={r['canonical_observation_id']:r for r in csv.DictReader(f)}
     sys.path.insert(0,str(ROOT/'research/postfreeze_qpu_workflow_mean_cost_v1'))
     from common import load_split

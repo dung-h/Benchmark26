@@ -4,6 +4,7 @@ import argparse
 import ast
 import importlib.util
 import json
+import os
 from pathlib import Path
 
 
@@ -29,7 +30,11 @@ def main():
         'artifacts/postfreeze_qpu_workflow_mean_expansion_v1/cohort/feature_ledger.csv',
         'provenance/cost_source_index.json',
     )
-    missing = [name for name in inputs if not (root / name).is_file()]
+    def resolve(name):
+        if name.startswith('artifacts/'):
+            return Path(os.environ.get('B26_ARTIFACTS', str(root/'artifacts'))) / Path(name).relative_to('artifacts')
+        return root/name
+    missing = [name for name in inputs if not resolve(name).is_file()]
     print('Representative external study inputs (not an exhaustive dependency inventory):')
     for name in inputs:
         print(f'  {name}: {"missing" if name in missing else "present"}')

@@ -8,6 +8,9 @@ The output directory is append-only: an existing directory is refused.
 """
 from __future__ import annotations
 
+import os as _b26_os
+import sys as _b26_sys
+
 import argparse
 import csv
 import hashlib
@@ -28,10 +31,10 @@ from qiskit_ibm_runtime import fake_provider
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CANON = ROOT / "artifacts/benchmark_v1/canonical_corpus_8767_20260926/canonical_observations.csv"
-QPACK_STRUCT = ROOT / "artifacts/benchmark_v1/qpack_mcp_structural_reconstruction_20260927/qpack_mcp_structural_rows.csv"
-MALI_QASM_ROOT = Path("/home/server/Documents/Quantum-Execution-Time-Prediction/data/quantum_circuits")
-QONDUCTOR_ZIP = Path("/home/server/Documents/Qonductor-SC25/data/database/circuits.zip")
+CANON = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v1/canonical_corpus_8767_20260926/canonical_observations.csv'
+QPACK_STRUCT = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v1/qpack_mcp_structural_reconstruction_20260927/qpack_mcp_structural_rows.csv'
+MALI_QASM_ROOT = Path(_b26_os.environ.get("B26_MALI_QASM", str(ROOT / "inputs/mali/data/quantum_circuits")))
+QONDUCTOR_ZIP = Path(_b26_os.environ.get("B26_QONDUCTOR_ARCHIVE", str(ROOT / "inputs/qonductor/data/database/circuits.zip")))
 SNAPSHOT_POLICY = ROOT / "benchmark_v1/protocol/snapshot_policy_v3.json"
 REPRESENTATION_POLICY = ROOT / "benchmark_v1/protocol/circuit_representation_v3.json"
 SEED_REGISTRY = ROOT / "benchmark_v1/registry/seed_registry.json"
@@ -542,7 +545,7 @@ def write_report(out: Path, manifests: dict[str, object]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output-dir", type=Path, default=ROOT / "artifacts/benchmark_v3/recovery_real_qpu_20260929")
+    parser.add_argument("--output-dir", type=Path, default=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v3/recovery_real_qpu_20260929')
     args = parser.parse_args()
     out = args.output_dir.resolve()
     if out.exists():

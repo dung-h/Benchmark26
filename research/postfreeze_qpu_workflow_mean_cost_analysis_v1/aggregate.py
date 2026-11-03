@@ -6,19 +6,21 @@ summary CSVs. It never fits or scores a model against runtime labels.
 """
 from __future__ import annotations
 
+import os as _b26_os
+from pathlib import Path
+
 import argparse
 import csv
 import json
 import math
 import statistics
 from collections import defaultdict
-from pathlib import Path
 
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
-ART = ROOT / "artifacts/postfreeze_qpu_workflow_mean_cost_v1/v2"
-SRC = ROOT / "artifacts/postfreeze_qpu_workflow_mean_expansion_v1"
+ART = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_cost_v1/v2'
+SRC = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
 METHODS = ("M0", "M1", "G0", "G1", "R0", "C0")
 CONTRASTS = (("G0", "M0"), ("G1", "M1"), ("M1", "M0"),
              ("G1", "G0"), ("R0", "M1"), ("R0", "G1"))

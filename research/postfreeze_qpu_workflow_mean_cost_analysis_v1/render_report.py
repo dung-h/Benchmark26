@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Render a concise auditable report from completed cost-study summaries."""
+
+import os as _b26_os
+from pathlib import Path
 import csv
 import json
-from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / "artifacts/postfreeze_qpu_workflow_mean_cost_v1/v2/summary"
+OUT = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_cost_v1/v2/summary'
 METHODS = {"M0": "MLP", "M1": "MLP + shots", "G0": "Graph+MLP",
            "G1": "Graph+MLP + shots", "R0": "Selected classical pipeline",
            "C0": "Outer-training median"}

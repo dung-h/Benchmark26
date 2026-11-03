@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Independent replay of unified analytical predictions, metrics, and fits."""
 from __future__ import annotations
+
+import os as _b26_os
+from pathlib import Path
 import csv,hashlib,json,math
 from collections import defaultdict
-from pathlib import Path
 import numpy as np
 from scipy.stats import pearsonr,spearmanr
-ROOT=Path(__file__).resolve().parents[2];NS=ROOT/'artifacts/postfreeze_unified_analytical_completion_v1';ST=ROOT/'artifacts/postfreeze_qpu_workflow_mean_expansion_v1';AN=ST/'analysis_v1'
+ROOT=Path(__file__).resolve().parents[2];NS=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_unified_analytical_completion_v1';ST=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1';AN=ST/'analysis_v1'
 def read(p):
  with open(p,newline='',encoding='utf-8') as f:return list(csv.DictReader(f))
 def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
@@ -47,7 +49,7 @@ def main():
  # Exact cache parity for graph/snapshot keys shared with the previous frozen audit.
  qparity=json.loads((NS/'qiskit_parity_receipt.json').read_text())
  assert qparity['status']=='PASS_EXACT_QISKIT_ESTIMATE_PARITY_ON_SHARED_GRAPH_SNAPSHOT_INPUTS' and qparity['rows']==615 and qparity['max_absolute_difference_seconds']==0.0
- prior={ (r['graph_sha256'],r['snapshot_id']):r for r in read(ROOT/'artifacts/postfreeze_notads_hyperq_track_a_v1/features.csv') }
+ prior={ (r['graph_sha256'],r['snapshot_id']):r for r in read(Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_notads_hyperq_track_a_v1/features.csv') }
  fields=('notads_code','notads_paper','hyperq_full_seconds','hyperq_unitary_seconds');matches=0
  for l in line:
   old=prior.get((l['graph_file_sha256'],l['snapshot_id']))

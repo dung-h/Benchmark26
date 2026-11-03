@@ -1,5 +1,8 @@
 """Bounded scalar analytical applications; no transpilation or circuit execution."""
 from __future__ import annotations
+
+import os as _b26_os
+import sys as _b26_sys
 import os
 for key in ('OMP_NUM_THREADS','OPENBLAS_NUM_THREADS','MKL_NUM_THREADS'):
     os.environ[key]='1'
@@ -11,15 +14,15 @@ import numpy as np
 
 ROOT=Path(__file__).resolve().parents[2]
 CODE=Path(__file__).resolve().parent
-OUT=ROOT/'artifacts/postfreeze_notads_hyperq_track_a_v1'
-PANEL=ROOT/'artifacts/real_qpu/qualified_logical_panel/panel.csv'
+OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_notads_hyperq_track_a_v1'
+PANEL=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/qualified_logical_panel/panel.csv'
 SPLITS=PANEL.parent/'outer_splits.csv'
-REP=ROOT/'artifacts/benchmark_v3/real_qpu/compiled_unified'
-REG=ROOT/'artifacts/benchmark_v3/recovery_real_qpu_20260929_v3/c133_snapshot_registry_v3.csv'
-TIMING=ROOT/'artifacts/postfreeze_track_a_transpiled_representation_v1/features/timing_features.csv'
-CANON=ROOT/'artifacts/benchmark_v1/canonical_corpus_8767_20260926/canonical_observations.csv'
-NATIVE=ROOT/'artifacts/real_qpu/qonductor_native_features/feature_rows.csv'
-DB=ROOT.parent/'Qonductor-SC25/data/database/quantum_scheduler.db'
+REP=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v3/real_qpu/compiled_unified'
+REG=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v3/recovery_real_qpu_20260929_v3/c133_snapshot_registry_v3.csv'
+TIMING=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_track_a_transpiled_representation_v1/features/timing_features.csv'
+CANON=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v1/canonical_corpus_8767_20260926/canonical_observations.csv'
+NATIVE=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/qonductor_native_features/feature_rows.csv'
+DB=Path(_b26_os.environ.get("B26_QONDUCTOR_DATABASE", str(ROOT / "inputs/qonductor/data/database/quantum_scheduler.db")))
 FIELDS=['depth_1q','depth_2q','unitary_depth','paper_kappa1','paper_kappa2',
         'notads_code','notads_paper','hyperq_full_seconds','hyperq_unitary_seconds','measurement_count']
 

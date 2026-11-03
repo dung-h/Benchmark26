@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Read cohort features and labels separately, and construct evaluation partitions."""
 from __future__ import annotations
-import csv,hashlib,json,math
+
+import os as _b26_os
 from pathlib import Path
+import csv,hashlib,json,math
 import numpy as np
 
 ROOT=Path(__file__).resolve().parents[2]
-OUT=ROOT/"artifacts/postfreeze_qpu_workflow_mean_expansion_v1"
+OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
 SPLITS=OUT/"splits"
 
 def sha(path):

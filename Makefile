@@ -38,3 +38,7 @@ validate-provenance:
 .PHONY: verify-latency
 verify-latency:
 	$(PYTHON) research/prediction_latency/verify_summary.py
+
+.PHONY: smoke
+smoke:
+	$(PYTHON) scripts/run_benchmark_pipeline.py --stage smoke --output work/smoke

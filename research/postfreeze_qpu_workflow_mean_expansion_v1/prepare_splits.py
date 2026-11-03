@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """Create target-blind E1 logical-holdout, E2 source-random and E3 backend-holdout folds."""
 from __future__ import annotations
+
+import os as _b26_os
+from pathlib import Path
 import csv,hashlib,json,os,platform,subprocess
 from collections import Counter,defaultdict
-from pathlib import Path
 import numpy as np
 from sklearn.model_selection import StratifiedKFold
 
 ROOT=Path(__file__).resolve().parents[2]
 HERE=Path(__file__).resolve().parent
-OUT=ROOT/"artifacts/postfreeze_qpu_workflow_mean_expansion_v1"
+OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
 COHORT=OUT/"cohort"
 SPLITS=OUT/"splits"
 SEED=42

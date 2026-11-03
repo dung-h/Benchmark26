@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Explain inclusion/exclusion using retained evidence; do not rebuild data."""
+
+import os as _b26_os
+from pathlib import Path
 import argparse
 import collections
 import csv
 import hashlib
 import json
-from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -19,14 +21,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
-    if args.output.exists() or ROOT / 'artifacts' in args.output.resolve().parents:
+    if args.output.exists() or Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) in args.output.resolve().parents:
         parser.error('Use a new output outside frozen artifacts')
-    study = ROOT / 'artifacts/postfreeze_qpu_workflow_mean_expansion_v1'
+    study = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
     panel = {r['canonical_observation_id']: r for r in read(study / 'cohort/panel.csv')}
-    legacy = read(ROOT / 'artifacts/real_qpu/qualified_logical_panel/panel.csv')
-    qualified = {r['canonical_observation_id']: r for r in read(ROOT / 'artifacts/postfreeze_qonductor_generator_version_semantics_v1/semantics_v2_legacy_parser/observation_semantic_results.csv') if r['version'] == '1.0.3'}
+    legacy = read(Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'real_qpu/qualified_logical_panel/panel.csv')
+    qualified = {r['canonical_observation_id']: r for r in read(Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qonductor_generator_version_semantics_v1/semantics_v2_legacy_parser/observation_semantic_results.csv') if r['version'] == '1.0.3'}
     screen = {r['canonical_observation_id']: r for r in read(ROOT / 'upstream/qonductor_recipe_screen.csv')}
-    corpus = ROOT / 'artifacts/benchmark_v1/canonical_corpus_8767_20260926'
+    corpus = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v1/canonical_corpus_8767_20260926'
     result = []
     for r in legacy:
         if r['source_id'] == 'mali_real_qpu':

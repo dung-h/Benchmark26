@@ -1,8 +1,11 @@
 """Run diagnostic latency measurements sequentially with memory and time limits."""
+
+import os as _b26_os
+import sys as _b26_sys
 import os,sys,json,time,subprocess,signal,fcntl
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[2];CODE=Path(__file__).parent;OUT=ROOT/'artifacts/postfreeze_qpu_workflow_mean_cost_v1/completion_v2'
-GPU='/home/server/Documents/Quantum-Execution-Time-Prediction/.venv-mali-gpu/bin/python';CPU='/home/server/Documents/.venv-qonductor/bin/python'
+ROOT=Path(__file__).resolve().parents[2];CODE=Path(__file__).parent;OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_cost_v1/completion_v2'
+GPU=_b26_os.environ.get("B26_GPU_PYTHON", _b26_sys.executable);CPU=_b26_os.environ.get("B26_CPU_PYTHON", _b26_sys.executable)
 def atomic(p,o):
  t=p.with_suffix('.tmp');t.write_text(json.dumps(o,indent=2));t.replace(p)
 def tree(pid):
