@@ -88,7 +88,7 @@ python3 experiments/qpu/prepare_run.py       # checks locked inputs and graphs, 
 python3 experiments/qpu/train_neural.py --stage preflight --require-ready
 ```
 
-`prepare_run.py` writes `run_manifest.json` with the SHA-256 of every code file named in the original lock. Fitting accepts exactly that code and stops if a file changes; use a new directory after changing code. All settings (cohort, splits, seeds, epochs, candidate sets) come from the original lock. The fitted models and predictions are a new experiment, not a check of the saved one.
+`prepare_run.py` writes `run_manifest.json` with two inventories: `code_hashes`, the current version of every code file named in the original lock (compared with the lock to list the adapted files), and `code_dependency_hashes`, every repository file the fitting code can execute. The second is the static-import closure of the run entry points and the locked files (`core.code_dependency_inventory`), so it includes files added after the lock, such as `benchmark26/paths.py`. Fitting recomputes both and stops if any file changed, was added or was removed; use a new directory after changing code. Validating saved outputs (`validate_completed.py`) checks data identity only and is unaffected. All settings (cohort, splits, seeds, epochs, candidate sets) come from the original lock. The fitted models and predictions are a new experiment, not a check of the saved one.
 
 | Step | Command |
 | --- | --- |
