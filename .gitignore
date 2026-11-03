@@ -1,14 +1,15 @@
-.venv/
 __pycache__/
 *.pyc
 .pytest_cache/
-verification/
-*.pt
-!artifacts/postfreeze_qpu_workflow_mean_expansion_v1/training/canary/fold_0/G1/seed_42/checkpoint.pt
+.ruff_cache/
+.venv/
 *.partial
-.env
+*.pt
 
-work/
+# Local data, outputs and settings
+artifacts/
 inputs/
-
-configs/runtime/*.env
+work/
+verification/
+configs/paths.env
+.env

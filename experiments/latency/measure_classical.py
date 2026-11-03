@@ -1,5 +1,7 @@
 """Time resident regression inference on five-feature inputs, without compilation."""
+
 import os
+
 for variable in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
     os.environ[variable] = "1"
 
@@ -72,20 +74,27 @@ def main():
                 samples.append(time.perf_counter_ns() - start)
                 if not np.isclose(value, expected, atol=1e-9, rtol=0):
                     raise ValueError("Prediction changed between repetitions")
-            record = dict(task_key=row["task_key"], session=session,
-                          prediction=expected, durations_ns=samples)
+            record = dict(task_key=row["task_key"], session=session, prediction=expected, durations_ns=samples)
             path = args.output / f"{session}_{row['task_key']}.json"
             path.write_text(json.dumps(record, indent=2) + "\n")
 
     receipt = {
         "scope": "Feature conversion and resident model inference; loading excluded",
-        "tasks": len(rows), "sessions": 3, "warmups": 3, "repetitions": 10,
-        "input_sha256": {"features": hashlib.sha256(args.features.read_bytes()).hexdigest(),
-                         "model": hashlib.sha256(args.model.read_bytes()).hexdigest()},
-        "environment": {"host": platform.node(), "python": sys.version,
-                        "numpy": np.__version__,
-                        "sklearn": importlib.metadata.version("scikit-learn"),
-                        "affinity": sorted(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else None},
+        "tasks": len(rows),
+        "sessions": 3,
+        "warmups": 3,
+        "repetitions": 10,
+        "input_sha256": {
+            "features": hashlib.sha256(args.features.read_bytes()).hexdigest(),
+            "model": hashlib.sha256(args.model.read_bytes()).hexdigest(),
+        },
+        "environment": {
+            "host": platform.node(),
+            "python": sys.version,
+            "numpy": np.__version__,
+            "sklearn": importlib.metadata.version("scikit-learn"),
+            "affinity": sorted(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else None,
+        },
     }
     (args.output / "measurement.json").write_text(json.dumps(receipt, indent=2) + "\n")
 

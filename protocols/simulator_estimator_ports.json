@@ -1,0 +1,198 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "simulator-estimator-ports",
+  "status": "scientific_design_locked_execution_not_authorized",
+  "execution_authorized": false,
+  "measurement_authorized": false,
+  "purpose": "Accept the executed Azizov local adaptation where supported and freeze two runtime-only Quantum Rings component ports on existing local MPS observations. This is not an SDK timing reproduction or a joint threshold predictor.",
+  "input_pins": {
+    "azizov_protocol": {"path": "work/repo_finalization/publish_candidate/benchmark_v1/protocol/azizov_common_core_gnn_v1.json", "sha256": "5c800d77b5230342afce1e0f0f38c711b20e7317b3023d2ba20e1c2a2451549b"},
+    "azizov_runner": {"path": "work/repo_finalization/publish_candidate/benchmark_v1/scripts/run_azizov_common_core_adaptation_v1.py", "sha256": "66baf8c9477059dc7abf1b156f4ba386575d2797da0bfd7914ebf94c00112ab6"},
+    "azizov_materializer": {"path": "work/repo_finalization/publish_candidate/benchmark_v1/scripts/materialize_azizov_common_core_v1.py", "sha256": "a09f8caee17a5f20321d612323f2415a9a35875af73f13b18f8672692eb3e915"},
+    "azizov_manifest": {"path": "work/repo_finalization/publish_candidate/artifacts/benchmark_v3/simulator/azizov_common_core_adaptation/run_manifest.json", "sha256": "7f6b0abd12318ecab947989be445c624c34333f97efe691b86bdfdae59eaa99f"},
+    "azizov_dictionary": {"path": "work/repo_finalization/publish_candidate/artifacts/benchmark_v3/simulator/azizov_common_core_adaptation/feature_dictionary.json", "sha256": "100c994c852ca8cf33150f971ce2f5716465ab5822a9efaf6f240e3ea5a2fa94"},
+    "azizov_seed_predictions": {"path": "work/repo_finalization/publish_candidate/artifacts/benchmark_v3/simulator/azizov_common_core_adaptation/oof_predictions_by_seed.csv", "sha256": "b6521970840a799e49bbaef2d3ed0d79b22c88385fad9fe99e9552c289441afe"},
+    "azizov_seed_medians": {"path": "work/repo_finalization/publish_candidate/artifacts/benchmark_v3/simulator/azizov_common_core_adaptation/oof_predictions_median.csv", "sha256": "e0aecdd4679c0a6995e3ee76ff26d2e18f377ea039067ad804c08845f5ba0349"},
+    "azizov_classical_predictions": {"path": "work/repo_finalization/publish_candidate/artifacts/benchmark_v3/simulator/azizov_common_core_adaptation/classical_oof_predictions.csv", "sha256": "9b16545c0fac3df506c49cc95963e588baf3fffdf9aabec468039fc79ab75eb0"},
+    "azizov_metrics": {"path": "work/repo_finalization/publish_candidate/artifacts/benchmark_v3/simulator/azizov_common_core_adaptation/method_metrics.csv", "sha256": "33c70739c961b204b20e678aed3d7f35bf6b299da7502eec02b1af6daf0f0a8c"},
+    "azizov_source_graphs": {"path": "work/repo_finalization/publish_candidate/artifacts/benchmark_v3/simulator/azizov_common_core_adaptation/source_graphs.jsonl", "sha256": "e8a71f0c33c7ab678ee4e0143f83550b7c7e05cb8f40e18970e7db798e92dab5"},
+    "azizov_folds": {"path": "work/repo_finalization/publish_candidate/artifacts/benchmark_v3/simulator/azizov_common_core_adaptation/fold_assignments_and_hash_audit.csv", "sha256": "696679d3bfd46d2aa2acf9f7771c0fcc628da43b8c91a78e8597b68d0b7990f0"},
+    "mps_target_manifest": {"path": "work/benchmark_recovery/r9_mps/targets_recovered_v1/manifest.json", "sha256": "c7a66fe6195daaf1af74c2da5582a06a260469d227682d2634276fdd0a4fdbeb"},
+    "mps_fixed_targets": {"path": "work/benchmark_recovery/r9_mps/targets_recovered_v1/fixed_chi16_targets.csv", "sha256": "2534ac3e13e9ca8829427c11b102964a7b6f7de25729c8ec0fc14f4a1cf35741"}
+  },
+  "azizov_review": {
+    "decision": "accept_executed_local_adaptation_no_rerun_required_by_this_contract",
+    "fidelity_class": "adaptation",
+    "author_encoder_status": "not_recovered",
+    "paper_url": "https://arxiv.org/html/2609.12980v1",
+    "paper_dimensions": [41, 54, 41],
+    "executed_dimensions": [51, 64, 51],
+    "assigned_hashes": 150,
+    "assigned_members": 162,
+    "completed_neural_outer_cells": 45,
+    "completed_classical_outer_cells": 75,
+    "neural_seeds": [42, 1234, 31415],
+    "folds": [0, 1, 2, 3, 4],
+    "evaluation_target_clock": "warm_execution",
+    "method_output_clock": "predicted_noisy_aer_warm_execution_seconds",
+    "context": "Historical FakeSherbrooke, optimization1, 1024shots, Qiskit0.44.2/Terra0.25.2.1/Aer0.12.2; no new simulation",
+    "graph_encoder": "Operation nodes including measurement/barrier, directed consecutive touches of quantum/classical wires; training-only sorted gate vocabulary with unknown slot; K+265 node fields; no invented node calibration.",
+    "global_encoder": "44 named gate counts + allocated width + depth +5 explicitly defined local structural metrics; hybrid adds13 declared compiled fields. Communication uses all coincident operand pairs, a disclosed difference from the pinned Ma-Li helper.",
+    "controlled_experiment": "Source/source+compiled globals/compiled graph+globals on the same150 exact-hash targets, unchanged five folds. Alias observations reduce to one median hash target; member-level summaries remain separate.",
+    "fit_contract": "Three TransformerConv178 layers, global64/64 MLP, concat head512/512/128/1, Adam lr.001 wd.0001, log1p-MSE, batch8, max300epochs, patience30; inner hash epoch selection then full outer-train refit; mandatory CUDA for neural fits.",
+    "acceptance_checks": ["source and result byte pins match", "all45 neural and75 classical outer fold records present; these are result cells, not the total internal tuning/refit count", "inner/outer identities disjoint", "inner transforms use inner-train and outer refit uses outer-train only", "all150 hashes assigned consistently across variants and aliases", "three-seed medians recomputed from raw seeds", "MAE and seconds R2 recomputed on hash targets", "replay and context evidence retained"],
+    "rerun_triggers": ["actual leakage or pin mismatch", "new author encoder establishes substantive implementation mismatch and a separately authorized new method contract"],
+    "not_rerun_triggers": ["low R2", "51 differs from unknown41", "source variant loses to compiled variant"],
+    "claim_boundary": "A controlled local adaptation on one noisy-Aer backend/context. It does not reproduce the author's feature dictionary, HPC machine or paper-scale scores and does not establish backend/family holdout performance.",
+    "median_hash_results": {
+      "source": {"mae_seconds": 0.4496584820206872, "r2_seconds": 0.09267926018783079},
+      "hybrid": {"mae_seconds": 0.40635904268503137, "r2_seconds": 0.09143420430937721},
+      "transpiled": {"mae_seconds": 0.30076412231978206, "r2_seconds": 0.5206059070665272}
+    }
+  },
+  "upstream_sources": {
+    "spirit_sprinters": {
+      "repository": "https://github.com/woody-hulse/quantum-rings",
+      "commit": "14b5ea14dea8f6b55edf632030f5c022e8ad7373",
+      "files_sha256": {
+        "predict.py": "726b062d3d65243c86c42a3589e50a473729291d85b862aa2b91bc6e67c5f67c",
+        "train_submission_models.py": "089aaeeec1c8d4ac6244bdb980e9e5ef6ac86cc0b2486d56bb74d02317b9d0df",
+        "src/gnn/graph_builder.py": "f9161917e3725fa6683ca6335e2d540d3be38dec5d89b81c2ef1f8b934cd3faf",
+        "src/gnn/transformer.py": "b388bf21eb18e3f7b0970d45b339ab75e04ff59050ee6ff8a5a56d3aa282d3f6",
+        "src/data_loader.py": "2e058633ff6f669fafaede4439a3fe47db2ce71984649f1b3aa3e7cbc1c246df"
+      },
+      "original_clock": "10000-shot Quantum Rings forward wall time at selected Quantum Rings threshold",
+      "original_duration_component": "Edge-aware qubit graph Transformer, log2 runtime regression, known threshold slot, backend and precision; threshold classifier not required for duration-only mode"
+    },
+    "softlocked": {
+      "repository": "https://github.com/SoftLocked/2026-Quantum-Rings",
+      "commit": "da13c074d68c2fe3a1053c751234ee0916d73739",
+      "files_sha256": {
+        "predict_cli.py": "e8fcda788d8f610c96962ba2950258a7e67dd9567db61b6bd03be51f49ce2a14",
+        "comprehensive_features.py": "9c4e5ee7c2ab9686301057a62e31402545e40a9a4fccf1aa66af9a1c37e8626e",
+        "Regressor.ipynb": "77d59b881d5ddc62bc0aabf03489d44656a24a0292ad9c97f71e9b6d488ab257",
+        "models/runtime_model.pkl": "60d8dc3be5c2adc256482f46b2693336532c544b6e0fbe1829f068b2838c537b"
+      },
+      "original_clock": "CPU-only source training_data.csv forward_runtime; raw data/data.json absent",
+      "original_duration_component": "50 published engineered QASM features, GradientBoostingRegressor, log1p runtime, min_threshold feature and precision, literal backendCPU; no runtime hardware identifier",
+      "artifact_inspection": "Hyperparameters obtained by static pickle opcode inspection; no upstream pickle was executed or model fit in this contract audit. Notebook output independently identifies the model and50 selected fields. Routine retrieval must confirm production feature ordering against pinned artifact metadata, without using local labels."
+    }
+  },
+  "local_task": {
+    "task_id": "cudaq_mps_fixed_bond16_runtime",
+    "engine": "CUDA-Q MPS",
+    "precision": "fp64",
+    "max_bond": 16,
+    "abs_cutoff": 1e-10,
+    "svd_algorithm": "gesvdj",
+    "hardware": "NVIDIA GeForce RTX5070Ti,16GiB; recorded old/recovery environment adjudicated, not claimed bit-identical binaries",
+    "evaluation_target_clock": "cudaq_mps_fp64_bond16_warm_state_execution_seconds",
+    "method_output_clock": "predicted_cudaq_mps_fp64_bond16_warm_state_execution_seconds",
+    "target_reduction": "Pinned150-row recovered target table: median of warm repetitions per member/session, then median of member/session medians per exact source QASM hash. Old144 finite labels retained exactly; six recovered failures add labels under the existing recorded-context adjudication.",
+    "excluded_clocks": ["compile", "network build", "first execution", "sampling", "result extraction", "fidelity evaluation", "end to end"],
+    "assigned_hashes": 150,
+    "assigned_members": 162,
+    "finite_runtime_labels": 150,
+    "quality_pass": 147,
+    "quality_failed": 3,
+    "quality_threshold": 0.99,
+    "quality_policy": "All150 finite runtimes enter fitting/scoring. Quality status is audit-only and cannot select primary training rows or enter features. Report coverage and147 quality-qualified held-out rows as a separate conditional metric slice, never as an all-panel winner.",
+    "threshold_policy": "No minimum-quality threshold labels enter either runtime component. A known local bond setting16 is substituted as a fixed configuration covariate in the upstream threshold slot; this is an explicit engine-port adaptation, NOT numerical/semantic equivalence between bond dimension and Quantum Rings threshold. This constant slot cannot establish scaling over bonds.",
+    "shots_policy": "No10000-shot conversion: local labels are warm get_state; known original contest sampling count is not a runtime scaling factor.",
+    "source_inputs": "Exact original source QASM for the same150 hashes; static materialization only, pinned original bytes and canonical wire mapping, no simulator execution or circuit rewriting to manufacture features.",
+    "outer_split": {
+      "unit": "exact source QASM SHA256; aliases share fold",
+      "folds": [0, 1, 2, 3, 4],
+      "hash_counts": [37, 28, 26, 25, 34],
+      "assignment_sha256": "6bd63805cc457207e5e6057043e0ba0956c6f960ac9881e7aae3bbba3aea204a",
+      "policy": "Read recovered table fold unchanged; do not recreate split from a new seed. Family-component holdout is optional unrun secondary work, not required primary cells."
+    },
+    "forbidden_inputs": ["observed runtime", "measured fidelity", "selected minimum-quality bond", "peak measured memory", "post-execution status", "fold", "hash", "source path", "family supplied by alias filename"]
+  },
+  "ports": {
+    "spirit_sprinters_mps_runtime": {
+      "reader_label": "Spirit Sprinters runtime component, local CUDA-Q MPS port with explicit gate parser extension",
+      "fidelity_class": "adaptation",
+      "compute": "cuda",
+      "graph_type": "qubit interaction graph; not operation DAG",
+      "parser_extension": {
+        "policy": "Parse QASM with pinned Qiskit2.5.2 AST; use qc.find_bit for flat multi-register offsets and qc.data insertion order. Original regex is only a golden reference on its supported fixture set; never eval parameter strings or substitute unparsable parameters with zero.",
+        "upstream_omission_audit": {"affected_hashes": 34, "operation_types": ["p", "u", "sx", "sxdg", "cy", "ch", "rccx"], "source": "Pinned Azizov source operation records for150 hashes, union after stripping measurement/barrier; original30-type regex misses at least one operation on34 hashes."},
+        "original_one_qubit_types": ["h", "x", "y", "z", "s", "sdg", "t", "tdg", "rx", "ry", "rz", "u1", "u2", "u3", "id"],
+        "original_two_qubit_types": ["cx", "cz", "swap", "cp", "crx", "cry", "crz", "cu1", "cu3", "rxx", "ryy", "rzz"],
+        "original_three_qubit_types": ["ccx", "cswap", "ccz"],
+        "additional_one_qubit_types": ["p", "u", "sx", "sxdg"],
+        "additional_two_qubit_types": ["cy", "ch"],
+        "additional_three_qubit_types": ["rccx"],
+        "type_ids": "Original concatenated30 type IDs unchanged; append p,u,sx,sxdg,cy,ch,rccx as30..36. No gate alias, decomposition, or identity substitution.",
+        "directive_policy": "Ignore measurement/barrier in Spirit graph exactly as upstream; keep omission counts and original QASM digest. Reset/delay/dynamic or other unitary types are unsupported unless in this frozen explicit catalog; do not drop them.",
+        "parameter_policy": "Require finite real operation parameters. Preserve upstream edge representation of first parameter only (zero only when no parameter). Store full parameter values in audit. Log any omitted second/third parameter; do not claim complete operation encoding.",
+        "edge_policy": "One-qubit self-loop; two-qubit first operand to second; three-qubit first and second controls to third operand. Preserve upstream qubit incidence, temporal position, neighbor/span and cumulative interaction formulas, including two interaction contributions per three-qubit gate. Do not call cumulative interactions the number of actual2Q operations.",
+        "node_dimension": 26,
+        "edge_dimension": 4,
+        "gate_type_count": 37,
+        "global_dimension": 27,
+        "node_field_order": "Original15 gate-count slots followed by4 added1Q slots, log1p interaction-incidence count, normalized qubit position, first/last interaction positions, activity window, normalized distinct neighbor count, average span; upstream formulas otherwise unchanged.",
+        "globals": "n_qubits/130, parsed operation count/1000, upstream cumulative interactions/500, interactions/qubits/10, GPU=1, double=1, log2(known bond16)/8=.5,20 constant-zero family slots (CLI unknown-family behavior). No held-out family label.",
+        "max_quantum_wires": 256,
+        "acceptance": ["every non-directive operation accounted for exactly once", "all150 hashes supported or explicit unavailable with offending operation", "single and multiple register mapping tested", "supported upstream fixtures agree after projecting new1Q slots and type IDs", "one-parameter and multi-parameter omissions disclosed", "p/u/sx/sxdg/cy/ch/rccx fixtures match declared self-loop/control/operand contributions", "measurement/barrier exclusion parity", "no empty-graph phantom fallback", "26/4/37/27 dimensions verified"]
+      },
+      "model": {"source_class": "QuantumCircuitGraphTransformer", "hidden_dim": 32, "num_layers": 4, "num_heads": 2, "dropout": 0.1, "use_positional_encoding": true, "pooling": "upstream mean+max+sum concatenation", "max_epochs": 100, "batch_size": 8, "optimizer": "AdamW", "learning_rate": 0.001, "weight_decay": 0.0003, "loss": "L1 on log2 strictly positive runtime", "scheduler": "ReduceLROnPlateau factor.5 patience10 min_lr1e-6 on inner-validation loss", "early_stopping_patience": 20, "precision": "float32,noAMP", "gradient_clip_norm": 1.0, "dataloader_workers": 0, "inversion": "2**output; nonfinite is explicit fit/inference failure, no runtime clipping"},
+      "seeds": [42, 1234, 31415],
+      "seed_reduction": "row-wise median of exactly three successful same-contract seeds; keep dispersion; missing seed is not best-seed selection",
+      "outer_cell_count": 15,
+      "fit_count": 30,
+      "inner_selection_fits": 15,
+      "outer_train_refits": 15,
+      "inner_validation": "For outer-train hashes, sort SHA256('quantum-rings-inner-1234|'+hash); first ceil(.2*N) inner validation, remainder train. Fit inner model to select earliest minimum validation-loss epoch; reset seed/model/optimizer and refit full outer-train for selected epoch count using fixed lr with no outer-test scheduler. Persist inner schedule history; final fixed-lr refit is a disclosed train-safe adaptation rather than checkpoint transfer.",
+      "claim_boundary": "Fixed-configuration local runtime port, with AST/type expansion and local known-setting replacement. Not Quantum Rings SDK reproduction, threshold prediction, engine selection, or cross-device/bond scaling. Source topology, graph model and raw log2 loss are retained; original checkpoints are not reused."
+    },
+    "softlocked_mps_runtime": {
+      "reader_label": "SoftLocked runtime component, fixed-context CUDA-Q MPS tabular port",
+      "fidelity_class": "adaptation",
+      "compute": "cpu",
+      "features": "Pinned QASMFeatureExtractor.extract_all plus _engineer_regressor_features; known min_threshold slot set to16 for every row; precision double. Preserve upstream literal backendCPU in feature extraction as a constant legacy input, while actual GPU engine/context is explicit provenance. Do not add a GPU one-hot and call the pipeline code-identical.",
+      "feature_semantics": "Upstream regex counts and crude_depth are author proxies, not exact DAG depth/complete gate counts. Preserve these definitions and report unsupported named counters, including missing p/sx/rccx slots. All parseable QASM candidates are assigned; extractor errors/nonfinite values are explicit unavailable instead of silently nan_to_num.",
+      "ordered_features": ["max_gate_span", "log_qubits", "n_qubits", "n_measure", "circuit_density", "precision_single", "precision_double", "threshold_x_qubits", "n_u3", "n_u", "degree_x_qubits", "n_1q_gates", "n_h", "avg_qubit_degree", "1q_gates_per_qubit", "cx_ratio", "n_2q_gates", "std_gate_span", "gates_per_layer_estimate", "threshold_x_gates", "midpoint_cut_crossings", "edge_density", "qubit_degree_std", "depth_per_qubit", "gates_per_depth", "n_classical_bits", "entanglement_per_qubit", "avg_gate_span", "sim_difficulty", "2q_gates_per_qubit", "entanglement_pressure", "entanglement_complexity", "log_threshold", "complexity_score", "min_threshold", "n_cx", "n_swap", "n_lines", "n_unique_edges", "crude_depth", "gates_per_qubit", "degree_x_depth", "n_u2", "n_nonempty_lines", "n_edge_repetitions", "log_gates", "log_depth", "ratio_1q_gates", "multi_qubit_ratio", "ratio_2q_gates"],
+      "feature_selection": "Published external-source50-field set fixed before local fit, no local label-based RF ranking/topK search. C1 compares pinned production artifact metadata; an actual order/set mismatch is a stop, not an improvised replacement. Categorical missing one-hot slots may be structural zero with declared precision; missing numeric fields are failures.",
+      "preprocessing": "StandardScaler on outer-train only, then clip scaled values to[-10,10], upstream behavior. Preserve feature order and train-only mean/scale. No saved source scaler/weights reused.",
+      "model": {"class": "GradientBoostingRegressor", "n_estimators": 794, "max_depth": 5, "learning_rate": 0.011740496969461377, "min_samples_split": 3, "min_samples_leaf": 1, "subsample": 0.5721107609628949, "loss": "squared_error", "criterion": "friedman_mse", "max_features": null, "random_state": 42, "n_iter_no_change": null, "target_transform": "log1p(seconds)", "inversion": "max(0,expm1(output)); nonfinite is failure"},
+      "fit_count": 5,
+      "seeds": [42],
+      "inner_selection": "None: author-published hyperparameters and external feature set frozen; no local CV selects them. New local supervised feature/hyperparameter search would require nested grouped inner fitting and a different method ID.",
+      "claim_boundary": "Fixed-context runtime-only engine port of the author's extractor/regressor; localGPU timing, known bond-slot semantics and train-only scaler differ from originalCPU threshold-selected forward task. Neither saved-checkpoint accuracy nor original threshold quality is reproduced."
+    }
+  },
+  "cell_matrix": [
+    {"method_id": "azizov_local_source_hybrid_transpiled", "action": "reuse_verified_existing_oof", "assigned_hashes": 150, "new_fits": 0, "new_measurements": 0},
+    {"method_id": "spirit_sprinters_mps_runtime", "action": "implement_then_fit_after_authorization", "folds": [0, 1, 2, 3, 4], "seeds": [42, 1234, 31415], "assigned_hashes": 150, "outer_cells": 15, "new_fits": 30, "inner_selection_fits": 15, "outer_train_refits": 15, "new_measurements": 0},
+    {"method_id": "softlocked_mps_runtime", "action": "implement_then_fit_after_authorization", "folds": [0, 1, 2, 3, 4], "seeds": [42], "assigned_hashes": 150, "new_fits": 5, "new_measurements": 0}
+  ],
+  "excluded_cells": [
+    {"method": "quantum_rings_joint_threshold_runtime", "reason": "No licensed/frozen equivalence from Quantum Rings threshold to local CUDA-Q quality ladder. Fixed-bond runtime component is identifiable; no quality oracle used."},
+    {"method": "quantum_rings_dense_or_aer_transfer", "reason": "Separate engine-port validation not frozen by this MPS task; no direct use of contest weights on mismatched clocks."},
+    {"method": "quantum_rings_sdk_timing_replication", "reason": "Public table lacks concrete original hardware/SDK profile; no SDK measurements authorized."},
+    {"method": "quantum_rings_family_holdout", "reason": "Secondary diagnostic future cells, not silently added to primary5fold queue."}
+  ],
+  "technical_gates": [
+    "Verify all local byte pins and source commits/files before materialization",
+    "Restore dependencies/source closure without overwriting candidate/historical artifacts",
+    "Materialize exact source hashes and one target/fold per150 hashes; preserve162-member alias ledger",
+    "Run AST, gate extension, source parity, numeric field, quality-exclusion and train-only transform tests",
+    "CUDA canary finite forward/backward/inference; record framework/driver/GPU/seed/memory; no simulator calls",
+    "Checkpoint state/RNG/optimizer/scaler/protocol/split/feature identities every<=10epochs; interruption/resume parity fixture",
+    "Fold0 Spirit three seeds plus SoftLocked fold0; technical coverage/identity/finite/resume QA only, no MAE/R2 pass threshold",
+    "After execution authorization and passing technical gates automatically complete remaining folds; low accuracy is a benchmark result"
+  ],
+  "terminal_statuses": ["predicted", "unavailable_missing_source", "unavailable_unsupported_operation", "unavailable_nonfinite_parameter", "unavailable_empty_graph", "unavailable_missing_numeric_feature", "failure_identity_or_pin_drift", "failure_leakage", "failure_cuda_unavailable", "failure_resource_limit", "failure_nonfinite_prediction", "pending_execution_authorization"],
+  "resources": {"gpu_workers": 1, "no_simulator_timing_concurrent": true, "gpu_used_budget_gib": 12, "gpu_free_reserve_gib": 4, "cpu_preprocess_workers": 2, "cpu_native_threads_per_worker": 2, "aggregate_rss_budget_gib": 28, "available_ram_reserve_gib": 8, "gpu_lease": "/tmp/qre-benchmark-gpu-lease.lock", "no_node_or_gate_truncation": true, "cpu_softlocked_may_overlap_cuda_training": true},
+  "evaluation": {
+    "primary_unit": "150 hash-level targets; aliases expanded only for separate member-level summaries",
+    "coverage_denominator": 150,
+    "metrics": ["coverage", "MAE seconds", "MedAE seconds", "RMSE seconds", "R2 seconds", "log1p MAE", "p90 error", "p99 error", "max error", "seed dispersion"],
+    "comparisons": "Match held-out hashes, labels, engine/configuration and clock with recovered fixed-MPS graph/MLP/residual/Ridge predictions; no pooling against noisyAer/statevector/TN clocks. Same successful intersection plus full-envelope statuses; attach147qualitypass slice separately.",
+    "bootstrap": "Paired10000 exact-hash resamples,95percentile intervals, pinned seed registry stream; point observed difference separate from bootstrap mean. Do not compare interval point estimates on different row subsets.",
+    "public_paths": ["artifacts/simulator/cudaq_mps/spirit_sprinters/", "artifacts/simulator/cudaq_mps/softlocked/"],
+    "required_outputs": ["method_card.json", "source_and_input_pins.json", "feature_dictionary.json", "representation_statuses.csv", "fold_seed_manifests.json", "oof_predictions.csv", "metrics.csv", "shared_row_comparisons.csv", "coverage.csv", "environment.json", "reproduction_commands.md"]
+  }
+}

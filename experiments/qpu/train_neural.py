@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """Train MLP and Graph+MLP, with or without shots, on the supplied E1/E2/E3 splits."""
-from __future__ import annotations
 
-import os as _b26_os
+from __future__ import annotations
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
+from benchmark26.paths import ARTIFACTS, recorded
 from pathlib import Path
 
 import argparse
@@ -19,15 +23,13 @@ import time
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-OUT = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
+OUT = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
 PROTOCOL = OUT / "PROTOCOL.md"
 LOCK = OUT / "execution_lock_v2.json"
-sys.path.insert(0, str(ROOT / "benchmark_v1/scripts"))
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(ROOT / "benchmark_v1/shots"))
-import run_mali_full_features as base  # noqa: E402
-import run_mali_batched as batching  # noqa: E402
-from shots_core import append_shots, expand_global_projection, fit_shot_transform, transform_shots  # noqa: E402
+from benchmark26 import mali_training as base  # noqa: E402
+from benchmark26 import mali_batching as batching  # noqa: E402
+from benchmark26.shots import append_shots, expand_global_projection, fit_shot_transform, transform_shots  # noqa: E402
 from core import atomic_csv, atomic_json, load_context, load_targets, parts_for, rows, sha, stable  # noqa: E402
 
 SEEDS = (42, 1234, 31415)
@@ -41,15 +43,27 @@ CPU_RSS_LIMIT_GIB = 12
 METHODS = {
     "M0": {"method": "expansion_mlp_no_shots", "internal": "mali_full_features_mlp", "graph": False, "shots": False},
     "M1": {"method": "expansion_mlp_plus_shots", "internal": "mali_full_features_mlp", "graph": False, "shots": True},
-    "G0": {"method": "expansion_graph_mlp_no_shots", "internal": "mali_full_features_graph", "graph": True, "shots": False},
-    "G1": {"method": "expansion_graph_mlp_plus_shots", "internal": "mali_full_features_graph", "graph": True, "shots": True},
+    "G0": {
+        "method": "expansion_graph_mlp_no_shots",
+        "internal": "mali_full_features_graph",
+        "graph": True,
+        "shots": False,
+    },
+    "G1": {
+        "method": "expansion_graph_mlp_plus_shots",
+        "internal": "mali_full_features_graph",
+        "graph": True,
+        "shots": True,
+    },
 }
 
 
 class ExampleCache:
     """Cache transformed features by observation ID, retaining row-specific shots."""
+
     def __init__(self, context, transform, treatment, budget_bytes):
         from collections import OrderedDict
+
         self.context = context
         self.transform = transform
         self.treatment = treatment
@@ -72,8 +86,17 @@ class ExampleCache:
         self.misses += 1
         spec = METHODS[self.treatment]
         tfm = {"global": self.transform["global"], "node": self.transform["node"]}
-        value = base._make_example(cid, spec["internal"], self.context["ledger"], None,
-                                   tfm, self.context["feature_root"], "cpu", False, self.verified)
+        value = base._make_example(
+            cid,
+            spec["internal"],
+            self.context["ledger"],
+            None,
+            tfm,
+            self.context["feature_root"],
+            "cpu",
+            False,
+            self.verified,
+        )
         if spec["shots"]:
             raw = float(self.context["panel_by_id"][cid]["shots"])
             value = append_shots(value, transform_shots(raw, self.transform["shots"]))
@@ -92,16 +115,24 @@ def environment_receipt(torch) -> dict:
     import sklearn
     import torch_geometric
     from threadpoolctl import threadpool_info
+
     return {
-        "python": sys.executable, "python_version": sys.version,
-        "platform": platform.platform(), "numpy": numpy.__version__,
-        "scikit_learn": sklearn.__version__, "torch": torch.__version__,
-        "torch_geometric": torch_geometric.__version__, "cuda_runtime": torch.version.cuda,
+        "python": sys.executable,
+        "python_version": sys.version,
+        "platform": platform.platform(),
+        "numpy": numpy.__version__,
+        "scikit_learn": sklearn.__version__,
+        "torch": torch.__version__,
+        "torch_geometric": torch_geometric.__version__,
+        "cuda_runtime": torch.version.cuda,
         "gpu": torch.cuda.get_device_name(0),
         "gpu_total_memory_bytes": torch.cuda.get_device_properties(0).total_memory,
-        "gpu_budget_gib": GPU_BUDGET_GIB, "gpu_reserve_gib": GPU_RESERVE_GIB,
-        "cpu_count": os.cpu_count(), "torch_threads": torch.get_num_threads(),
-        "torch_interop_threads": torch.get_num_interop_threads(), "threadpools": threadpool_info(),
+        "gpu_budget_gib": GPU_BUDGET_GIB,
+        "gpu_reserve_gib": GPU_RESERVE_GIB,
+        "cpu_count": os.cpu_count(),
+        "torch_threads": torch.get_num_threads(),
+        "torch_interop_threads": torch.get_num_interop_threads(),
+        "threadpools": threadpool_info(),
         "git_head": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
     }
 
@@ -116,13 +147,13 @@ def protocol_lock() -> tuple[dict, str]:
     if int(lock.get("neural", {}).get("effective_batch", -1)) != EFFECTIVE_BATCH:
         raise RuntimeError("effective_batch_does_not_match_locked_profile")
     for relative, digest in expected.items():
-        if sha(ROOT / relative) != digest:
+        if sha(recorded(relative)) != digest:
             raise RuntimeError(f"locked_code_hash_mismatch:{relative}")
     for relative, digest in lock.get("input_hashes", {}).items():
-        if sha(ROOT / relative) != digest:
+        if sha(recorded(relative)) != digest:
             raise RuntimeError(f"locked_input_hash_mismatch:{relative}")
     for relative, digest in lock.get("unique_graph_hashes", {}).items():
-        if sha(ROOT / relative) != digest:
+        if sha(recorded(relative)) != digest:
             raise RuntimeError(f"locked_graph_hash_mismatch:{relative}")
     return lock, sha(LOCK)
 
@@ -130,21 +161,25 @@ def protocol_lock() -> tuple[dict, str]:
 def fit_transform(context, parts, fold):
     raw_global = {cid: [float(context["ledger"][cid][f"global_{j:02d}"]) for j in range(51)] for cid in parts["fit"]}
     global_transform = base.fit_transform_global(raw_global, parts["fit"])
-    graph_paths = [ROOT / context["ledger"][cid]["graph_artifact"] for cid in parts["fit"]]
+    graph_paths = [recorded(context["ledger"][cid]["graph_artifact"]) for cid in parts["fit"]]
     node_transform = base.fit_node_transform(graph_paths, parts["fit"])
     shot_fit = [float(context["panel_by_id"][cid]["shots"]) for cid in parts["fit"]]
-    return {"global": global_transform, "node": node_transform,
-            "shots": fit_shot_transform(shot_fit), "fold": fold,
-            "fit_ids_sha256": base.stable_hash(parts["fit"])}
+    return {
+        "global": global_transform,
+        "node": node_transform,
+        "shots": fit_shot_transform(shot_fit),
+        "fold": fold,
+        "fit_ids_sha256": base.stable_hash(parts["fit"]),
+    }
 
 
 def make_model(treatment, transform, seed, torch):
     spec = METHODS[treatment]
     base.seed_all(seed)
     model_class, model_sha = base.load_pinned_model()
-    old_model = base.make_model(model_class, spec["internal"],
-                                len(transform["global"]["retained_indices"]),
-                                checkpoint_layers=spec["graph"])
+    old_model = base.make_model(
+        model_class, spec["internal"], len(transform["global"]["retained_indices"]), checkpoint_layers=spec["graph"]
+    )
     if spec["graph"]:
         old_model.mask = old_model.mask.to("cuda:0")
     projection = None
@@ -175,27 +210,37 @@ def initialization_gate(context, parts, transform, treatment, seed, torch):
     spec = METHODS[treatment]
     cache = ExampleCache(context, transform, treatment, 256 * 1024**2)
     fit_sorted = sorted(parts["fit"], key=lambda cid: float(context["panel_by_id"][cid]["shots"]))
-    fixture_ids = list(dict.fromkeys([fit_sorted[0], fit_sorted[len(fit_sorted)//2], fit_sorted[-1]]))
+    fixture_ids = list(dict.fromkeys([fit_sorted[0], fit_sorted[len(fit_sorted) // 2], fit_sorted[-1]]))
     old_treatment = {"M1": "M0", "G1": "G0"}.get(treatment)
     if old_treatment:
         old, old_sha, _ = make_model(old_treatment, transform, seed, torch)
         new, new_sha, projection = make_model(treatment, transform, seed, torch)
         if old_sha != new_sha:
             raise RuntimeError("shot_model_source_mismatch")
-        old.eval(); new.eval()
+        old.eval()
+        new.eval()
         maxdiff = 0.0
         for cid in fixture_ids:
             old_ex = cache.get(cid)
             # Build a second baseline example with exactly the old global width.
-            old_ex = base._make_example(cid, METHODS[old_treatment]["internal"], context["ledger"], None,
-                {"global": transform["global"], "node": transform["node"]}, context["feature_root"], "cpu", False, cache.verified)
+            old_ex = base._make_example(
+                cid,
+                METHODS[old_treatment]["internal"],
+                context["ledger"],
+                None,
+                {"global": transform["global"], "node": transform["node"]},
+                context["feature_root"],
+                "cpu",
+                False,
+                cache.verified,
+            )
             new_ex = append_shots(old_ex, 0.0)
             b0 = base._batch_to_device([old_ex], "cuda:0", spec["graph"])
             b1 = base._batch_to_device([new_ex], "cuda:0", spec["graph"])
             with torch.no_grad():
                 a = base._prediction(old, b0).reshape(-1)
                 b = base._prediction(new, b1).reshape(-1)
-            diff = float((a-b).abs().max().cpu())
+            diff = float((a - b).abs().max().cpu())
             if not torch.allclose(a, b, rtol=1e-6, atol=1e-6):
                 raise RuntimeError(f"zero_shot_initialization_parity_failed:{treatment}:{diff}")
             maxdiff = max(maxdiff, diff)
@@ -205,11 +250,23 @@ def initialization_gate(context, parts, transform, treatment, seed, torch):
         low, high = fixture_ids[0], fixture_ids[-1]
         examples = []
         for cid in (low, high):
-            old_ex = base._make_example(cid, METHODS[old_treatment]["internal"], context["ledger"], None,
-                {"global": transform["global"], "node": transform["node"]}, context["feature_root"], "cpu", False, cache.verified)
-            examples.append(append_shots(old_ex, transform_shots(float(context["panel_by_id"][cid]["shots"]), transform["shots"])))
+            old_ex = base._make_example(
+                cid,
+                METHODS[old_treatment]["internal"],
+                context["ledger"],
+                None,
+                {"global": transform["global"], "node": transform["node"]},
+                context["feature_root"],
+                "cpu",
+                False,
+                cache.verified,
+            )
+            examples.append(
+                append_shots(old_ex, transform_shots(float(context["panel_by_id"][cid]["shots"]), transform["shots"]))
+            )
         batch = base._batch_to_device(examples, "cuda:0", spec["graph"])
-        new.train(); new.zero_grad(set_to_none=True)
+        new.train()
+        new.zero_grad(set_to_none=True)
         output = base._prediction(new, batch).reshape(-1)
         loss = torch.nn.functional.mse_loss(output, output.detach() + 0.5)
         loss.backward()
@@ -221,31 +278,44 @@ def initialization_gate(context, parts, transform, treatment, seed, torch):
         new_count = sum(p.numel() for p in new.parameters())
         if new_count - old_count != projection["added_trainable_parameters"]:
             raise RuntimeError("shot_model_parameter_delta_mismatch")
-        result = {"status": "PASS", "treatment": treatment, "seed": seed,
-                  "fixture_fit_ids": fixture_ids, "same_pinned_model_source": True,
-                  "zero_shot_initialization_max_abs_diff": maxdiff,
-                  "new_shot_column_gradient_max_abs": grad_size,
-                  "baseline_parameters": old_count, "treatment_parameters": new_count,
-                  "added_parameters": new_count-old_count, "projection": projection,
-                  "uses_test_labels": False}
+        result = {
+            "status": "PASS",
+            "treatment": treatment,
+            "seed": seed,
+            "fixture_fit_ids": fixture_ids,
+            "same_pinned_model_source": True,
+            "zero_shot_initialization_max_abs_diff": maxdiff,
+            "new_shot_column_gradient_max_abs": grad_size,
+            "baseline_parameters": old_count,
+            "treatment_parameters": new_count,
+            "added_parameters": new_count - old_count,
+            "projection": projection,
+            "uses_test_labels": False,
+        }
         del old, new, examples, batch, output, loss, grad
     else:
         model, model_sha, _ = make_model(treatment, transform, seed, torch)
         examples = [cache.get(cid) for cid in fixture_ids[:2]]
         batch = base._batch_to_device(examples, "cuda:0", spec["graph"])
-        model.train(); model.zero_grad(set_to_none=True)
+        model.train()
+        model.zero_grad(set_to_none=True)
         output = base._prediction(model, batch).reshape(-1)
         loss = torch.nn.functional.mse_loss(output, output.detach() + 0.5)
         loss.backward()
         grad_count = sum(int(torch.isfinite(p.grad).all()) for p in model.parameters() if p.grad is not None)
         if not math.isfinite(float(loss.detach().cpu())) or grad_count == 0:
             raise RuntimeError(f"baseline_forward_backward_gate_failed:{treatment}")
-        result = {"status": "PASS", "treatment": treatment, "seed": seed,
-                  "fixture_fit_ids": fixture_ids[:2], "model_source_sha256": model_sha,
-                  "finite_synthetic_loss": float(loss.detach().cpu()),
-                  "parameters_with_finite_gradients": grad_count,
-                  "parameter_count": sum(p.numel() for p in model.parameters()),
-                  "uses_test_labels": False}
+        result = {
+            "status": "PASS",
+            "treatment": treatment,
+            "seed": seed,
+            "fixture_fit_ids": fixture_ids[:2],
+            "model_source_sha256": model_sha,
+            "finite_synthetic_loss": float(loss.detach().cpu()),
+            "parameters_with_finite_gradients": grad_count,
+            "parameter_count": sum(p.numel() for p in model.parameters()),
+            "uses_test_labels": False,
+        }
         del model, examples, batch, output, loss
     torch.cuda.empty_cache()
     return result
@@ -256,8 +326,20 @@ def cell_paths(evaluation, treatment, fold, seed, canary=False):
     return parent / f"fold_{fold}" / treatment / f"seed_{seed}"
 
 
-def train_cell(context, parts, train_targets, transform, treatment, fold, seed, torch,
-               lock_sha, environment, max_epochs=EPOCHS, canary=False):
+def train_cell(
+    context,
+    parts,
+    train_targets,
+    transform,
+    treatment,
+    fold,
+    seed,
+    torch,
+    lock_sha,
+    environment,
+    max_epochs=EPOCHS,
+    canary=False,
+):
     spec = METHODS[treatment]
     evaluation = context["evaluation"]
     folder = cell_paths(evaluation, treatment, fold, seed, canary=canary)
@@ -274,28 +356,39 @@ def train_cell(context, parts, train_targets, transform, treatment, fold, seed, 
         atomic_json(gate_path, gate)
     model, model_sha, projection = make_model(treatment, transform, seed, torch)
     identity = {
-        "study": "postfreeze_qpu_workflow_mean_expansion_v1", "evaluation": evaluation,
+        "study": "postfreeze_qpu_workflow_mean_expansion_v1",
+        "evaluation": evaluation,
         "heldout_backend": context.get("cases", [""])[fold] if evaluation == "E3" else "",
-        "canary": bool(canary), "treatment": treatment,
-        "method": spec["method"], "internal_model": spec["internal"], "fold": fold, "seed": seed,
+        "canary": bool(canary),
+        "treatment": treatment,
+        "method": spec["method"],
+        "internal_model": spec["internal"],
+        "fold": fold,
+        "seed": seed,
         "fit_ids_sha256": base.stable_hash(parts["fit"]),
         "validation_ids_sha256": base.stable_hash(parts["validation"]),
         "outer_train_ids_sha256": base.stable_hash(parts["train"]),
         "test_ids_sha256": base.stable_hash(parts["test"]),
-        "transform_sha256": stable(transform), "model_source_sha256": model_sha,
-        "runner_sha256": sha(Path(__file__)), "core_sha256": sha(HERE / "core.py"),
-        "shots_helper_sha256": sha(ROOT / "benchmark_v1/shots/shots_core.py"),
+        "transform_sha256": stable(transform),
+        "model_source_sha256": model_sha,
+        "runner_sha256": sha(Path(__file__)),
+        "core_sha256": sha(HERE / "core.py"),
+        "shots_helper_sha256": sha(ROOT / "benchmark26/shots.py"),
         "panel_sha256": sha(OUT / "cohort/panel.csv"),
         "feature_ledger_sha256": sha(OUT / "cohort/feature_ledger.csv"),
         "outer_split_sha256": sha(OUT / "splits" / f"{evaluation}_outer.csv"),
         "inner_split_sha256": sha(OUT / "splits" / f"{evaluation}_inner.csv"),
-        "protocol_lock_sha256": lock_sha, "environment": environment,
-        "graph_node_budget": NODE_BUDGET, "effective_batch": EFFECTIVE_BATCH,
+        "protocol_lock_sha256": lock_sha,
+        "environment": environment,
+        "graph_node_budget": NODE_BUDGET,
+        "effective_batch": EFFECTIVE_BATCH,
     }
     done = folder / "manifest.json"
     if done.exists():
         saved = json.loads(done.read_text(encoding="utf-8"))
-        if saved.get("identity") != identity or any(sha(folder / name) != digest for name, digest in saved["outputs"].items()):
+        if saved.get("identity") != identity or any(
+            sha(folder / name) != digest for name, digest in saved["outputs"].items()
+        ):
             raise RuntimeError(f"completed_cell_identity_or_checksum_mismatch:{treatment}:{fold}:{seed}")
         return saved
 
@@ -325,17 +418,32 @@ def train_cell(context, parts, train_targets, transform, treatment, fold, seed, 
     for epoch in range(start, max_epochs):
         tick = time.monotonic()
         model.train()
-        order = __import__("numpy").random.default_rng(int(base.stable_hash([fold, seed, epoch])[:16], 16)).permutation(len(parts["fit"]))
+        order = (
+            __import__("numpy")
+            .random.default_rng(int(base.stable_hash([fold, seed, epoch])[:16], 16))
+            .permutation(len(parts["fit"]))
+        )
         ordered_ids = [parts["fit"][int(j)] for j in order]
-        losses = [batching.loss_step(model, optimizer, ordered_ids[j:j+EFFECTIVE_BATCH], spec["internal"],
-                    NODE_BUDGET if spec["graph"] else 0, cache, train_targets, torch)
-                  for j in range(0, len(ordered_ids), EFFECTIVE_BATCH)]
+        losses = [
+            batching.loss_step(
+                model,
+                optimizer,
+                ordered_ids[j : j + EFFECTIVE_BATCH],
+                spec["internal"],
+                NODE_BUDGET if spec["graph"] else 0,
+                cache,
+                train_targets,
+                torch,
+            )
+            for j in range(0, len(ordered_ids), EFFECTIVE_BATCH)
+        ]
         model.eval()
         val_sum = 0.0
         validation_targets = {cid: train_targets[cid] for cid in parts["validation"]}
         with torch.no_grad():
-            for group in batching.physical_groups(parts["validation"], context["ledger"],
-                                                   NODE_BUDGET if spec["graph"] else 0, spec["graph"]):
+            for group in batching.physical_groups(
+                parts["validation"], context["ledger"], NODE_BUDGET if spec["graph"] else 0, spec["graph"]
+            ):
                 examples = [cache.get(cid) for cid in group]
                 payload = base._batch_to_device(examples, "cuda:0", spec["graph"])
                 prediction = base._prediction(model, payload)
@@ -344,45 +452,82 @@ def train_cell(context, parts, train_targets, transform, treatment, fold, seed, 
                 del examples, payload, prediction, actual
         validation_mse = val_sum / len(parts["validation"])
         if not math.isfinite(validation_mse) or not all(math.isfinite(x) for x in losses):
-            raise RuntimeError(f"nonfinite_training_or_validation_loss:{treatment}:{fold}:{seed}:{epoch+1}")
+            raise RuntimeError(f"nonfinite_training_or_validation_loss:{treatment}:{fold}:{seed}:{epoch + 1}")
         if validation_mse < best:
             best, best_epoch = validation_mse, epoch
             best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
         torch.cuda.synchronize()
         elapsed = elapsed_before + time.monotonic() - begin
-        base.save_checkpoint(checkpoint, {
-            "identity": identity,
-            "model_state": {k: v.detach().cpu() for k, v in model.state_dict().items()},
-            "optimizer_state": optimizer.state_dict(), "rng_state": base.capture_rng_state(),
-            "next_epoch": epoch + 1, "best_validation_mse": best,
-            "best_epoch": best_epoch, "best_model_state": best_state, "elapsed_seconds": elapsed,
-        })
+        base.save_checkpoint(
+            checkpoint,
+            {
+                "identity": identity,
+                "model_state": {k: v.detach().cpu() for k, v in model.state_dict().items()},
+                "optimizer_state": optimizer.state_dict(),
+                "rng_state": base.capture_rng_state(),
+                "next_epoch": epoch + 1,
+                "best_validation_mse": best,
+                "best_epoch": best_epoch,
+                "best_model_state": best_state,
+                "elapsed_seconds": elapsed,
+            },
+        )
         record = {
-            "epoch": epoch + 1, "train_mse": sum(losses), "validation_mse": validation_mse,
-            "best_validation_mse": best, "best_epoch": best_epoch + 1,
-            "epoch_seconds": time.monotonic() - tick, "elapsed_seconds": elapsed,
+            "epoch": epoch + 1,
+            "train_mse": sum(losses),
+            "validation_mse": validation_mse,
+            "best_validation_mse": best,
+            "best_epoch": best_epoch + 1,
+            "epoch_seconds": time.monotonic() - tick,
+            "elapsed_seconds": elapsed,
             "peak_cuda_bytes": torch.cuda.max_memory_allocated(),
             "peak_cuda_reserved_bytes": torch.cuda.max_memory_reserved(),
             "peak_rss_kib": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
-            "cache_bytes": cache.bytes, "cache_hits": cache.hits, "cache_misses": cache.misses,
+            "cache_bytes": cache.bytes,
+            "cache_hits": cache.hits,
+            "cache_misses": cache.misses,
         }
         if record["peak_rss_kib"] * 1024 > CPU_RSS_LIMIT_GIB * 1024**3:
-            atomic_json(folder / "resource_stop.json", {
-                "status": "STOP_CPU_RSS_LIMIT", "limit_gib": CPU_RSS_LIMIT_GIB,
-                "epoch": epoch + 1, "peak_rss_kib": record["peak_rss_kib"],
-                "identity": identity,
-            })
+            atomic_json(
+                folder / "resource_stop.json",
+                {
+                    "status": "STOP_CPU_RSS_LIMIT",
+                    "limit_gib": CPU_RSS_LIMIT_GIB,
+                    "epoch": epoch + 1,
+                    "peak_rss_kib": record["peak_rss_kib"],
+                    "identity": identity,
+                },
+            )
             raise RuntimeError(f"cpu_rss_limit_exceeded:{record['peak_rss_kib']}")
         history.append(record)
         atomic_csv(history_path, history)
-        atomic_json(folder / "progress.json", {"status": "training", "completed_epochs": epoch+1,
-                    "requested_epochs": max_epochs, "identity": identity, "last": record, "updated_unix": time.time()})
+        atomic_json(
+            folder / "progress.json",
+            {
+                "status": "training",
+                "completed_epochs": epoch + 1,
+                "requested_epochs": max_epochs,
+                "identity": identity,
+                "last": record,
+                "updated_unix": time.time(),
+            },
+        )
         if (epoch + 1) % 10 == 0 or epoch + 1 == max_epochs:
-            print(json.dumps({"stage": "train", "treatment": treatment, "fold": fold, "seed": seed, **record},
-                             separators=(",", ":")), flush=True)
+            print(
+                json.dumps(
+                    {"stage": "train", "treatment": treatment, "fold": fold, "seed": seed, **record},
+                    separators=(",", ":"),
+                ),
+                flush=True,
+            )
     if max_epochs < EPOCHS:
-        final = {"status": "canary_checkpointed", "identity": identity, "completed_epochs": max_epochs,
-                 "checkpoint_sha256": sha(checkpoint), "last_epoch": history[-1] if history else None}
+        final = {
+            "status": "canary_checkpointed",
+            "identity": identity,
+            "completed_epochs": max_epochs,
+            "checkpoint_sha256": sha(checkpoint),
+            "last_epoch": history[-1] if history else None,
+        }
         del model, optimizer, cache, best_state
         torch.cuda.empty_cache()
         return final
@@ -397,25 +542,40 @@ def train_cell(context, parts, train_targets, transform, treatment, fold, seed, 
             value = float(base._prediction(model, payload).detach().cpu().reshape(-1)[0])
             if not math.isfinite(value):
                 raise RuntimeError(f"nonfinite_test_prediction:{treatment}:{fold}:{seed}:{cid}")
-            predictions.append({"canonical_observation_id": cid, "outer_fold": fold,
-                                "treatment": treatment, "method_id": spec["method"],
-                                "seed": seed, "predicted_seconds": value,
-                                "selected_epoch": best_epoch + 1})
+            predictions.append(
+                {
+                    "canonical_observation_id": cid,
+                    "outer_fold": fold,
+                    "treatment": treatment,
+                    "method_id": spec["method"],
+                    "seed": seed,
+                    "predicted_seconds": value,
+                    "selected_epoch": best_epoch + 1,
+                }
+            )
             del payload
     atomic_csv(folder / "predictions.csv", predictions)
     result = {
-        "status": "complete", "identity": identity, "epochs": EPOCHS,
-        "best_epoch": best_epoch + 1, "best_validation_mse": best,
-        "elapsed_seconds": history[-1]["elapsed_seconds"], "fit_rows": len(parts["fit"]),
-        "validation_rows": len(parts["validation"]), "test_rows": len(parts["test"]),
-        "parameter_count": sum(p.numel() for p in model.parameters()), "shot_projection": projection,
+        "status": "complete",
+        "identity": identity,
+        "epochs": EPOCHS,
+        "best_epoch": best_epoch + 1,
+        "best_validation_mse": best,
+        "elapsed_seconds": history[-1]["elapsed_seconds"],
+        "fit_rows": len(parts["fit"]),
+        "validation_rows": len(parts["validation"]),
+        "test_rows": len(parts["test"]),
+        "parameter_count": sum(p.numel() for p in model.parameters()),
+        "shot_projection": projection,
         "cache": {"hits": cache.hits, "misses": cache.misses, "bytes": cache.bytes},
         "outputs": {name: sha(folder / name) for name in ("checkpoint.pt", "epoch_history.csv", "predictions.csv")},
         "test_labels_available_to_training_function": False,
     }
     atomic_json(done, result)
-    atomic_json(folder / "progress.json", {"status": "complete", "identity": identity,
-                "manifest_sha256": sha(done), "updated_unix": time.time()})
+    atomic_json(
+        folder / "progress.json",
+        {"status": "complete", "identity": identity, "manifest_sha256": sha(done), "updated_unix": time.time()},
+    )
     del model, optimizer, cache, best_state
     torch.cuda.empty_cache()
     return result
@@ -432,11 +592,13 @@ def main():
         return
     lock, lock_sha = protocol_lock()
     import torch
+
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA_required_no_CPU_fallback")
     torch.set_num_threads(8)
     torch.set_num_interop_threads(1)
-    from gpu_lease import acquire_gpu_lease
+    from benchmark26.gpu_lease import acquire_gpu_lease
+
     lease = acquire_gpu_lease("postfreeze-qpu-workflow-mean-expansion-v1")
     try:
         gpu = base.validate_gpu_budget(torch, budget_gib=GPU_BUDGET_GIB, reserve_gib=GPU_RESERVE_GIB)
@@ -455,14 +617,35 @@ def main():
                 gate_path = cell_paths(args.evaluation, treatment, fold, 42, canary=True) / "initialization_gate.json"
                 atomic_json(gate_path, gate)
                 gates.append(gate)
-            canary = train_cell(context, parts, train_targets, transform, "G1", 0, 42,
-                                torch, lock_sha, environment, max_epochs=2, canary=True)
-            receipt = {"status": "PASS" if canary["status"] == "canary_checkpointed" else "FAIL",
-                       "stage": "two_epoch_fit_only_canary", "fold": 0, "treatment": "G1", "seed": 42,
-                       "canary": canary, "initialization_gates": gates,
-                       "split_receipt": split_receipt, "environment": environment,
-                       "no_test_scoring": True, "test_labels_passed_to_training": False,
-                       "evaluation": args.evaluation, "lock_sha256": lock_sha}
+            canary = train_cell(
+                context,
+                parts,
+                train_targets,
+                transform,
+                "G1",
+                0,
+                42,
+                torch,
+                lock_sha,
+                environment,
+                max_epochs=2,
+                canary=True,
+            )
+            receipt = {
+                "status": "PASS" if canary["status"] == "canary_checkpointed" else "FAIL",
+                "stage": "two_epoch_fit_only_canary",
+                "fold": 0,
+                "treatment": "G1",
+                "seed": 42,
+                "canary": canary,
+                "initialization_gates": gates,
+                "split_receipt": split_receipt,
+                "environment": environment,
+                "no_test_scoring": True,
+                "test_labels_passed_to_training": False,
+                "evaluation": args.evaluation,
+                "lock_sha256": lock_sha,
+            }
             atomic_json(OUT / "training/canary_receipt_v2.json", receipt)
             print(json.dumps(receipt, indent=2))
             return
@@ -479,40 +662,83 @@ def main():
             evals = ["E1", "E2", "E3"]
             cell_filter = None
         total = 240
-        completed = sum(1 for p in (OUT / "training").glob("*/fold_*/[MG][01]/seed_*/manifest.json")
-                        if json.loads(p.read_text()).get("status") == "complete")
+        completed = sum(
+            1
+            for p in (OUT / "training").glob("*/fold_*/[MG][01]/seed_*/manifest.json")
+            if json.loads(p.read_text()).get("status") == "complete"
+        )
         for ev in evals:
-          context, _targets, split_receipt = load_context(ev, include_targets=False)
-          for fold in range(context["case_count"]):
-            if cell_filter and (ev, fold) != cell_filter[:2]:
-                continue
-            parts = parts_for(context, fold)
-            train_targets = load_targets(parts["train"])
-            transform = fit_transform_for_cell(context, parts, fold, ev)
-            for treatment in ("M0", "M1", "G0", "G1"):
-                for seed in SEEDS:
-                    if cell_filter and (ev, fold, treatment, seed) != cell_filter:
-                        continue
-                    result = train_cell(context, parts, train_targets, transform, treatment, fold,
-                                        seed, torch, lock_sha, environment)
-                    if result.get("status") != "complete":
-                        raise RuntimeError(f"neural_cell_incomplete:{fold}:{treatment}:{seed}")
-                    completed += 1
-                    atomic_json(OUT / "training/run_progress.json", {
-                        "status": "running", "completed_cells": completed, "total_cells": total,
-                        "last_cell": {"evaluation": ev, "fold": fold, "treatment": treatment, "seed": seed,
-                                      "best_epoch": result["best_epoch"],
-                                      "elapsed_seconds": result["elapsed_seconds"]},
-                        "updated_unix": time.time(), "lock_sha256": lock_sha,
-                    })
-                    print(json.dumps({"cell_status": "complete", "completed_cells": completed,
-                                      "total_cells": total, "evaluation": ev, "fold": fold, "treatment": treatment,
-                                      "seed": seed, "best_epoch": result["best_epoch"],
-                                      "elapsed_seconds": result["elapsed_seconds"]}), flush=True)
+            context, _targets, split_receipt = load_context(ev, include_targets=False)
+            for fold in range(context["case_count"]):
+                if cell_filter and (ev, fold) != cell_filter[:2]:
+                    continue
+                parts = parts_for(context, fold)
+                train_targets = load_targets(parts["train"])
+                transform = fit_transform_for_cell(context, parts, fold, ev)
+                for treatment in ("M0", "M1", "G0", "G1"):
+                    for seed in SEEDS:
+                        if cell_filter and (ev, fold, treatment, seed) != cell_filter:
+                            continue
+                        result = train_cell(
+                            context,
+                            parts,
+                            train_targets,
+                            transform,
+                            treatment,
+                            fold,
+                            seed,
+                            torch,
+                            lock_sha,
+                            environment,
+                        )
+                        if result.get("status") != "complete":
+                            raise RuntimeError(f"neural_cell_incomplete:{fold}:{treatment}:{seed}")
+                        completed += 1
+                        atomic_json(
+                            OUT / "training/run_progress.json",
+                            {
+                                "status": "running",
+                                "completed_cells": completed,
+                                "total_cells": total,
+                                "last_cell": {
+                                    "evaluation": ev,
+                                    "fold": fold,
+                                    "treatment": treatment,
+                                    "seed": seed,
+                                    "best_epoch": result["best_epoch"],
+                                    "elapsed_seconds": result["elapsed_seconds"],
+                                },
+                                "updated_unix": time.time(),
+                                "lock_sha256": lock_sha,
+                            },
+                        )
+                        print(
+                            json.dumps(
+                                {
+                                    "cell_status": "complete",
+                                    "completed_cells": completed,
+                                    "total_cells": total,
+                                    "evaluation": ev,
+                                    "fold": fold,
+                                    "treatment": treatment,
+                                    "seed": seed,
+                                    "best_epoch": result["best_epoch"],
+                                    "elapsed_seconds": result["elapsed_seconds"],
+                                }
+                            ),
+                            flush=True,
+                        )
         if args.stage == "train":
-            atomic_json(OUT / "training/run_progress.json", {"status": "COMPLETE_240_OF_240",
-                        "completed_cells": completed, "total_cells": total, "lock_sha256": lock_sha,
-                        "updated_unix": time.time()})
+            atomic_json(
+                OUT / "training/run_progress.json",
+                {
+                    "status": "COMPLETE_240_OF_240",
+                    "completed_cells": completed,
+                    "total_cells": total,
+                    "lock_sha256": lock_sha,
+                    "updated_unix": time.time(),
+                },
+            )
     finally:
         lease.release()
 

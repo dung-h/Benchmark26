@@ -4,80 +4,46 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "benchmark26"
-version = "0.2.0"
-description = "A unified, leakage-safe quantum program runtime estimation benchmark on physical QPUs"
+version = "0.3.0"
+description = "Code and aggregate results for comparing QPU runtime estimators on 3,443 archived observations"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
-authors = [
-  { name = "Dung Hoang", email = "author@example.com" }
-]
-keywords = [
-  "quantum-computing",
-  "runtime-estimation",
-  "qpu-benchmark",
-  "graph-neural-networks",
-  "reproducibility"
-]
+authors = [{ name = "Dung Hoang" }]
+keywords = ["quantum computing", "runtime estimation", "benchmark", "reproducibility"]
 classifiers = [
-  "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
   "Topic :: Scientific/Engineering",
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
 ]
-dependencies = [
-  "numpy>=1.24.0,<=1.26.4",
-]
+dependencies = ["numpy>=1.24,<2"]
 
 [project.optional-dependencies]
-test = [
-  "pytest>=8.0,<9.0",
-]
-dev = [
-  "pytest>=8.0,<9.0",
-]
-analysis = [
-  "scipy>=1.10.0",
-  "scikit-learn>=1.3.0",
-  "pandas>=2.0.0",
-]
-full = [
-  "scipy>=1.10.0",
-  "scikit-learn>=1.3.0",
-  "pandas>=2.0.0",
-  "qiskit>=1.0.0",
-  "qiskit-ibm-runtime>=0.20.0",
-  "torch>=2.0.0",
-  "torch-geometric>=2.4.0",
-  "openqasm3>=0.5.0",
+test = ["pytest>=8,<9"]
+# Packages used by the research runners; each runner records the versions it used.
+research = [
+  "scipy>=1.10",
+  "scikit-learn>=1.3",
+  "pandas>=2.0",
+  "qiskit>=0.45",
+  "qiskit-ibm-runtime>=0.20",
+  "torch>=2.0",
+  "torch-geometric>=2.4",
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/dung-h/Benchmark26"
-"Documentation" = "https://github.com/dung-h/Benchmark26/tree/main/docs"
-"Repository" = "https://github.com/dung-h/Benchmark26.git"
-"Bug Tracker" = "https://github.com/dung-h/Benchmark26/issues"
-
-[tool.pytest.ini_options]
-testpaths = [
-  "tests",
-  "experiments",
-  "legacy",
-]
-python_files = [
-  "test_*.py",
-]
-pythonpath = [
-  ".",
-  "tests",
-  "benchmark_v1/scripts",
-  "legacy/feature_latency",
-  "experiments/qpu",
-]
-addopts = "-q"
+Repository = "https://github.com/dung-h/Benchmark26"
 
 [tool.setuptools]
-py-modules = []
+packages = ["benchmark26"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "experiments/qpu"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+extend-exclude = ["protocols/reference_code"]

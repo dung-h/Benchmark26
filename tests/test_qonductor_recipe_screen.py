@@ -1,4 +1,5 @@
 """Tests for Qonductor recipe screening table integrity."""
+
 import csv
 from pathlib import Path
 

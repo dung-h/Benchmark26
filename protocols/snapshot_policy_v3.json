@@ -1,0 +1,33 @@
+{
+  "contract_id": "rqpu-snapshot-policy-v3",
+  "status": "signed_pending_c133_inventory",
+  "decision_path": "benchmark_v1/decisions/snapshot_policy_v3.md",
+  "environment": {
+    "python": "/home/server/Documents/.venv-qonductor/bin/python",
+    "qiskit": "2.5.2",
+    "qiskit_ibm_runtime": "0.49.0",
+    "required_capture": ["pip_freeze", "python_version", "host_fingerprint", "cuda_visibility"]
+  },
+  "canonical_aliases": {
+    "ibmq_belem": "ibm_belem",
+    "ibmq_jakarta": "ibm_jakarta",
+    "ibmq_kolkata": "ibm_kolkata",
+    "ibmq_manila": "ibm_manila",
+    "ibmq_quito": "ibm_quito"
+  },
+  "inventory_backends": ["ibm_belem", "ibm_brisbane", "ibm_jakarta", "ibm_kolkata", "ibm_kyoto", "ibm_lagos", "ibm_lima", "ibm_manila", "ibm_nairobi", "ibm_osaka", "ibm_perth", "ibm_quito"],
+  "required_snapshot_fields": ["backend_canonical", "backend_observed_aliases", "fake_backend_class", "package_name", "package_version", "qiskit_version", "environment_hash", "configuration_path", "configuration_sha256", "properties_path", "properties_sha256", "defaults_path", "defaults_sha256", "snapshot_or_update_date", "target_construction", "instruction_duration_coverage", "error_coverage", "t1_t2_coverage", "readout_coverage", "target_operation_coverage", "snapshot_tier"],
+  "tiers": {
+    "tier_1_exact": "same backend/version and dated snapshot aligned to execution day",
+    "tier_2_backend_matched_historical": "same backend and dated snapshot no more than 62 days from execution",
+    "tier_3_backend_matched_nominal": "same backend but stale, undated relative to label, or version-unmatched",
+    "tier_4_architecture_proxy": "declared different-backend architecture proxy",
+    "tier_5_unavailable": "missing a required method input"
+  },
+  "prohibitions": ["CLOPS_h_to_CLOPS_v_conversion", "CLOPS_inference_from_T1_T2_durations_errors", "cross_backend_implicit_fill", "observed_runtime_feature_use", "ambient_fake_backend_substitution"],
+  "snapshot_dependent_method_policy": {
+    "qiskit_duration_qcre_hyb_hanas": "tiers_1_to_3_raw_proxy_only_when_all_required_fields_exist",
+    "scholten_original_style": "tier_1_historical_CLOPS_v_only",
+    "scholten_clops_h_substitution": "separate_tier_3_MaLi_diagnostic_only"
+  }
+}

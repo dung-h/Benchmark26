@@ -13,7 +13,7 @@ Compilation is counted once per input and method. Totals are computed for each o
 
 ## Verify the exported statistics
 
-With the repository's NumPy dependency installed, run from the repository root:
+With the repository's NumPy dependency installed, run:
 
 ```bash
 python3 experiments/latency/verify_summary.py
@@ -40,4 +40,4 @@ python3 experiments/latency/compose.py \
   --stages /path/to/matched_stages.csv --output /path/to/new_composites.csv
 ```
 
-These portable tools expose the measurement and composition logic. Reproducing the original raw circuit measurement also requires the external circuit inputs, backend snapshots, feature extraction environment and fitted states described in the data and reproduction guides.
+These portable tools expose the measurement and composition logic. Reproducing the original raw circuit measurement also requires the external circuit inputs, backend snapshots, feature extraction environment and fitted states (see [Reproduction](REPRODUCTION.md)).

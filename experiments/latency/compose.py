@@ -1,4 +1,5 @@
 """Add matched stages per observation, then calculate weighted summaries."""
+
 import argparse
 import csv
 from pathlib import Path
@@ -22,8 +23,7 @@ def main():
         if identity in seen:
             raise ValueError(f"Duplicate observation/method: {identity}")
         seen.add(identity)
-        values = [float(row[key]) for key in
-                  ("parse_compile_ns", "method_stage_ns", "inference_ns")]
+        values = [float(row[key]) for key in ("parse_compile_ns", "method_stage_ns", "inference_ns")]
         if not np.isfinite(values).all() or min(values) < 0:
             raise ValueError(f"Invalid duration for {identity}")
         # Shared compilation belongs once in each route's per-input total.
@@ -39,8 +39,15 @@ def main():
             groups.setdefault(row["group_id"], []).append(row["composite_ms"])
         group_means = [np.mean(values) for values in groups.values()]
         totals = [row["composite_ms"] for row in selected]
-        print(method, "group_mean_ms", np.mean(group_means),
-              "median_ms", np.median(totals), "p90_ms", np.quantile(totals, .9))
+        print(
+            method,
+            "group_mean_ms",
+            np.mean(group_means),
+            "median_ms",
+            np.median(totals),
+            "p90_ms",
+            np.quantile(totals, 0.9),
+        )
 
 
 if __name__ == "__main__":
