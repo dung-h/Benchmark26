@@ -1,3 +1,7 @@
+# 3 November 2026 — Prediction latency
+
+Added portable prediction-latency measurement/composition tools and aggregate E1 results. Anonymous group means allow reconstruction of the neural paired bootstrap intervals. Composite CPU-stage costs retain their eight-worker measurement condition. See docs/PREDICTION_LATENCY.md.
+
 # Changelog
 
 All notable changes to the Benchmark26 repository are documented in this file.

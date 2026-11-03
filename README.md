@@ -13,9 +13,9 @@ The unified study evaluates **3,443 physical QPU execution observations across 2
 
 ## Key Highlights
 
-- **Leakage-Safe Grouping:** Enforces strict group-disjoint partitioning so that parameter-angle variants (e.g., $RZ(\theta)$ variations of identical DAG structures) never cross train and test folds.
-- **Multi-Paradigm Comparison:** Directly contrasts graph neural networks (Graph-augmented TransformerConv MLP), baseline MLPs, validation-selected regression ensembles (Qonductor adaptation), and zero-training analytical critical-path models.
-- **Fair Inference Cost Accounting:** Measures prediction latency across multiple operational boundaries (in-memory feature inference vs. full raw circuit parsing and transpilation).
+- **Leakage-Safe Grouping:** Uses group-disjoint E1 evaluation for unseen circuit groups; E2 intentionally allows familiar groups and E3 holds out backend contexts.
+- **Multi-Paradigm Comparison:** Directly contrasts graph neural networks (Graph-augmented TransformerConv MLP), baseline MLPs, validation-selected regression models (Qonductor adaptation), and zero-training analytical critical-path models.
+- **Fair Inference Cost Accounting:** Reports measured neural request latency and separately labelled composite costs for compiled routes.
 - **Cryptographic Provenance:** Cryptographically pins 249 original upstream assets in `upstream/data_sources.json` and records recipe qualification criteria in `upstream/qualification_provenance.json`.
 
 ---
@@ -44,6 +44,8 @@ make status
 ```
 
 ---
+
+See [prediction latency](docs/PREDICTION_LATENCY.md) for the new measurements, composite stage costs and commands to reconstruct the paired intervals.
 
 ## Repository Structure
 

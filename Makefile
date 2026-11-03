@@ -18,6 +18,7 @@ setup:
 check:
 	$(PYTHON) scripts/check_setup.py
 	$(PYTHON) -m compileall -q benchmark_v1 research scripts tests
+	$(PYTHON) research/prediction_latency/verify_summary.py
 
 test:
 	$(PYTHON) -m pytest
@@ -33,3 +34,7 @@ fetch-sources-dry:
 
 validate-provenance:
 	$(PYTHON) -m pytest tests/test_provenance_schema.py tests/test_qonductor_recipe_screen.py
+
+.PHONY: verify-latency
+verify-latency:
+	$(PYTHON) research/prediction_latency/verify_summary.py
