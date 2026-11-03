@@ -9,6 +9,10 @@ The new timing results cover 3,443 observations and 203 logical-circuit groups u
 
 Compilation is counted once per input and method. Totals are computed for each observation before calculating summary statistics. Composite costs exclude model loading, disk access, backend preparation and inter-stage communication. They are not observed isolated end-to-end latency. The constant lookup bypasses circuit processing. NoTaDS produces a unitless score, while its processing cost is measured in time units.
 
+## Compiled-route inputs
+
+The compiled route compiles each logical input with `optimization_level=1`, trivial layout, SABRE routing and the translator. Ma–Li and QPack use the seed of the saved representation: for these 385 observations the compiled circuit has the same canonical IR digest as the circuit scored for accuracy. Qonductor uses seed 42, and its compiled circuit differs from the submitted physical circuit for all 3,058 observations. The submitted circuits came from Qonductor's benchmark code (level 3, fewest CX/CZ/ECR among repeated transpilations); the archive records no per-job seed, compiler version or snapshot. The new circuits never ran on a QPU, so Qonductor-source costs cannot be paired with the accuracy measured on the submitted circuits. Identity was established by IR digest against the private bundle; equal scalar outputs do not establish it (16 Qonductor observations keep the saved Qiskit duration with a different circuit).
+
 `results/prediction_latency/` contains source-level summaries, anonymous neural group means for each session and across sessions, and paired latency intervals. Each observation contributes the mean of its three session medians. The group-balanced mean weights groups equally; the reported median and P90 weight observations equally. The summaries therefore use different weighting.
 
 ## Verify the exported statistics

@@ -2,6 +2,17 @@
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow the package version in `pyproject.toml`.
 
+## [0.3.2] - 2026-11-03
+
+### Fixed
+- A prepared new run pinned only the files named in the original lock, so a change to a file added later (for example `benchmark26/paths.py`, which maps inputs, graphs and outputs) was accepted before fitting. `run_manifest.json` now also records `code_dependency_hashes`, the static-import closure of the run entry points and locked files, and fitting stops if any of these files changed. Manifests without this inventory are rejected; prepare a new `B26_RUN_DIR`. The original lock and saved-output validation are unchanged.
+
+### Added
+- Regression tests: a prepared run rejects a change to `benchmark26/paths.py`, and a manifest without the dependency inventory.
+
+### Documentation
+- `docs/PREDICTION_LATENCY.md`: which compiled-route circuits equal the circuits scored for accuracy (Ma–Li, QPack) and which do not (all Qonductor observations), and why Qonductor-source costs cannot be paired with its accuracy.
+
 ## [0.3.1] - 2026-11-03
 
 ### Fixed

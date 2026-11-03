@@ -261,6 +261,83 @@ def current_code_hashes(lock: dict) -> dict:
     return out
 
 
+# Entry points of a new fitting run. Their repository-local dependency closure is
+# pinned in the run manifest in addition to the files named by the historical lock.
+RUN_ENTRYPOINTS = (
+    "experiments/qpu/core.py",
+    "experiments/qpu/prepare_run.py",
+    "experiments/qpu/train_neural.py",
+    "experiments/qpu/run_classical.py",
+)
+SOURCE_SUFFIXES = (".cpp", ".c", ".h")
+DEPENDENCY_RULE = (
+    "repository files reachable from RUN_ENTRYPOINTS and the files named by the historical lock through "
+    "static Python imports (module level and function level), the parent package __init__.py files, and "
+    "C/C++ sources named by a string literal in the same directory"
+)
+
+
+def _module_files(name: str, bases: tuple[Path, ...]) -> list[Path]:
+    """Repository files a dotted module name can resolve to (module, package, parents)."""
+    found = []
+    parts = name.split(".")
+    for base in bases:
+        for depth in range(1, len(parts) + 1):
+            stem = base.joinpath(*parts[:depth])
+            for candidate in (stem.with_suffix(".py"), stem / "__init__.py"):
+                if candidate.is_file():
+                    found.append(candidate)
+    return found
+
+
+def _direct_dependencies(path: Path) -> set[Path]:
+    import ast
+
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    bases = (path.parent, ROOT)
+    deps: set[Path] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                deps.update(_module_files(alias.name, bases))
+        elif isinstance(node, ast.ImportFrom):
+            base = path.parent if node.level else None
+            for _ in range(max(node.level - 1, 0)):
+                base = base.parent
+            roots = (base,) if base is not None else bases
+            module = node.module or ""
+            if module:
+                deps.update(_module_files(module, roots))
+            for alias in node.names:
+                deps.update(_module_files(f"{module}.{alias.name}" if module else alias.name, roots))
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str) and node.value.endswith(SOURCE_SUFFIXES):
+            candidate = path.parent / Path(node.value).name
+            if candidate.is_file():
+                deps.add(candidate)
+    return deps
+
+
+def code_dependency_inventory(lock: dict) -> dict:
+    """SHA-256 of every repository file a new fitting run can execute, keyed by repository path.
+
+    Deterministic: the closure of RUN_ENTRYPOINTS and of the lock's code files
+    under DEPENDENCY_RULE. Unlike :func:`current_code_hashes`, it includes files
+    introduced after the original lock, such as ``benchmark26/paths.py``.
+    """
+    root = ROOT.resolve()
+    pending = [ROOT / p for p in RUN_ENTRYPOINTS]
+    pending += [recorded(p) for p in lock.get("code_hashes", {})]
+    seen: set[Path] = set()
+    while pending:
+        path = pending.pop().resolve()
+        if path in seen or not path.is_file() or not path.is_relative_to(root):
+            continue
+        seen.add(path)
+        if path.suffix == ".py":
+            pending.extend(_direct_dependencies(path))
+    return {p.relative_to(root).as_posix(): sha(p) for p in sorted(seen)}
+
+
 def historical_code_differences(lock: dict, current: dict | None = None) -> list[str]:
     current = current_code_hashes(lock) if current is None else current
     return sorted(k for k, v in lock.get("code_hashes", {}).items() if current.get(k) != v)
@@ -294,6 +371,14 @@ def run_manifest_problems(lock: dict, current: dict | None = None, check_code: b
     changed = sorted(k for k, v in current.items() if manifest.get("code_hashes", {}).get(k) != v)
     if changed:
         problems.append(f"code_changed_since_run_manifest:{','.join(changed)}; use a new B26_RUN_DIR")
+    pinned = manifest.get("code_dependency_hashes")
+    if not isinstance(pinned, dict) or not pinned:
+        problems.append(f"run_manifest_lacks_code_dependency_hashes; {PREPARE_HINT} in a new directory")
+        return problems
+    inventory = code_dependency_inventory(lock)
+    differ = sorted(k for k in set(pinned) | set(inventory) if pinned.get(k) != inventory.get(k))
+    if differ:
+        problems.append(f"code_dependency_changed_since_run_manifest:{','.join(differ)}; use a new B26_RUN_DIR")
     return problems
 
 

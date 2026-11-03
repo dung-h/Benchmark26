@@ -4,8 +4,11 @@
 The original execution lock pins the protocol, inputs, graphs and code of the
 saved study. This code differs from the locked code, so it may only start a
 new run, written outside the original study directory. This script checks the
-locked protocol, inputs and graphs against the bundle and records the hashes of
-the current code in ``$B26_RUN_DIR/run_manifest.json``. ``train_neural.py`` and
+locked protocol, inputs and graphs against the bundle and records in
+``$B26_RUN_DIR/run_manifest.json`` the hashes of (a) the current version of each
+code file named in the lock and (b) every repository file the fitting code can
+execute (``core.code_dependency_inventory``), including files added after the
+lock such as ``benchmark26/paths.py``. ``train_neural.py`` and
 ``run_classical.py`` then accept exactly this code and write under
 ``$B26_RUN_DIR``. The original lock and outputs are not modified.
 
@@ -30,7 +33,9 @@ from core import (  # noqa: E402
     PROTOCOL,
     RUN,
     RUN_MANIFEST,
+    DEPENDENCY_RULE,
     atomic_json,
+    code_dependency_inventory,
     current_code_hashes,
     historical_code_differences,
     load_lock,
@@ -95,6 +100,8 @@ def main() -> int:
         "locked_inputs_verified": len(lock.get("input_hashes", {})),
         "locked_graphs_verified": len(lock.get("unique_graph_hashes", {})),
         "code_hashes": current,
+        "code_dependency_hashes": code_dependency_inventory(lock),
+        "code_dependency_rule": DEPENDENCY_RULE,
         "code_identical_to_historical_lock": sorted(set(current) - set(differ)),
         "code_differing_from_historical_lock": differ,
         "inherited_settings": {k: lock[k] for k in ("neural", "classical", "evaluations") if k in lock},
@@ -112,6 +119,7 @@ def main() -> int:
                 "locked_inputs_verified": manifest["locked_inputs_verified"],
                 "locked_graphs_verified": manifest["locked_graphs_verified"],
                 "code_files_differing_from_historical_lock": len(differ),
+                "code_dependency_files_pinned": len(manifest["code_dependency_hashes"]),
             },
             indent=2,
         )
