@@ -1,4 +1,4 @@
-.PHONY: help setup check test test-unit status fetch-sources-dry validate-provenance
+.PHONY: check-study-inputs help setup check test test-unit status fetch-sources-dry validate-provenance
 
 PYTHON ?= python3
 
@@ -42,3 +42,6 @@ verify-latency:
 .PHONY: smoke
 smoke:
 	$(PYTHON) scripts/run_benchmark_pipeline.py --stage smoke --output work/smoke
+
+check-study-inputs:
+	$(PYTHON) scripts/check_setup.py --require-study-inputs

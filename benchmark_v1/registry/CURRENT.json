@@ -1,0 +1,62 @@
+{
+  "authority_id": "benchmark-registry-authority-v1",
+  "current_artifact_organization": {
+    "path": "benchmark_v1/registry/artifact_organization_authority_v1.json",
+    "sha256": "e34af15ded92d885812d265d9dd95509a5e4359042563bc09ea850155adb475c",
+    "status": "e4_approved_for_non_destructive_semantic_materialization"
+  },
+  "current_eligibility": {
+    "manifest_path": "artifacts/benchmark_v1/canonical_eligibility_splits_v5r1_20260928/manifest_v4.json",
+    "manifest_sha256": "7871f8608801d58b220ca2027357566842820ec084675bf7cf79871b28225e58",
+    "matrix_id": "canonical-eligibility-splits-v4-20260928",
+    "matrix_path": "artifacts/benchmark_v1/canonical_eligibility_splits_v5r1_20260928/eligibility_matrix_v4.csv",
+    "matrix_sha256": "4290ae0f74cb9857cc0ab6dbb5c737250fad42a93f9365e42d28efd0c72b2eca"
+  },
+  "current_method_fidelity": {
+    "path": "benchmark_v1/registry/method_fidelity_registry_v2.json",
+    "registry_id": "method-fidelity-registry-v2",
+    "sha256": "98f3460c8d9a0cbabb424555dd695cee573409ed65facdb60557d836f1750810",
+    "status": "current_reader_facing_fidelity_overlay"
+  },
+  "current_registry": {
+    "path": "benchmark_v1/registry/method_registry_v3.json",
+    "registry_id": "method-registry-v3",
+    "sha256": "41374891ce48ed9c4d97c2e7a1dde0fa44d593bfc526932638b17b613e29817d"
+  },
+  "current_semantic_artifact_index": {
+    "path": "artifacts/benchmark_v1/results/SEMANTIC_INDEX_MANIFEST_v2.json",
+    "sha256": "cb41e06740001fee9fd4a3b3fa2b463c45aaa13159cc9f900b9a5de30e928b26",
+    "status": "wave3_authority_switch_sibling_index"
+  },
+  "historical_current": {
+    "path": "benchmark_v1/registry/archive/CURRENT_pre_wave3_authority_switch_20261001.json",
+    "sha256": "fa840866ffa16b58d4fc0aabe2bc8b7a50023d38791a7cc20401989c5faa0680"
+  },
+  "historical_current_sha256": "fa840866ffa16b58d4fc0aabe2bc8b7a50023d38791a7cc20401989c5faa0680",
+  "historical_registry": {
+    "archive_path": "benchmark_v1/registry/archive/method_registry_v2_20260928.json",
+    "canonical_legacy_path": "benchmark_v1/registry/method_registry.json",
+    "immutable": true,
+    "registry_id": "method-registry-v2",
+    "sha256": "d0380b3081fb0079c9dc432ba7db3e001a6c789773fa6284c3ab60d38a9e155b"
+  },
+  "policy": "Reviewer-facing fidelity is now method-fidelity-registry-v2. v4r3 and historical scorecard/INDEX.json remain historical. There is no flat leaderboard. V4 is contract-only. S56 remains open. This is not a public-release package.",
+  "reader_pointers": {
+    "reader_table_pack_v4": {
+      "path": "artifacts/benchmark_v1/results/benchmark_summary/reader_table_pack_v4/",
+      "sha256": "20bb5c64c07388a67bcf0cb52d1a1375778c3cb34986ad01f006a96812444e15"
+    },
+    "simulator_reader_pack_v1": {
+      "path": "artifacts/benchmark_v3/simulator/simulator_reader_pack_v1/",
+      "sha256": "07b59ac1dc7ffa16e37ae4f638f93c4331df8318a0d2277e9ba7649db4e54d91"
+    },
+    "two_domain_scorecard_v1": {
+      "path": "artifacts/benchmark_v1/results/benchmark_summary/two_domain_scorecard_v1/",
+      "sha256": "f6d27336ecdb16a90efa4156a7e4d48dfbbea0be3c393b6e4a9a435641f8fc5c",
+      "status": "wave3a_manifest_present"
+    }
+  },
+  "status": "current",
+  "supersedes_method_fidelity": "method-fidelity-registry-v1",
+  "wave4_five_fold_training_authorized": false
+}

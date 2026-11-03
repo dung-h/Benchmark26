@@ -1,3 +1,7 @@
+# 3 November 2026 — Dependency closure
+
+Added `materialize_mali_full_features.py` (portable paths), the three pinned reference registries (byte-identical to the pinned hashes) and `circuit_representation_v3.json`, plus a hash-pin test. Documented the strict `check_setup --require-study-inputs` mode and what remains outside the release.
+
 # 3 November 2026 — Experiment layout
 
 Merged PR #3, then separated current experiments (`experiments/qpu`, `analytical`, `latency`), shared kernels/helpers (`benchmark_v1`) and earlier timing campaigns (`legacy`). Split reference specifications from runtime path templates. Updated imports, CLI targets, tests and documentation. Scientific result snapshots and external output namespace identifiers retain their original values.

@@ -1,0 +1,20 @@
+{
+  "registry_id": "seed-registry-v1",
+  "root_seed": 20260925,
+  "derivation": "sha256(root_seed|stream|circuit_sha256|context_id|repetition)",
+  "integer_domain": "uint32",
+  "python_hash_forbidden": true,
+  "streams": {
+    "corpus_generation": "20260925-corpus",
+    "split_assignment": "20260925-split",
+    "transpiler": "20260925-transpile",
+    "simulator": "20260925-simulator",
+    "path_search": "20260925-path",
+    "model_initialization": "20260925-model",
+    "hyperparameter_search": "20260925-hpo",
+    "bootstrap": "20260925-bootstrap",
+    "execution_order": "20260925-order"
+  },
+  "historical_seeds_preserved": [1234, 2025, 31415, 17, 42, 137],
+  "not_exposed_seed_policy": "record_seed_not_exposed_and_hash_actual_plan_or_output"
+}
