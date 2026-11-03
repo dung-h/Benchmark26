@@ -16,7 +16,7 @@ Compilation is counted once per input and method. Totals are computed for each o
 With the repository's NumPy dependency installed, run from the repository root:
 
 ```bash
-python3 research/prediction_latency/verify_summary.py
+python3 experiments/latency/verify_summary.py
 ```
 
 This recomputes five neural group-balanced means and 30,000 source-stratified paired group-bootstrap draws. Anonymous group labels retain the ordering used for resampling. Intervals describe these workloads on the measured host and sessions; they do not represent variation across machines or days.
@@ -25,10 +25,10 @@ The exported group means support interval reconstruction, but not reconstruction
 
 ## Reuse the implementation with external inputs
 
-`research/prediction_latency/measure_classical.py` measures a fitted model on its five-feature inputs. Supply a CSV with `task_key,feature_0,...,feature_4`, a trusted joblib model for the corresponding fold, and a new output directory. Use the model's original sklearn environment. It records three sessions of ten timed predictions after three warmups. It performs no training or compilation. The script selects one available CPU core on Linux and records affinity, versions and model/input hashes. Use `--cpu-core` to select a particular allowed core. The optional `expected_prediction` column checks against a saved reference.
+`experiments/latency/measure_classical.py` measures a fitted model on its five-feature inputs. Supply a CSV with `task_key,feature_0,...,feature_4`, a trusted joblib model for the corresponding fold, and a new output directory. Use the model's original sklearn environment. It records three sessions of ten timed predictions after three warmups. It performs no training or compilation. The script selects one available CPU core on Linux and records affinity, versions and model/input hashes. Use `--cpu-core` to select a particular allowed core. The optional `expected_prediction` column checks against a saved reference.
 
 ```bash
-python3 research/prediction_latency/measure_classical.py \
+python3 experiments/latency/measure_classical.py \
   --features /path/to/fold_features.csv --model /path/to/estimator.joblib \
   --output /path/to/new_inference_samples
 ```
@@ -36,7 +36,7 @@ python3 research/prediction_latency/measure_classical.py \
 `compose.py` accepts an external per-observation CSV with `id,group_id,method,parse_compile_ns,method_stage_ns,inference_ns`. For the reference calculation, `inference_ns` is zero for analytical methods and the mean of session medians for Qonductor. Map every observation to the correct task and fold before composing. Reuse of a task measurement across observations does not create independent timing samples.
 
 ```bash
-python3 research/prediction_latency/compose.py \
+python3 experiments/latency/compose.py \
   --stages /path/to/matched_stages.csv --output /path/to/new_composites.csv
 ```
 

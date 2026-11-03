@@ -24,7 +24,7 @@ PROTOCOL = OUT / "PROTOCOL.md"
 LOCK = OUT / "execution_lock_v2.json"
 sys.path.insert(0, str(ROOT / "benchmark_v1/scripts"))
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(ROOT / "research/postfreeze_mali_shots_ablation_v1"))
+sys.path.insert(0, str(ROOT / "benchmark_v1/shots"))
 import run_mali_full_features as base  # noqa: E402
 import run_mali_batched as batching  # noqa: E402
 from shots_core import append_shots, expand_global_projection, fit_shot_transform, transform_shots  # noqa: E402
@@ -284,7 +284,7 @@ def train_cell(context, parts, train_targets, transform, treatment, fold, seed, 
         "test_ids_sha256": base.stable_hash(parts["test"]),
         "transform_sha256": stable(transform), "model_source_sha256": model_sha,
         "runner_sha256": sha(Path(__file__)), "core_sha256": sha(HERE / "core.py"),
-        "shots_helper_sha256": sha(ROOT / "research/postfreeze_mali_shots_ablation_v1/shots_core.py"),
+        "shots_helper_sha256": sha(ROOT / "benchmark_v1/shots/shots_core.py"),
         "panel_sha256": sha(OUT / "cohort/panel.csv"),
         "feature_ledger_sha256": sha(OUT / "cohort/feature_ledger.csv"),
         "outer_split_sha256": sha(OUT / "splits" / f"{evaluation}_outer.csv"),

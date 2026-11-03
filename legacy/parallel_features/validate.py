@@ -5,7 +5,7 @@ from pathlib import Path
 import os,sys,json,time
 os.environ.update({k:'1' for k in ('OMP_NUM_THREADS','OPENBLAS_NUM_THREADS','MKL_NUM_THREADS','NUMEXPR_NUM_THREADS')})
 ROOT=Path(__file__).resolve().parents[2];OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_cost_v1/parallel8_v2'
-sys.path.insert(0,str(ROOT/'research/postfreeze_qpu_workflow_mean_cost_v1'))
+sys.path.insert(0,str(ROOT/'legacy/feature_latency'))
 from common import atomic_json,sha
 from loaders import StudyInputs
 import numpy as np

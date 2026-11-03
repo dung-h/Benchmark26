@@ -35,7 +35,7 @@ def prepare():
    key=stable(identity)
    if key not in tasks:tasks[key]={'key':key,'identity':identity,'method':method,'panel':r,'ledger':l,'aliases':[]}
    tasks[key]['aliases'].append(cid)
- pinfiles=[SRC/'cohort/panel.csv',SRC/'cohort/feature_ledger.csv',SRC/'cohort/native_baseline_features.csv',SRC/'cohort/classical_feature_provenance.csv',ROOT/'research/postfreeze_qpu_workflow_mean_full_cost_v1/circuit_routes.py',Path(__file__)]
+ pinfiles=[SRC/'cohort/panel.csv',SRC/'cohort/feature_ledger.csv',SRC/'cohort/native_baseline_features.csv',SRC/'cohort/classical_feature_provenance.csv',ROOT/'legacy/circuit_latency/circuit_routes.py',Path(__file__)]
  manifest={'schema':1,'workers':8,'threads_per_worker':1,'cohort_rows':3443,'unique_tasks':len(tasks),'aliases':6886,'tasks':list(tasks.values()),'input_code_hashes':{str(p):sha(p) for p in pinfiles},'scope':'exact input feature reconstruction and parity; per-task concurrent durations not isolated latency; no fitted model or targets read by CPU workers','alias_rule':'same source,method,input bytes hash,shots and graph payload hash for logical path; all aliases independently feature-checked before use','feature_environment':FEATURE_ENV}
  manifest['fingerprint']=stable(manifest)
  p=OUT/'manifest.json'
@@ -44,7 +44,7 @@ def prepare():
 def worker(taskfile,cpu):
  os.sched_setaffinity(0,{int(cpu)})
  import numpy as np
- sys.path.insert(0,str(ROOT/'research/postfreeze_qpu_workflow_mean_full_cost_v1'))
+ sys.path.insert(0,str(ROOT/'legacy/circuit_latency'))
  from circuit_routes import Routes
  task=json.loads(Path(taskfile).read_text());routes=Routes()
  def timeout(*_):raise TimeoutError('feature task exceeded1800s')

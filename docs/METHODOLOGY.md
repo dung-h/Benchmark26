@@ -26,11 +26,11 @@
 | Logical-input preparation and grouping | `benchmark_v1/scripts/prepare_logical_benchmark.py` |
 | Ma--Li-style features and batched graph training | `benchmark_v1/scripts/mali_full_features.py`, `benchmark_v1/scripts/run_mali_batched.py` |
 | Qonductor input materialisation | `benchmark_v1/scripts/materialize_qonductor_native_features.py` |
-| Unified cohort and split construction | `research/postfreeze_qpu_workflow_mean_expansion_v1/prepare_cohort.py`, `prepare_splits.py` |
+| Unified cohort and split construction | `experiments/qpu/prepare_cohort.py`, `prepare_splits.py` |
 | Neural and classical fitting | `train_neural.py`, `run_classical.py` in that same directory |
 | Evaluation and diagnostics | `aggregate_results.py`, `analysis_core.py`, `replay_statistics.py` |
-| Analytical routes | `research/postfreeze_unified_analytical_completion_v1/` and `research/postfreeze_notads_hyperq_track_a_v1/` |
-| Prediction-cost harness | `research/postfreeze_qpu_workflow_mean_cost_v1/`, `research/postfreeze_qpu_cost_completion_v1/`, and `research/postfreeze_qpu_workflow_mean_full_cost_v1/` |
+| Analytical routes | `experiments/analytical/` and `benchmark_v1/path_estimators/` |
+| Prediction-cost harness | `legacy/feature_latency/`, `legacy/timing_completion/`, and `legacy/circuit_latency/` |
 
 ## Important boundaries
 
@@ -40,10 +40,10 @@
 - A runtime label is interpreted only within its recorded source-specific
   measurement boundary.  Do not merge different runtime clocks merely because
   they use the same unit.
-- Directory names under `research/` identify the original experiment modules.
+- Current experiment code is under `experiments/`; earlier timing campaigns are under `legacy/`. Original study identifiers remain in external output namespaces.
   The JSON files under `benchmark_v1/protocol/` describe earlier component
   studies, including a 4,515-row cohort. The unified experiment implementation
-  is under `research/postfreeze_qpu_workflow_mean_expansion_v1/`; its execution
+  is under `experiments/qpu/`; its execution
   lock and input tables are external dependencies. Earlier component protocols
   should not be used as the configuration for the unified experiment.
 - The analytical routes distinguish raw nominal quantities, shot-scaled

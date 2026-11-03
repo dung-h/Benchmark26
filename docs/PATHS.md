@@ -1,5 +1,7 @@
 # Path configuration
 
+Copy `configs/runtime/paths.env.example` to `configs/runtime/paths.env`, edit the paths and source it before invoking experiment entrypoints. The local `.env` file is ignored by Git.
+
 Executable scripts resolve code from their own location. External files and worker interpreters use environment variables, so the checkout does not need to be next to the authors' data or virtual environments.
 
 | Variable | Default relative to repository root | Purpose |
@@ -12,6 +14,7 @@ Executable scripts resolve code from their own location. External files and work
 | `B26_QONDUCTOR_DATABASE` | `inputs/qonductor/data/database/quantum_scheduler.db` | Original database |
 | `B26_QONDUCTOR_TABLE` | `inputs/qonductor_observations.parquet` | Extracted table used by the original grouped regression runner |
 | `B26_CPU_PYTHON` | Current Python executable | CPU feature worker environment |
+| `B26_LEGACY_HELPERS` | `inputs/legacy_helpers/` | Additional helper modules required by earlier timing scripts |
 | `B26_GPU_PYTHON` | Current Python executable | Neural/replay worker environment |
 
 Use absolute paths when exporting these variables. Source checkout and circuit/archive variables are independent: setting a source root does not automatically change the archive override.

@@ -36,20 +36,20 @@ def main():
         raise RuntimeError("classical_preflight_not_pass")
     if batch.get("status")!="PASS_TARGET_FREE_BATCH_PROFILE" or batch.get("chosen_common_effective_batch")!=32:
         raise RuntimeError("batch_profile_not_pass_or_choice_changed")
-    if batch.get("trainer_source_sha256")!=sha(ROOT/"research/postfreeze_qpu_workflow_mean_expansion_v1/train_neural.py") or batch.get("core_source_sha256")!=sha(ROOT/"research/postfreeze_qpu_workflow_mean_expansion_v1/core.py"):
+    if batch.get("trainer_source_sha256")!=sha(ROOT/"experiments/qpu/train_neural.py") or batch.get("core_source_sha256")!=sha(ROOT/"experiments/qpu/core.py"):
         raise RuntimeError("batch_profile_code_identity_stale")
     code=[
-      "research/postfreeze_qpu_workflow_mean_expansion_v1/core.py",
-      "research/postfreeze_qpu_workflow_mean_expansion_v1/prepare_cohort.py",
-      "research/postfreeze_qpu_workflow_mean_expansion_v1/prepare_splits.py",
-      "research/postfreeze_qpu_workflow_mean_expansion_v1/audit_classical_inputs.py",
-      "research/postfreeze_qpu_workflow_mean_expansion_v1/profile_batch.py",
-      "research/postfreeze_qpu_workflow_mean_expansion_v1/train_neural.py",
-      "research/postfreeze_qpu_workflow_mean_expansion_v1/run_classical.py",
-      "research/postfreeze_qpu_workflow_mean_expansion_v1/lock_protocol.py",
-      "research/postfreeze_qpu_workflow_mean_expansion_v1/validate_splits.py",
-      "research/postfreeze_qpu_workflow_mean_expansion_v1/validate_first_cell.py",
-      "research/postfreeze_mali_shots_ablation_v1/shots_core.py",
+      "experiments/qpu/core.py",
+      "experiments/qpu/prepare_cohort.py",
+      "experiments/qpu/prepare_splits.py",
+      "experiments/qpu/audit_classical_inputs.py",
+      "experiments/qpu/profile_batch.py",
+      "experiments/qpu/train_neural.py",
+      "experiments/qpu/run_classical.py",
+      "experiments/qpu/lock_protocol.py",
+      "experiments/qpu/validate_splits.py",
+      "experiments/qpu/validate_first_cell.py",
+      "benchmark_v1/shots/shots_core.py",
       "benchmark_v1/scripts/mali_full_features.py",
       "benchmark_v1/scripts/run_mali_full_features.py",
       "benchmark_v1/scripts/run_mali_batched.py",

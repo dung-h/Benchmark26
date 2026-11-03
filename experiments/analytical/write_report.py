@@ -185,14 +185,14 @@ These formulas estimate an IBM service-usage quantity under assumptions about ci
 Commands used:
 
 ```bash
-python3 research/postfreeze_unified_analytical_completion_v1/extract_raw.py --check-only
-python3 research/postfreeze_unified_analytical_completion_v1/extract_raw.py --canary
-python3 research/postfreeze_unified_analytical_completion_v1/extract_raw.py --full
-python3 research/postfreeze_unified_analytical_completion_v1/calibrate.py
-python3 research/postfreeze_unified_analytical_completion_v1/evaluate.py
-python3 research/postfreeze_unified_analytical_completion_v1/validate_qiskit_parity.py
-python3 research/postfreeze_unified_analytical_completion_v1/validate.py
-python3 research/postfreeze_unified_analytical_completion_v1/make_figures.py
+python3 experiments/analytical/extract_raw.py --check-only
+python3 experiments/analytical/extract_raw.py --canary
+python3 experiments/analytical/extract_raw.py --full
+python3 experiments/analytical/calibrate.py
+python3 experiments/analytical/evaluate.py
+python3 experiments/analytical/validate_qiskit_parity.py
+python3 experiments/analytical/validate.py
+python3 experiments/analytical/make_figures.py
 ```
 
 `extract_raw.py --full` intentionally refuses to overwrite an existing full extraction. Reproduction should use a clean, separately named namespace after pinning the same hashes.

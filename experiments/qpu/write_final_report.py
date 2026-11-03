@@ -112,9 +112,9 @@ def main():
           '- [Validation cells](validation/final_v2/neural_cells.csv), [preprocessing/splits](validation/final_v2/split_and_preprocessing_cases.csv), [classical selection](validation/final_v2/classical_selection.csv).',
           '', 'Các lệnh dưới đây ghi ra namespace mới; aggregation mặc định từ chối overwrite. Dùng cùng environment đã lưu trong cell identities. Không cần train lại để kiểm tra predictions/metrics.',
           '', '```bash',
-          'python -m unittest discover -s research/postfreeze_qpu_workflow_mean_expansion_v1 -p test_analysis.py -v',
-          'python research/postfreeze_qpu_workflow_mean_expansion_v1/validate_completed.py --replay-all --output artifacts/postfreeze_qpu_workflow_mean_expansion_v1/validation/NEW_ATTEMPT',
-          'python research/postfreeze_qpu_workflow_mean_expansion_v1/aggregate_results.py --validation artifacts/postfreeze_qpu_workflow_mean_expansion_v1/validation/NEW_ATTEMPT/receipt.json --output artifacts/postfreeze_qpu_workflow_mean_expansion_v1/NEW_ANALYSIS',
+          'python -m unittest discover -s experiments/qpu -p test_analysis.py -v',
+          'python experiments/qpu/validate_completed.py --replay-all --output artifacts/postfreeze_qpu_workflow_mean_expansion_v1/validation/NEW_ATTEMPT',
+          'python experiments/qpu/aggregate_results.py --validation artifacts/postfreeze_qpu_workflow_mean_expansion_v1/validation/NEW_ATTEMPT/receipt.json --output artifacts/postfreeze_qpu_workflow_mean_expansion_v1/NEW_ANALYSIS',
           '```',
           '', 'Lệnh thực tế cho bản tham chiếu: validator → aggregate_results.py → replay_statistics.py → diagnose_results.py → write_final_report.py. `replay_statistics.py`/diagnostics/report mặc định trỏ `analysis_v1`; dùng bản bàn giao portable hoặc copy vào workspace review riêng để tránh overwrite. Bản nguồn hiện tại không được tự commit/push. Repo team review là bước bàn giao riêng, không nằm trong scientific completion receipt này.',
           '']

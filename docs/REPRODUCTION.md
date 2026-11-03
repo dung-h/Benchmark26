@@ -81,10 +81,10 @@ When the prepared bundle is placed under `artifacts/` or the configured `B26_ART
 
 | Result type | Target Command | Input Files Required |
 |:---|:---|:---|
-| **Main model accuracy** (MAE, MedAE, RMSE, $R^2$) | `python3 research/postfreeze_qpu_workflow_mean_expansion_v1/aggregate_results.py` | `cohort/targets.csv`, `training/` predictions |
-| **Group vs random holdout** (E1 vs E2 comparisons) | `python3 research/postfreeze_qpu_workflow_mean_expansion_v1/write_final_report.py` | `analysis_v1/reduced_predictions.csv` |
+| **Main model accuracy** (MAE, MedAE, RMSE, $R^2$) | `python3 experiments/qpu/aggregate_results.py` | `cohort/targets.csv`, `training/` predictions |
+| **Group vs random holdout** (E1 vs E2 comparisons) | `python3 experiments/qpu/write_final_report.py` | `analysis_v1/reduced_predictions.csv` |
 | **Earlier warm-feature inference cost** | `python3 scripts/verify_cost.py` | `provenance/cost_source_index.json`, `estimator_cost/` |
-| **Analytical duration routes** (Qiskit, QCRE, NoTaDS) | `python3 research/postfreeze_unified_analytical_completion_v1/validate_portable.py` | `artifacts/postfreeze_unified_analytical_completion_v1/` |
+| **Analytical duration routes** (Qiskit, QCRE, NoTaDS) | `python3 experiments/analytical/validate_portable.py` | `artifacts/postfreeze_unified_analytical_completion_v1/` |
 | **Dataset Selection Ledger** (8,767 -> 3,443 rows) | `python3 scripts/build_review_selection_ledger.py --output verification/ledger.csv` | Canonical tables, `qonductor_recipe_screen.csv` |
 
 ---

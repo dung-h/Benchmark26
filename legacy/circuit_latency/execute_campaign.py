@@ -56,7 +56,7 @@ def main():
     import csv
     with (Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1/cohort/panel.csv').open() as f:
         panel={r['canonical_observation_id']:r for r in csv.DictReader(f)}
-    sys.path.insert(0,str(ROOT/'research/postfreeze_qpu_workflow_mean_cost_v1'))
+    sys.path.insert(0,str(ROOT/'legacy/feature_latency'))
     from common import load_split
     by={}
     for path in (OUT/'circuit_canary').rglob('*.json'):

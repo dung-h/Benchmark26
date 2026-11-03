@@ -64,7 +64,8 @@ full = [
 [tool.pytest.ini_options]
 testpaths = [
   "tests",
-  "research",
+  "experiments",
+  "legacy",
 ]
 python_files = [
   "test_*.py",
@@ -73,8 +74,8 @@ pythonpath = [
   ".",
   "tests",
   "benchmark_v1/scripts",
-  "research/postfreeze_qpu_workflow_mean_cost_v1",
-  "research/postfreeze_qpu_workflow_mean_expansion_v1",
+  "legacy/feature_latency",
+  "experiments/qpu",
 ]
 addopts = "-q"
 

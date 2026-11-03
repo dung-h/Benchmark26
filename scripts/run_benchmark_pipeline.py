@@ -39,7 +39,7 @@ def main():
             parser.error('--stage acquire requires --inputs DESTINATION')
         command = [sys.executable, str(ROOT/'scripts/fetch_upstream_data.py'), '--source', 'all', '--destination', str(args.inputs)]
     elif stage == 'latency':
-        command = [sys.executable, str(ROOT/'research/prediction_latency/verify_summary.py')]
+        command = [sys.executable, str(ROOT/'experiments/latency/verify_summary.py')]
     else:
         test = 'test_qonductor_recipe_screen.py' if stage == 'screen' else 'test_analytical_path_kernel.py'
         command = [sys.executable, '-m', 'pytest', str(ROOT/'tests'/test)]

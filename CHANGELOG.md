@@ -1,3 +1,7 @@
+# 3 November 2026 — Experiment layout
+
+Merged PR #3, then separated current experiments (`experiments/qpu`, `analytical`, `latency`), shared kernels/helpers (`benchmark_v1`) and earlier timing campaigns (`legacy`). Split reference specifications from runtime path templates. Updated imports, CLI targets, tests and documentation. Scientific result snapshots and external output namespace identifiers retain their original values.
+
 # 3 November 2026 — Portable paths and runnable smoke flow
 
 Added a configurable synthetic split–fit–evaluate–report smoke pipeline. Renamed the CLI scope in documentation to match its actual behavior. Data roots and CPU/GPU interpreters use documented environment overrides; removed personal virtualenv and home-directory paths. Corrected the reference study config to match producing code (seeds, G0/G1, E3 cases). Added a main/supporting code map and relocation/CLI tests. Historical scientific outputs are unchanged.

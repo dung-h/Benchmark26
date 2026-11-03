@@ -2,7 +2,7 @@
 import os,sys,json,pickle,time,subprocess,hashlib,argparse
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
-sys.path.insert(0,str(ROOT/'research/postfreeze_qpu_workflow_mean_cost_v1'))
+sys.path.insert(0,str(ROOT/'legacy/feature_latency'))
 from common import ART,SRC,atomic_json,sha,stable,load_split,METHODS,SEEDS
 OUT=ART/'full_cost_v1';CODE=Path(__file__).parent
 

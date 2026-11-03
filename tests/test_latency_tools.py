@@ -6,7 +6,7 @@ import sys
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-COMPOSE = ROOT / "research/prediction_latency/compose.py"
+COMPOSE = ROOT / "experiments/latency/compose.py"
 
 
 def run_compose(tmp_path, rows):

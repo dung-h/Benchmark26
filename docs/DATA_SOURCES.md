@@ -31,3 +31,7 @@ The source pins establish provenance of downloaded files.  They do not prove
 that source datasets share a common runtime boundary; that must be assessed
 from the source documentation and the benchmark protocol for the particular
 study.
+
+## Additional research execution dependencies
+
+The prepared data bundle is necessary but does not by itself close every historical execution dependency. Some support runners reference additional component protocols, registries and helper modules that are not included here (for example `circuit_representation_v3.json`, `seed_registry.json` and `materialize_mali_full_features.py`). Resolve these components and graph references before claiming a full experiment replay. The included smoke example and aggregate-statistic verification do not require these files.

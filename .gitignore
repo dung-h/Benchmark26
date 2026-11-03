@@ -10,3 +10,5 @@ verification/
 
 work/
 inputs/
+
+configs/runtime/*.env

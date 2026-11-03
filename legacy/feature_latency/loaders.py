@@ -15,7 +15,7 @@ from torch_geometric.data import Data
 from common import ART, METHODS, ROOT, SEEDS, SRC, load_native, load_panel, load_split, rows, sha
 
 sys.path.insert(0, str(ROOT / "benchmark_v1/scripts"))
-sys.path.insert(0, str(ROOT / "research/postfreeze_mali_shots_ablation_v1"))
+sys.path.insert(0, str(ROOT / "benchmark_v1/shots"))
 import run_mali_full_features as base
 from shots_core import append_shots, transform_shots
 

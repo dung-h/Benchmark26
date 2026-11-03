@@ -9,7 +9,7 @@ R=Path(__file__).resolve().parents[1]
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 fields=['depth_1q','depth_2q','unitary_depth','paper_kappa1','paper_kappa2','notads_code','notads_paper','hyperq_full_seconds','hyperq_unitary_seconds','measurement_count']
 manifest=json.loads((R/'artifacts/analytical_kernel_validation/manifest.json').read_text())
-kernel=R/'research/postfreeze_notads_hyperq_track_a_v1/path_kernel.cpp'
+kernel=R/'benchmark_v1/path_estimators/path_kernel.cpp'
 with tempfile.TemporaryDirectory(prefix='qre-kernel-') as td:
  lib=Path(td)/'kernel.so';subprocess.run(['g++','-O3','-std=c++17','-shared','-fPIC',str(kernel),'-o',str(lib)],check=True)
  dll=ctypes.CDLL(str(lib));fn=dll.paths;ptr=np.ctypeslib.ndpointer

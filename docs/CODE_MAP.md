@@ -1,46 +1,38 @@
-# Code map
+# Experiment steps
 
-## Current reader entrypoints
+## Clean checkout
 
-| Purpose | Entrypoint | Required inputs |
+```bash
+make check
+make test
+python3 scripts/run_benchmark_pipeline.py --stage smoke --output work/smoke
+```
+
+The first two commands verify code and included aggregates. The last is a complete synthetic example with generated observations, grouped splits, a fitted model, held-out predictions and a report.
+
+## Measured QPU experiment
+
+Use [path setup](PATHS.md) and [data access](DATA_SOURCES.md) to prepare the required external inputs. The entrypoints below are sequential dependencies, not substitutes for the prepared bundle. The runners also check their own protocols and execution configuration.
+
+| Step | Entrypoint | Produces / checks |
 | --- | --- | --- |
-| Runnable smoke pipeline | `scripts/run_benchmark_pipeline.py --stage smoke --output NEW_DIR` | NumPy and `configs/smoke.json`; synthetic data generated locally |
-| Inspect file availability | `scripts/run_benchmark_pipeline.py --status` | Checkout; presence checks are not execution-readiness checks |
-| Download upstream sources | `scripts/run_benchmark_pipeline.py --stage acquire --inputs DESTINATION` | Network and pinned source index |
-| Review published latency aggregates | `make verify-latency` | Included aggregate CSV files and NumPy |
-| Compose matched stage costs | `research/prediction_latency/compose.py` | External per-observation stage CSV |
-| Measure fitted regression inference | `research/prediction_latency/measure_classical.py` | External feature CSV, fitted model and compatible environment |
+| 1. Prepare qualified cohort | `experiments/qpu/prepare_cohort.py` | Joined cohort and feature/target tables |
+| 2. Construct splits | `experiments/qpu/prepare_splits.py` | E1/E2/E3 assignments |
+| 3. Neural preflight | `experiments/qpu/train_neural.py --stage preflight --evaluation E1` | Neural readiness under the selected evaluation |
+| 4. Neural fitting | `experiments/qpu/train_neural.py --stage train --evaluation E1` | Fold/seed models and held-out predictions |
+| 5. Regression preflight/fitting | `experiments/qpu/run_classical.py --stage preflight` then `--stage train` | Selected fold-specific regression models and predictions |
+| 6. Validate | `experiments/qpu/validate_completed.py` | Completed-result checks |
+| 7. Aggregate | `experiments/qpu/aggregate_results.py` | Metrics and paired comparisons |
 
-## Main measured QPU experiment
+Select E2/E3 explicitly for their respective runs. Review a new execution configuration before launching; existing original locks describe their producing run. The repository does not currently provide a universal importer for arbitrary external bundles or a single raw-download-to-report QPU command.
 
-The implementation is retained in `research/postfreeze_qpu_workflow_mean_expansion_v1/`. Its directory name identifies the producing study; these scripts are separate from the synthetic smoke pipeline. They require the prepared study bundle described in DATA_SOURCES.md, source dependencies, compatible CPU/GPU environments and the study's input-validation sequence.
+## Analytical evaluation and timing
 
-| Step | Script and relevant options |
-| --- | --- |
-| Prepare cohort | `prepare_cohort.py` |
-| Construct E1/E2/E3 splits | `prepare_splits.py` |
-| Neural preflight / one-cell / training | `train_neural.py --stage preflight`, `--stage first_cell`, `--stage train`; select `--evaluation E1`, `E2` or `E3` |
-| Regression preflight / fitting | `run_classical.py --stage preflight` or `--stage train` |
-| Validate completed results | `validate_completed.py` |
-| Aggregate validated predictions | `aggregate_results.py` |
+- `experiments/analytical/`: extraction, raw evaluation and historical calibration variants. The raw and calibrated variants have different interpretations.
+- `experiments/latency/measure_classical.py`: resident regression inference on supplied features and a fitted model.
+- `experiments/latency/compose.py`: per-input addition of matching stages, followed by summary statistics.
+- `experiments/latency/verify_summary.py`: included session/source aggregates and paired intervals; also run by `make check`.
+- `benchmark_v1/path_estimators/`: shared NoTaDS/HyperQ path implementation.
+- `benchmark_v1/shots/`: shared shots transformation/model helpers.
 
-These are dependency-aware research entrypoints, not a complete raw-download-to-paper command. In particular, availability of upstream archives alone does not supply the derived feature ledger, model checkpoints, graph caches or original execution locks.
-
-## Supporting and historical implementations
-
-| Directory | Role |
-| --- | --- |
-| `benchmark_v1/` | Representation contracts, feature extraction, source adapters and pinned upstream implementation support |
-| `research/postfreeze_unified_analytical_completion_v1/` | Saved analytical experiment implementation, including historical calibration variants; raw and calibrated variants have distinct meanings |
-| `research/postfreeze_notads_hyperq_track_a_v1/` | Original analytical path kernel and supporting historical comparison |
-| Other `research/postfreeze_*cost*` / `*parallel*` directories | Earlier timing campaigns, analysis and feature/replay worker orchestration |
-
-Historical modules retain their producing paths because other modules import them. Moving them would require changing and revalidating those dependencies. They are not additional top-level workflows to run by default. The code map separates their role from the main experiment without changing scientific output identities.
-
-## Data and outputs
-
-- `upstream/`: source URLs, revisions and qualification decisions.
-- `configs/`: the executable synthetic smoke config, plus reference specifications for measured studies. The review CLI consumes only its smoke JSON.
-- `work/smoke/` (created by the example command): disposable synthetic run outputs.
-- `results/prediction_latency/`: generated, versioned aggregate results for independent review.
-- External `B26_ARTIFACTS`: prepared study inputs and experiment outputs. Original references and output identities remain part of each study's protocol.
+The [legacy directory](../legacy/README.md) contains earlier timing campaigns. The [data boundaries](DATA_BOUNDARIES.md) distinguish source inputs, prepared bundles, result snapshots and new outputs.

@@ -11,7 +11,7 @@ ROOT=HERE.parents[1]
 OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
 sys.path.insert(0,str(ROOT/"benchmark_v1/scripts"))
 sys.path.insert(0,str(HERE))
-sys.path.insert(0,str(ROOT/"research/postfreeze_mali_shots_ablation_v1"))
+sys.path.insert(0,str(ROOT/"benchmark_v1/shots"))
 import run_mali_full_features as base
 import run_mali_batched as batching
 from train_neural import ExampleCache, METHODS, fit_transform, make_model, environment_receipt

@@ -8,7 +8,7 @@ os.environ.update({k:'1' for k in ('OMP_NUM_THREADS','MKL_NUM_THREADS','OPENBLAS
 payload = pickle.loads(Path(sys.argv[1]).read_bytes())
 method = payload['method']
 if method.startswith(('M','G')):
-    sys.path.insert(0, str(ROOT/'research/postfreeze_qpu_workflow_mean_cost_v1'))
+    sys.path.insert(0, str(ROOT/'legacy/feature_latency'))
     from loaders import StudyInputs, base
     from common import SEEDS
     import torch

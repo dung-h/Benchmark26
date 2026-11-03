@@ -14,7 +14,7 @@ import numpy as np
 
 from common import ART, ROOT, SRC, atomic_json, load_native, rows, sha, stable, verify_plan_pins
 
-sys.path.insert(0, str(ROOT / "research/postfreeze_qpu_workflow_mean_expansion_v1"))
+sys.path.insert(0, str(ROOT / "experiments/qpu"))
 from core import load_context, load_targets, parts_for
 
 sys.path.insert(0, str(ROOT / "benchmark_v1/scripts"))
@@ -50,9 +50,9 @@ def build_amendment() -> dict:
         "source_study_protocol_sha256": sha(SRC / "PROTOCOL.md"),
         "source_study_lock_sha256": sha(SRC / "execution_lock_v2.json"),
         "source_code_sha256": {
-            "research/postfreeze_qpu_workflow_mean_expansion_v1/run_classical.py": sha(ROOT / "research/postfreeze_qpu_workflow_mean_expansion_v1/run_classical.py"),
+            "experiments/qpu/run_classical.py": sha(ROOT / "experiments/qpu/run_classical.py"),
             "benchmark_v1/scripts/run_qonductor_grouped_reproduction.py": sha(ROOT / "benchmark_v1/scripts/run_qonductor_grouped_reproduction.py"),
-            "research/postfreeze_qpu_workflow_mean_cost_v1/recover_classical.py": sha(Path(__file__)),
+            "legacy/feature_latency/recover_classical.py": sha(Path(__file__)),
         },
         "input_hashes": {
             "artifacts/postfreeze_qpu_workflow_mean_expansion_v1/cohort/native_baseline_features.csv": sha(native_path),

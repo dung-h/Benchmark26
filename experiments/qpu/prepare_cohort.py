@@ -15,7 +15,7 @@ import csv, hashlib, json, math, os, sys
 from collections import Counter, defaultdict
 
 ROOT = Path(__file__).resolve().parents[2]
-RESEARCH = ROOT / "research/postfreeze_qpu_workflow_mean_expansion_v1"
+RESEARCH = ROOT / "experiments/qpu"
 OUT = Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
 PLAN_DIR = ROOT / "docs/final_completion/qpu_workflow_mean_expansion_v1"
 PANEL_IN = PLAN_DIR / "proposed_observations.csv"

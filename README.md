@@ -1,96 +1,39 @@
 # Benchmark26
 
-Code and protocols for comparing quantum-processing-unit (QPU) runtime
-estimators. The study compares Ma–Li-style MLP and graph models, a Qonductor
-regression selector, and analytical timing routes on 3,443 observations from
-the Ma–Li, Qonductor and QPack corpora.
+Code for comparing QPU runtime estimators on 3,443 observations from Ma–Li, Qonductor and QPack, organized into 203 logical-circuit groups.
 
-This checkout contains both the reusable code and the records needed to audit
-the study design. The original datasets, derived feature tables, model
-checkpoints and some environment-specific inputs are not included.
-
-## What can be run from a clean checkout?
-
-Install the lightweight review environment:
+## Check the included results
 
 ```bash
 python3 -m pip install -e ".[test]"
-```
-
-Run the local checks:
-
-```bash
 make check
 make test
-make verify-latency
 ```
 
-Run the small synthetic smoke pipeline:
+These commands check the code, test fixtures and exported latency statistics, including 30,000 paired bootstrap draws. They use the files in this checkout.
+
+## Try a synthetic example
 
 ```bash
-python3 scripts/run_benchmark_pipeline.py \
-  --stage smoke \
-  --output work/smoke
+python3 scripts/run_benchmark_pipeline.py --stage smoke --output work/smoke
 ```
 
-The smoke run exercises grouped splitting, train-only preprocessing, fitting,
-held-out prediction and metric/report writing. It uses synthetic data and does
-not reproduce the QPU results.
+This small example runs grouped splitting, preprocessing, regression, prediction and report generation. It uses `configs/smoke.json` and synthetic data; it does not reproduce the measured QPU results.
 
-To inspect which external study inputs are present:
+## Reproduce the measured study
 
-```bash
-python3 scripts/run_benchmark_pipeline.py --status
-```
+The QPU experiment uses separate entrypoints and a prepared external study bundle. See the [experiment steps](docs/CODE_MAP.md), [data access](docs/DATA_SOURCES.md) and [path setup](docs/PATHS.md). There is no single raw-download-to-QPU-report command.
 
-## What is the main research pipeline?
-
-The measured QPU experiment is implemented under
-`research/postfreeze_qpu_workflow_mean_expansion_v1/`. Its main stages are:
-
-1. `prepare_cohort.py` — prepare and join the qualified cohort;
-2. `prepare_splits.py` — construct the E1, E2 and E3 evaluation splits;
-3. `train_neural.py` — run neural preflight, one-cell checks or training;
-4. `run_classical.py` — run regression preflight or fitting;
-5. `validate_completed.py` — validate completed outputs;
-6. `aggregate_results.py` — aggregate held-out predictions.
-
-These scripts are the entrypoints for the measured experiment, but they are
-not a single raw-download-to-report command. They require the external study
-bundle described in [Data sources](docs/DATA_SOURCES.md), including prepared
-cohort tables, feature ledgers, graph caches, checkpoints and execution locks.
-The synthetic smoke command above is intentionally separate from this pipeline.
-
-## Repository map
-
-| Path | Role |
+| Path | Contents |
 | --- | --- |
-| `benchmark_v1/` | Feature construction, source adapters and frozen component protocols |
-| `configs/` | Smoke-run configuration and reference specifications for measured studies |
-| `research/` | Main experiment implementations and supporting historical modules |
-| `scripts/` | Setup, acquisition, verification and smoke-pipeline entrypoints |
-| `tests/` | Unit and invariant tests for schemas, splits, metrics and analytical routes |
-| `upstream/` | Source URLs, revisions, checksums and qualification records |
-| `results/` | Versioned aggregate outputs for the prediction-latency analysis |
-| `docs/` | Methodology, data access, path configuration and reproduction instructions |
+| `experiments/qpu/` | Main QPU data, split, fitting and evaluation scripts |
+| `experiments/analytical/` | Analytical estimator evaluation |
+| `experiments/latency/` | Portable timing, cost composition and review tools |
+| `benchmark_v1/` | Shared circuit features, adapters and kernels |
+| `legacy/` | Earlier timing campaigns retained for comparison |
+| `configs/` | Executable smoke config, runtime path example and reference specifications |
+| `results/` | Versioned aggregate result snapshots |
+| `upstream/` | Source URLs, revisions and qualification records |
+| `work/` | Generated local outputs; ignored by Git |
 
-The `postfreeze_*` names under `research/` identify the studies that produced
-the corresponding artifacts. They are not interchangeable implementations of
-one generic experiment. See the [code map](docs/CODE_MAP.md) before running a
-research script.
-
-## Documentation
-
-- [Code map](docs/CODE_MAP.md) — runnable entrypoints and historical modules
-- [Reproduction guide](docs/REPRODUCTION.md) — verification levels and study-bundle workflow
-- [Data sources](docs/DATA_SOURCES.md) — downloads, hashes and external inputs
-- [Path configuration](docs/PATHS.md) — portable data and interpreter locations
-- [Methodology](docs/METHODOLOGY.md) — labels, groups, splits and metrics
-- [Prediction latency](docs/PREDICTION_LATENCY.md) — latency boundaries and exported summaries
-
-## Important interpretation boundary
-
-The repository's local checks verify code structure, selected invariants and
-exported aggregate results. They do not prove that the full QPU experiment can
-be replayed without the external study bundle and its compatible scientific
-software environments.
+[Reproduction guide](docs/REPRODUCTION.md) · [Methodology](docs/METHODOLOGY.md) · [Latency measurement](docs/PREDICTION_LATENCY.md) · [Data boundaries](docs/DATA_BOUNDARIES.md)

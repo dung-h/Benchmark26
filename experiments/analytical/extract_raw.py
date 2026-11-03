@@ -18,7 +18,7 @@ PANEL=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'pos
 REP=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v3/real_qpu/compiled_unified'
 FEATURE=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_notads_hyperq_track_a_v1/features.csv'
 ATTEMPTS=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v3/real_qpu/archived_analytical_wave_v3_20260930/attempts.csv'
-CODE=ROOT/'research/postfreeze_notads_hyperq_track_a_v1/run.py'
+CODE=ROOT/'benchmark_v1/path_estimators/run.py'
 
 def sha(path):
  h=hashlib.sha256()
@@ -52,7 +52,7 @@ def main():
  if dict(Counter(r['source_id'] for r in source))!=expected:raise RuntimeError('source_count_mismatch')
  if any(not p.is_file() for p in splitfiles):raise RuntimeError('missing_frozen_split')
  hashes={}
- pinpaths=[PANEL/'PROTOCOL.md',PANEL/'cohort/panel.csv',PANEL/'cohort/targets.csv',PANEL/'cohort/feature_ledger.csv',PANEL/'cohort/qpack_feature_source_map.csv',REP/'representation_rows.csv',REP/'graph_file_hashes.json',Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v3/recovery_real_qpu_20260929_v3/c133_snapshot_registry_v3.csv',CODE,ROOT/'research/postfreeze_notads_hyperq_track_a_v1/path_kernel.cpp',Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_notads_hyperq_track_a_v1/path_kernel.so',*splitfiles]
+ pinpaths=[PANEL/'PROTOCOL.md',PANEL/'cohort/panel.csv',PANEL/'cohort/targets.csv',PANEL/'cohort/feature_ledger.csv',PANEL/'cohort/qpack_feature_source_map.csv',REP/'representation_rows.csv',REP/'graph_file_hashes.json',Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'benchmark_v3/recovery_real_qpu_20260929_v3/c133_snapshot_registry_v3.csv',CODE,ROOT/'benchmark_v1/path_estimators/path_kernel.cpp',Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_notads_hyperq_track_a_v1/path_kernel.so',*splitfiles]
  hashes={str(p.relative_to(ROOT)):sha(p) for p in pinpaths}
  file_hashes=json.loads((REP/'graph_file_hashes.json').read_text())
  target_free=[]

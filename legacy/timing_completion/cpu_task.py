@@ -5,7 +5,7 @@ from pathlib import Path
 import os,sys,json,time,math,pickle,signal,resource,importlib.util
 os.environ.update({k:'1' for k in ('OMP_NUM_THREADS','OPENBLAS_NUM_THREADS','MKL_NUM_THREADS','NUMEXPR_NUM_THREADS','QISKIT_NUM_PROCS')})
 ROOT=Path(__file__).resolve().parents[2];CODE=Path(__file__).parent;OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_cost_v1/completion_v2'
-sys.path[:0]=[str(CODE),str(ROOT/'benchmark_v1/scripts'),str(ROOT/'research/postfreeze_qpu_workflow_mean_full_cost_v1'),str(ROOT/'research/postfreeze_estimator_processing_cost_v2')]
+sys.path[:0]=[str(CODE),str(ROOT/'benchmark_v1/scripts'),str(ROOT/'legacy/circuit_latency'),str(Path(_b26_os.environ.get("B26_LEGACY_HELPERS", str(ROOT/"inputs/legacy_helpers"))))]
 from prepare import read,sha
 from circuit_routes import Routes
 from qiskit import qasm2,qasm3
@@ -14,7 +14,7 @@ import numpy as np
 def atomic(path,obj):
  path.parent.mkdir(parents=True,exist_ok=True);tmp=path.with_suffix('.tmp');tmp.write_text(json.dumps(obj,indent=2,allow_nan=False));tmp.replace(path)
 def load_kernel():
- p=ROOT/'research/postfreeze_notads_hyperq_track_a_v1/run.py';spec=importlib.util.spec_from_file_location('saved_notads',p);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+ p=ROOT/'benchmark_v1/path_estimators/run.py';spec=importlib.util.spec_from_file_location('saved_notads',p);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
  if not (m.OUT/'path_kernel.so').exists():raise RuntimeError('saved kernel missing; refuse modify old namespace')
  return m,m.kernel()
 def check(v,expected):

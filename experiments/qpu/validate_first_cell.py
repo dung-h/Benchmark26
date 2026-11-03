@@ -7,7 +7,7 @@ from pathlib import Path
 import csv,json,math,sys
 ROOT=Path(__file__).resolve().parents[2];HERE=Path(__file__).resolve().parent
 OUT=Path(_b26_os.environ.get("B26_ARTIFACTS", str(ROOT / "artifacts"))) / 'postfreeze_qpu_workflow_mean_expansion_v1'
-sys.path[:0]=[str(ROOT/"benchmark_v1/scripts"),str(HERE),str(ROOT/"research/postfreeze_mali_shots_ablation_v1")]
+sys.path[:0]=[str(ROOT/"benchmark_v1/scripts"),str(HERE),str(ROOT/"benchmark_v1/shots")]
 import torch
 import run_mali_full_features as base
 from core import atomic_json,load_context,parts_for,rows,sha,stable

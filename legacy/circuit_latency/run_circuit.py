@@ -3,7 +3,7 @@ import os,sys,json,time,signal,argparse,resource,fcntl
 from pathlib import Path
 os.environ.update({k:'1' for k in ('OMP_NUM_THREADS','MKL_NUM_THREADS','OPENBLAS_NUM_THREADS','NUMEXPR_NUM_THREADS')})
 ROOT=Path(__file__).resolve().parents[2]
-sys.path.insert(0,str(ROOT/'research/postfreeze_qpu_workflow_mean_cost_v1'))
+sys.path.insert(0,str(ROOT/'legacy/feature_latency'))
 from common import ART,SRC,METHODS,atomic_json,sha,stable
 from loaders import StudyInputs
 from feature_proxy import Routes

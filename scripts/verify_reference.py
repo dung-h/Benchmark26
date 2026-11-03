@@ -4,7 +4,7 @@ from __future__ import annotations
 import collections
 import sys
 from pathlib import Path
-sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"research/postfreeze_qpu_workflow_mean_expansion_v1"))
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"experiments/qpu"))
 import datetime
 import json
 import math

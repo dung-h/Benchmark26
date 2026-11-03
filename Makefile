@@ -17,8 +17,8 @@ setup:
 
 check:
 	$(PYTHON) scripts/check_setup.py
-	$(PYTHON) -m compileall -q benchmark_v1 research scripts tests
-	$(PYTHON) research/prediction_latency/verify_summary.py
+	$(PYTHON) -m compileall -q benchmark_v1 experiments legacy scripts tests
+	$(PYTHON) experiments/latency/verify_summary.py
 
 test:
 	$(PYTHON) -m pytest
@@ -37,7 +37,7 @@ validate-provenance:
 
 .PHONY: verify-latency
 verify-latency:
-	$(PYTHON) research/prediction_latency/verify_summary.py
+	$(PYTHON) experiments/latency/verify_summary.py
 
 .PHONY: smoke
 smoke:
