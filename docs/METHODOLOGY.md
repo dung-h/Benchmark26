@@ -76,4 +76,4 @@ The trainers, tuners and approval checks that belonged only to the earlier 8,767
 
 ## Protocols
 
-`protocols/` holds the frozen contracts of the component studies on which the unified study builds (Ma–Li features, Qonductor features, estimator execution, logical inputs). Several describe the earlier 4,515- and 8,767-row cohorts. They are kept because the shared code verifies their hashes; they are not the configuration of the 3,443-observation study, whose execution lock is part of the study bundle. `configs/study/` summarizes that study's settings for readers.
+`protocols/` holds the frozen contracts of the component studies on which the unified study builds (Ma–Li features, Qonductor features, estimator execution, logical inputs). Several describe the earlier 4,515- and 8,767-row cohorts. They are kept because the shared code verifies their hashes; they are not the configuration of the 3,443-observation study, whose execution lock is part of the study bundle.
