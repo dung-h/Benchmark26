@@ -16,16 +16,11 @@ from pathlib import Path
 import numpy as np
 
 from benchmark26.paths import ARTIFACTS
+from benchmark26.tables import read_csv as read
 
 ROOT = Path(__file__).resolve().parents[2]
 NS = ARTIFACTS / "postfreeze_unified_analytical_completion_v1"
 P = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
-
-
-def read(p):
-    """Read a CSV file into a list of dicts."""
-    with open(p, newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
 
 
 def write(p, rs):

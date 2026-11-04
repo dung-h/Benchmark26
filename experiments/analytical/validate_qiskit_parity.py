@@ -6,27 +6,17 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
 import csv
-import hashlib
 import json
 import math
 from collections import Counter
 from pathlib import Path
 
+from benchmark26.integrity import sha256_file as sha
 from benchmark26.paths import ARTIFACTS
+from benchmark26.tables import read_csv as read
 
 R = Path(__file__).resolve().parents[2]
 N = ARTIFACTS / "postfreeze_unified_analytical_completion_v1"
-
-
-def read(p):
-    """Read a CSV file into a list of dicts."""
-    with open(p, newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
-
-
-def sha(p):
-    """Return the SHA-256 hex digest of a file."""
-    return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 
 
 raw = {(x["graph_file"], x["snapshot_id"]): x for x in read(N / "raw_features.csv")}

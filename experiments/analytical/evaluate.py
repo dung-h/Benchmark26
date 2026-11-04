@@ -8,7 +8,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
 import csv
-import hashlib
 import json
 import math
 from collections import defaultdict
@@ -17,18 +16,14 @@ from pathlib import Path
 import numpy as np
 from scipy.stats import pearsonr, spearmanr
 
+from benchmark26.integrity import sha256_file as sha
 from benchmark26.paths import ARTIFACTS, record_name
+from benchmark26.tables import read_csv as read
 
 ROOT = Path(__file__).resolve().parents[2]
 NS = ARTIFACTS / "postfreeze_unified_analytical_completion_v1"
 STUDY = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
 AN = STUDY / "analysis_v1"
-
-
-def read(path):
-    """Read a CSV file into a list of dicts."""
-    with open(path, newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
 
 
 def write(path, records):
@@ -39,11 +34,6 @@ def write(path, records):
         w = csv.DictWriter(f, fieldnames=list(records[0]), lineterminator="\n")
         w.writeheader()
         w.writerows(records)
-
-
-def sha(path):
-    """Return the SHA-256 hex digest of a file."""
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
 def fnum(v):

@@ -5,13 +5,13 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-import csv
 from pathlib import Path
 
 import matplotlib
 import numpy as np
 
 from benchmark26.paths import ARTIFACTS
+from benchmark26.tables import read_csv as read
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -20,12 +20,6 @@ ROOT = Path(__file__).resolve().parents[2]
 N = ARTIFACTS / "postfreeze_unified_analytical_completion_v1"
 D = N / "figures"
 D.mkdir(exist_ok=True)
-
-
-def read(p):
-    """Read a CSV file into a list of dicts."""
-    with open(p, newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
 
 
 metrics = read(N / "metrics.csv")

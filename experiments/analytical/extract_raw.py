@@ -25,6 +25,7 @@ from pathlib import Path
 import numpy as np
 
 from benchmark26.paths import ARTIFACTS, record_name
+from benchmark26.tables import read_csv as rows
 
 ROOT = Path(__file__).resolve().parents[2]
 NS = ARTIFACTS / "postfreeze_unified_analytical_completion_v1"
@@ -42,12 +43,6 @@ def sha(path):
         for b in iter(lambda: f.read(1 << 20), b""):
             h.update(b)
     return h.hexdigest()
-
-
-def rows(path):
-    """Read a CSV file into a list of dicts."""
-    with open(path, newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
 
 
 def write(path, rs):

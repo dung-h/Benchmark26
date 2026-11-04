@@ -8,7 +8,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
 import csv
-import hashlib
 import importlib.metadata as md
 import json
 import platform
@@ -17,17 +16,13 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
+from benchmark26.integrity import sha256_file as sha
 from benchmark26.paths import ARTIFACTS
+from benchmark26.tables import read_csv as read
 
 ROOT = Path(__file__).resolve().parents[2]
 NS = ARTIFACTS / "postfreeze_unified_analytical_completion_v1"
 ST = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
-
-
-def read(p):
-    """Read a CSV file into a list of dicts."""
-    with open(p, newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
 
 
 def write(p, rows):
@@ -36,11 +31,6 @@ def write(p, rows):
         w = csv.DictWriter(f, fieldnames=list(rows[0]), lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
-
-
-def sha(p):
-    """Return the SHA-256 hex digest of a file."""
-    return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 
 
 def f(v, d=4):
