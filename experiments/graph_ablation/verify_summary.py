@@ -14,6 +14,7 @@ The per-group errors were derived from the private predictions and labels by
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -28,11 +29,25 @@ RESULTS = HERE.parents[1] / "results/graph_ablation"
 TOLERANCE = 1e-12
 
 
+def manifest_problems() -> list[str]:
+    """Files listed in the manifest must exist with the recorded SHA-256."""
+    manifest = json.loads((RESULTS / "manifest.json").read_text())
+    root = RESULTS.parents[1]
+    problems = []
+    for name, expected in manifest["files"].items():
+        path = root / name
+        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+            problems.append(f"manifest hash differs: {name}")
+    listed = {Path(n).name for n in manifest["files"]}
+    extra = {p.name for p in RESULTS.iterdir() if p.is_file()} - listed - {"manifest.json"}
+    return problems + [f"file not in manifest: {name}" for name in sorted(extra)]
+
+
 def main() -> int:
     with (RESULTS / "group_errors.csv").open(newline="") as handle:
         rows = list(csv.DictReader(handle))
     summary = json.loads((RESULTS / "summary.json").read_text())
-    problems, checked = [], 0
+    problems, checked = manifest_problems(), 0
     for evaluation in EVALUATIONS:
         part = [r for r in rows if r["evaluation"] == evaluation]
         names = [r["group"] for r in part]

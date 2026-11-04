@@ -1,5 +1,18 @@
 # Methodology
 
+## Definitions
+
+These terms are used the same way in every document and in the code.
+
+- **Observation**: one row of the cohort. It has a circuit, a shot count, a backend and one archived runtime label.
+- **Label**: the archived runtime of an observation, in seconds. Each source defines it differently (see the table below).
+- **Source**: where the observation comes from. There are three: Ma–Li, Qonductor and QPack.
+- **Logical circuit**: the circuit before it is compiled to a backend's native gates. The neural estimators take it as input. For Qonductor it is reconstructed from the circuit family and width, not recovered byte for byte.
+- **Physical circuit**: the circuit after compilation to a backend's native gates. The analytical estimators score the saved physical circuit of each observation. For Qonductor this is the circuit that was submitted.
+- **Logical-circuit group**: observations whose circuits differ only in gate angles. Details below.
+- **Estimator**: anything that maps an input to a predicted runtime: a neural model, the regression selector, or an analytical duration formula.
+- **Group-balanced MAE (GB-MAE)**: the mean absolute error in seconds, averaged within each group and then over groups, so every group counts once. It is the primary metric.
+
 ## Cohort
 
 The study uses 3,443 archived QPU observations in 203 logical-circuit groups.

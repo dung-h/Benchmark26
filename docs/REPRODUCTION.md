@@ -4,7 +4,7 @@ There are three levels, each needing more data than the previous one.
 
 | Level | Needs | Establishes |
 | --- | --- | --- |
-| 1. Repository checks | This checkout | Code parses, frozen protocols are intact, unit tests pass, exported latency intervals recompute |
+| 1. Repository checks | This checkout | Code parses, frozen protocols are intact, unit tests pass, exported latency and graph-ablation statistics recompute |
 | 2. Upstream sources | Network access | The upstream files match their pinned SHA-256 hashes |
 | 3. Study replay | The external study bundle and the upstream sources | Cohort, splits, analytical estimates and statistics can be recomputed and compared with the saved results |
 
@@ -17,7 +17,7 @@ make test
 make smoke
 ```
 
-`make check` parses every Python and protocol file, verifies the SHA-256 chain between the frozen files in `protocols/`, and recomputes the exported latency statistics in `results/prediction_latency/`. It succeeds without the study bundle and lists which bundle files it found. `make check-study-inputs` fails instead when they are missing.
+`make check` parses every Python and protocol file, verifies the SHA-256 chain between the frozen files in `protocols/`, and recomputes the exported statistics in `results/prediction_latency/` and `results/graph_ablation/` (the latter also against the file hashes in its manifest). It succeeds without the study bundle and lists which bundle files it found. If a command fails with an error message, look it up in [Pitfalls](PITFALLS.md). `make check-study-inputs` fails instead when they are missing.
 
 ## 2. Upstream sources
 

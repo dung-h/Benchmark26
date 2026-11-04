@@ -12,10 +12,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
   - `docs/GRAPH_ABLATION.md`.
 
   The runner and protocol are byte-identical to the executed run. `analyze.py` is a portable port of the locked analysis script and reproduces the saved summary exactly.
-- `make check` recomputes the shared graph-ablation statistics from anonymous per-group errors.
+- `make check` recomputes the shared graph-ablation statistics from anonymous per-group errors and checks the files against the hashes in `results/graph_ablation/manifest.json`.
+- `docs/PITFALLS.md`: error messages and misreadings, each with cause and fix.
 - Tests for the graph controls, the median-of-seeds estimand, the stratified paired bootstrap and the shared results.
 
 ### Changed
+- README: the first command now checks the published numbers; a table points each reader task to its document. `docs/METHODOLOGY.md` starts with definitions, and `docs/PREDICTION_LATENCY.md` states what is and is not timed.
 - `experiments/qpu/graph_ablation_runner.py` joins the run entry points, so a prepared run pins 29 code files. Run manifests prepared with 0.3.2 list fewer files and are rejected; prepare a new `B26_RUN_DIR`.
 
 ## [0.3.2] - 2026-11-03

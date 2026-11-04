@@ -1,0 +1,17 @@
+{
+  "files": {
+    "results/graph_ablation/cells.csv": "286801c8129ab2d77bf398893772f4806df3d49ebc5bda537a8763dc26ba0054",
+    "results/graph_ablation/group_errors.csv": "c611ffb20201f80eb2ad0c6cbf6e6865d5a7f6dc08498958a9a710c4686aef9c",
+    "results/graph_ablation/summary.json": "84914d6a697de282987e12e29fff041ce0065b9abc20f43864cc3084b154bcc0"
+  },
+  "scope": "Aggregate export only; no circuits, labels, predictions, checkpoints, paper or LaTeX sources.",
+  "provenance": {
+    "protocol_sha256": "48fcd4792656cca2b59f591a5529a0354c82ce76a3f7d06b8c9596898f53b4c0",
+    "locked_analysis_script_sha256": "8d48c0a4e1fced2cd81cb92653e152f73109a21c362fb8cdd894a0ee338e9e65",
+    "run_manifest_sha256": "d45edd2bf3999c85019e1ab1e5865eee91608ce6f5413114b4b64bc49d03bee3",
+    "ablation_lock_sha256": "778e2e605828ab7a2de6b6c7fa923c6f3ba5d2120e717a217fd37ff36e41fca6",
+    "base_repository_revision": "4c6781bd41c2411833d9f8e740a1df01f729f82a",
+    "training_cells": 120,
+    "private_run": "Not distributed. The hashes above identify the locked protocol, code inventory and analysis script of that run."
+  }
+}

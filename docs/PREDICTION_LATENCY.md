@@ -9,6 +9,19 @@ The new timing results cover 3,443 observations and 203 logical-circuit groups u
 
 Compilation is counted once per input and method. Totals are computed for each observation before calculating summary statistics. Composite costs exclude model loading, disk access, backend preparation and inter-stage communication. They are not observed isolated end-to-end latency. The constant lookup bypasses circuit processing. NoTaDS produces a unitless score, while its processing cost is measured in time units.
 
+## What is timed
+
+Each measurement has a stated input at the start and a stated output at the end. Everything between them counts toward the cost. Only the items in the last column are left out.
+
+| Measurement | Input at the start | Output at the end | Not timed |
+| --- | --- | --- | --- |
+| Observed neural request latency | Logical circuit bytes already in memory | Prediction as a host scalar | Loading the circuit and the model; the three warm-up runs of each session |
+| Composite compiled-route cost | Logical circuit | Method-specific processing finished, plus model inference for Qonductor | Model loading, disk access, backend preparation, communication between stages |
+
+A method cannot skip a step that its input needs. Compilation counts once per input and method. The constant lookup is the one exception, because it does not process the circuit at all.
+
+The analytical estimators have no published timing that starts from an already-parsed physical circuit. A missing number there does not mean zero cost.
+
 ## Compiled-route inputs
 
 The compiled route compiles each logical input with `optimization_level=1`, trivial layout, SABRE routing and the translator. Ma–Li and QPack use the seed of the saved representation: for these 385 observations the compiled circuit has the same canonical IR digest as the circuit scored for accuracy. Qonductor uses seed 42, and its compiled circuit differs from the submitted physical circuit for all 3,058 observations. The submitted circuits came from Qonductor's benchmark code (level 3, fewest CX/CZ/ECR among repeated transpilations); the archive records no per-job seed, compiler version or snapshot. The new circuits never ran on a QPU, so Qonductor-source costs cannot be paired with the accuracy measured on the submitted circuits. Identity was established by IR digest against the private bundle; equal scalar outputs do not establish it (16 Qonductor observations keep the saved Qiskit duration with a different circuit).
