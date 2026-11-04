@@ -1,6 +1,6 @@
 # Reproduction
 
-There are three levels, each needing more data than the previous one.
+The runtime of every run is public: download `runs.csv` from the [benchmark26-data folder](https://drive.google.com/drive/folders/1lXiRepBX3S7rzdscwnVyqXfis1qcp8-K) and check it with `sha256sum -c SHA256SUMS` (expected `86ee98ff24088923b96b1244814c5a93d92fa170f0b4691f4f3c6a9cd8eb959a`). The levels below go further, each needing more data than the previous one.
 
 | Level | Needs | Establishes |
 | --- | --- | --- |

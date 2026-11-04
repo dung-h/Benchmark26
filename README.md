@@ -2,7 +2,11 @@
 
 Benchmark26 compares neural, classical-regression and analytical estimators that predict the runtime of a quantum circuit on a QPU. It holds the code, the pinned upstream sources and the published aggregate results of one study: 3,443 archived QPU observations from the Ma–Li, Qonductor and QPack sources, grouped into 203 logical-circuit groups.
 
-The runtime labels, circuit caches and fitted models are not in this repository. They form an external study bundle. Without the bundle you can still recompute the published latency and graph-ablation statistics. With it you can replay the study checks.
+## Download the dataset
+
+The runtimes of all 3,443 runs are published as one table, `runs.csv`, in the [benchmark26-data folder](https://drive.google.com/drive/folders/1lXiRepBX3S7rzdscwnVyqXfis1qcp8-K) on Google Drive. Each row is one run: source, circuit group, backend, shot count and runtime in seconds. The folder's `README.md` explains every column, and `SHA256SUMS` holds the checksum (`86ee98ff2408…`). [`scripts/export_dataset.py`](scripts/export_dataset.py) shows how the table was made from the study files.
+
+The circuit caches and fitted models are not published. Together with the study tables they form an external study bundle, which is needed to retrain the models. Without the bundle you can still recompute the published latency and graph-ablation statistics. With it you can replay the study checks.
 
 ## Check the published numbers
 
