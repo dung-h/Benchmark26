@@ -8,7 +8,7 @@ The output directory is append-only: an existing directory is refused.
 """
 
 from __future__ import annotations
-from benchmark26.paths import ARTIFACTS, MALI_QASM, PROTOCOLS, QONDUCTOR_ARCHIVE, REGISTRY, record_name
+
 import argparse
 import csv
 import hashlib
@@ -27,6 +27,7 @@ from qiskit import QuantumCircuit, qasm3, transpile
 from qiskit.converters import circuit_to_dag
 from qiskit_ibm_runtime import fake_provider
 
+from benchmark26.paths import ARTIFACTS, MALI_QASM, PROTOCOLS, QONDUCTOR_ARCHIVE, REGISTRY, record_name
 
 ROOT = Path(__file__).resolve().parents[1]
 CANON = ARTIFACTS / "benchmark_v1/canonical_corpus_8767_20260926/canonical_observations.csv"
@@ -794,44 +795,12 @@ def run_preflight(
     return manifest
 
 
-def write_report(out: Path, manifests: dict[str, object]) -> None:
-    """Write REPORT.md summarizing Wave 0 and the C133 to C135 manifests."""
-    lines = [
-        "# Routine Wave 0 + C133–C135 recovery batch",
-        "",
-        "No model fitting, timing run, simulator execution or QPU execution was performed.",
-        "",
-        "| Task | Status | Detail |",
-        "|---|---|---|",
-    ]
-    lines.append(
-        f"| Wave 0 | **recorded in controlling contracts** | Existing V2 artifacts remain immutable; V3 outputs are additive. |"
-    )
-    lines.append(
-        f"| C133 | **{str(manifests['C133']['status']).upper()}** | {manifests['C133']['backend_count']}/{manifests['C133']['expected_backend_count']} backend records. |"
-    )
-    lines.append(
-        f"| C134 | **{str(manifests['C134']['status']).upper()}** | {manifests['C134']['rows']} feature rows; Qonductor audit {manifests['C134']['qonductor_audit_counts']}. |"
-    )
-    lines.append(
-        f"| C135 | **{str(manifests['C135']['status']).upper()}** | {manifests['C135']['attempts']} deterministic preflight attempts across {manifests['C135']['cells']} source/backend cells. |"
-    )
-    lines += [
-        "",
-        "## Next gate",
-        "",
-        "This routine batch does not authorize C121 analytical execution or unified V3 training. Strong review must adjudicate C122 semantic retention and every C135 failure before creating a full-run manifest.",
-        "",
-    ]
-    (out / "REPORT.md").write_text("\n".join(lines), encoding="utf-8")
-
-
 def main() -> int:
     """Run the routine batch (Wave 0 and C133 to C135).
 
     Refuses an existing output directory and checks that the input files exist, records
     the environment, then builds the snapshot registry, parses the circuits, materializes
-    the features, runs the preflight and writes the manifests and the report. Returns 0.
+    the features, runs the preflight and writes the manifests. Returns 0.
     """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=ARTIFACTS / "benchmark_v3/recovery_real_qpu_20260929")
@@ -872,7 +841,6 @@ def main() -> int:
             },
         },
     )
-    write_report(out, manifests)
     print(
         json.dumps(
             {

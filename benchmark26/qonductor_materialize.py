@@ -2,32 +2,32 @@
 """Build the five pinned Qonductor features for every canonical QPU row."""
 
 from __future__ import annotations
-from benchmark26.paths import ARTIFACTS, PROTOCOLS, QONDUCTOR_ARCHIVE, QONDUCTOR_SOURCE, WORK, record_name, recorded
+
 import argparse
 import csv
-from collections import Counter
-from contextlib import contextmanager
 import hashlib
 import importlib.metadata
 import importlib.util
 import json
 import os
-from pathlib import Path
 import platform
-import resource
 import re
+import resource
 import signal
-import sys
 import struct
+import sys
 import tempfile
 import threading
 import time
-from typing import Any
 import zipfile
+from collections import Counter
+from pathlib import Path
+from typing import Any
 
 import numpy as np
-from qiskit import qasm3
 from threadpoolctl import threadpool_limits
+
+from benchmark26.paths import ARTIFACTS, PROTOCOLS, QONDUCTOR_ARCHIVE, QONDUCTOR_SOURCE, WORK, record_name, recorded
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = Path(__file__).resolve().parent
@@ -36,16 +36,15 @@ DEFAULT_C3_OUTPUT = ARTIFACTS / "real_qpu" / "qonductor_native_features"
 DEFAULT_C3_CHECKPOINT = (
     WORK / "benchmark_recovery" / "qonductor_native_features_checkpoint" / "parallel_feature_rows.jsonl"
 )
-from benchmark26.qonductor_features import load_pinned_qonductor_methods
-from benchmark26.qasm3_wires import restore_saved_qasm3_hardware_wires
 from benchmark26.feature_pool import iter_feature_results
 from benchmark26.qonductor_feature_tasks import (
     bind_feature_metadata,
+    extract_feature_task,
     extraction_key,
     initialize_feature_worker,
-    extract_feature_task,
     plan_feature_tasks,
 )
+from benchmark26.qonductor_features import load_pinned_qonductor_methods
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -108,13 +107,6 @@ def resolve_saved_compiled_qasm_path(representation_root: Path, relative_name: s
     except ValueError as exc:
         raise FileNotFoundError("source_input_missing:path_escapes_saved_qasm_root") from exc
     return path
-
-
-@contextmanager
-def open_archive_once(path: Path):
-    """Open the immutable Qonductor archive once and reuse its member reader."""
-    with zipfile.ZipFile(path) as archive:
-        yield archive.read
 
 
 def extract_qonductor_archive_features(

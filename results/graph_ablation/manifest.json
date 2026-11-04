@@ -15,23 +15,23 @@
     "private_run": "Not distributed. The hashes above identify the locked protocol, code inventory and analysis script of that run."
   },
   "pinned_code": {
-    "note": "Code of the 29 files that the executed run pinned. A Python file is identical when its syntax tree (docstrings, comments and layout ignored) has the same signature; other files must be byte-identical. make check verifies this. Changing the code, not only its documentation, needs a new run.",
+    "note": "Code of the files that the executed run pinned. A Python file passes if its syntax tree (docstrings, comments and layout ignored) has the recorded signature; other files must be byte-identical. `executed_run_python_signature_sha256` holds the signatures at the time of the run; `removed_after_run` lists what was removed afterwards.",
     "python_signature_sha256": {
       "benchmark26/__init__.py": "11158d0d1a290b96adf635b883b5f44727661de3a6f9c39b2218b87c988fd367",
-      "benchmark26/circuit_representation.py": "4dda978ac31973d8ae44f0262ff1967b2822a3c3a78bfbeaf826af79fcbe12f8",
+      "benchmark26/circuit_representation.py": "807caf1446af23af91fe72965b2c2e3919f87d257274249714c1f9c35d4d2f35",
       "benchmark26/feature_pool.py": "cc3903056b2c46b986877b73491974ea0a75d267504fe422aa0666aca385c803",
       "benchmark26/gpu_lease.py": "27d96d4aef87ae2943f1af9e01bfaa36edf6513583c5b50164954a638c2823c3",
-      "benchmark26/mali_batching.py": "4450fbdb70c041ff3d6aea6585067f70643bfbba3a34763a1de1c18326db763a",
+      "benchmark26/mali_batching.py": "3baf1a678c18d187189587cbafbef5aac74529b669ece77d52892d2a49cf99d5",
       "benchmark26/mali_features.py": "73851ccc2c59173511b8a295037f00a714b236ee4d2b047a09005cadf0fec218",
-      "benchmark26/mali_training.py": "271f389089c16ddfb118dc3c9dac2cf88f106b341c1e7556dc6870277b904d21",
+      "benchmark26/mali_training.py": "71d79cb2c8558371ea18c2c094ecd8193a4cb5bcba17a40875ca7d899f8bf111",
       "benchmark26/paths.py": "c33dd15ddeabe0457d6ff8e7920af183fdf8f5404dc135b04508937bee2da2e8",
       "benchmark26/qasm3_wires.py": "3f9d4ce045603bb26535f1c5af81f55837a9f6bee1536db6109d12a8389f2b85",
       "benchmark26/qonductor_feature_tasks.py": "7be3ce54cb19d9c2aff0d5842473bc0b8e844562b2869d735f75bc4635118a16",
       "benchmark26/qonductor_features.py": "b6be8042b78a4a8d3a2f8189e3cbd4c5e7cc2e41c23aae2b032bbb320ff1de09",
-      "benchmark26/qonductor_materialize.py": "6c7521ab1704ac8ce8b0c59952b9b179d45ba6de3af464495276cc93eb5dfcb4",
-      "benchmark26/qonductor_models.py": "9a226e359863926f302b6b6bf9a688c9148dd8d45e5dd97052f74cce5745b399",
-      "benchmark26/qonductor_regression.py": "bec697f040e3c88f080f9cde924817d1ee07ad92453e53f23bc86a4fa0c9735f",
-      "benchmark26/shots.py": "ce559399a6e2fe37da01370996e77cd385ca16b86998155bd26029b113eab545",
+      "benchmark26/qonductor_materialize.py": "261e7809291017c1b08b6926f0a8ff1f05919645bcdaaccb3442267962efd5e9",
+      "benchmark26/qonductor_models.py": "b1f7872ec65531b41bf170738a074a17ad0ef17b0f3e8a43597818b5fb4c6e22",
+      "benchmark26/qonductor_regression.py": "e54d0f23a9dfc85bd3c4b1be7a88eb06281a474788f388f452b454a351aeb980",
+      "benchmark26/shots.py": "8e48ace2453ff983663b419777ab82b564ba66eef4d28c8b25a2a448cc09e60f",
       "experiments/graph_ablation/transforms.py": "3661c0c7dba5c9a2f4a8c19c0c9052ca0108a9f6164cc10fd1deeaa92bfc3991",
       "experiments/qpu/audit_classical_inputs.py": "2e1bcc5598d53832403edfbfd7f3eac732a8ea67d50b1bf4ee280326948da651",
       "experiments/qpu/core.py": "aa5544f1d5eb6eb96bf17b50241f0552624e65d5769008828bdd1539b4387dbf",
@@ -79,6 +79,112 @@
       "experiments/qpu/train_neural.py": "d6edd6dd05966ececcd453b1d7156241e023f22423059b83c947f06f1043bf13",
       "experiments/qpu/validate_first_cell.py": "65a0d93fff7e4dae6b7409f6c28e57870b5eafcaead0b7bd353aa291adf6c051",
       "experiments/qpu/validate_splits.py": "ace2bde3a3b74872569702abe80303a31930b3d341f7d180193317cea1717ab0"
+    },
+    "executed_run_python_signature_sha256": {
+      "benchmark26/__init__.py": "11158d0d1a290b96adf635b883b5f44727661de3a6f9c39b2218b87c988fd367",
+      "benchmark26/circuit_representation.py": "4dda978ac31973d8ae44f0262ff1967b2822a3c3a78bfbeaf826af79fcbe12f8",
+      "benchmark26/feature_pool.py": "cc3903056b2c46b986877b73491974ea0a75d267504fe422aa0666aca385c803",
+      "benchmark26/gpu_lease.py": "27d96d4aef87ae2943f1af9e01bfaa36edf6513583c5b50164954a638c2823c3",
+      "benchmark26/mali_batching.py": "4450fbdb70c041ff3d6aea6585067f70643bfbba3a34763a1de1c18326db763a",
+      "benchmark26/mali_features.py": "73851ccc2c59173511b8a295037f00a714b236ee4d2b047a09005cadf0fec218",
+      "benchmark26/mali_training.py": "271f389089c16ddfb118dc3c9dac2cf88f106b341c1e7556dc6870277b904d21",
+      "benchmark26/paths.py": "c33dd15ddeabe0457d6ff8e7920af183fdf8f5404dc135b04508937bee2da2e8",
+      "benchmark26/qasm3_wires.py": "3f9d4ce045603bb26535f1c5af81f55837a9f6bee1536db6109d12a8389f2b85",
+      "benchmark26/qonductor_feature_tasks.py": "7be3ce54cb19d9c2aff0d5842473bc0b8e844562b2869d735f75bc4635118a16",
+      "benchmark26/qonductor_features.py": "b6be8042b78a4a8d3a2f8189e3cbd4c5e7cc2e41c23aae2b032bbb320ff1de09",
+      "benchmark26/qonductor_materialize.py": "6c7521ab1704ac8ce8b0c59952b9b179d45ba6de3af464495276cc93eb5dfcb4",
+      "benchmark26/qonductor_models.py": "9a226e359863926f302b6b6bf9a688c9148dd8d45e5dd97052f74cce5745b399",
+      "benchmark26/qonductor_regression.py": "bec697f040e3c88f080f9cde924817d1ee07ad92453e53f23bc86a4fa0c9735f",
+      "benchmark26/shots.py": "ce559399a6e2fe37da01370996e77cd385ca16b86998155bd26029b113eab545",
+      "experiments/graph_ablation/transforms.py": "3661c0c7dba5c9a2f4a8c19c0c9052ca0108a9f6164cc10fd1deeaa92bfc3991",
+      "experiments/qpu/audit_classical_inputs.py": "2e1bcc5598d53832403edfbfd7f3eac732a8ea67d50b1bf4ee280326948da651",
+      "experiments/qpu/core.py": "aa5544f1d5eb6eb96bf17b50241f0552624e65d5769008828bdd1539b4387dbf",
+      "experiments/qpu/graph_ablation_runner.py": "0f19f091e487db23d7b9a384f2810d0eccd865425941781378ca87b2bd64d53a",
+      "experiments/qpu/lock_protocol.py": "2a32be5ea5635c70aedd01e139548641a46264d2efffff067d7e85af8c347963",
+      "experiments/qpu/prepare_cohort.py": "328189eba440f51e2e5389f736a8d15a6404b03515771cd3edac9fdeaedfc400",
+      "experiments/qpu/prepare_run.py": "7b6a40150af6053946a460de596ca0b48f3349fdae9105e68486a204e6fc36db",
+      "experiments/qpu/prepare_splits.py": "1cfcfa31c399d2d6d1a59328f3feba023c4b346d2527de63549ffe770dde9072",
+      "experiments/qpu/profile_batch.py": "8a6d7bdd3dcc680a4547778f730fd9b1613dfa771b7196bc0d093745a5f5ebb0",
+      "experiments/qpu/run_classical.py": "10f208653912863a4875f56d5c02a0ab7a929aab83c2030ea4228bcd6139c100",
+      "experiments/qpu/train_neural.py": "2ea67569197dc927256d0e3a215fb32dcdfe87944ca8480e186fa767e7f91885",
+      "experiments/qpu/validate_first_cell.py": "c6247e2b32be6c52504de21c8135671e536a30d73ec2c64eb0866bc6347ea03d",
+      "experiments/qpu/validate_splits.py": "98895c274d6b9d9e3ebb412012219f2cc691b5f433a0deb02d5457045d05e8cd"
+    },
+    "removed_after_run": {
+      "note": "Functions that no live code reaches were removed after the run: the trainers and tuners of the earlier 8,767-row Ma-Li study and the 340-row Qonductor panel, their approval checks, and the status-note writer of the C133-C135 batch. Every other function is unchanged. A replay of 8 saved checkpoints with the reduced code reproduced the saved predictions (largest difference 1.9e-6 s).",
+      "functions": {
+        "benchmark26/mali_batching.py": [
+          "fit_cell",
+          "gradient_gate",
+          "main",
+          "model_for",
+          "partitions_and_transform",
+          "tune"
+        ],
+        "benchmark26/shots.py": [
+          "initialized_outputs_equal",
+          "verify_shots_gradient"
+        ],
+        "benchmark26/qonductor_models.py": [
+          "canary_grids",
+          "frozen_outer_split",
+          "git_state",
+          "main",
+          "select_model"
+        ],
+        "benchmark26/qonductor_materialize.py": [
+          "open_archive_once"
+        ],
+        "benchmark26/mali_training.py": [
+          "_compare_tensors",
+          "_cuda_checkpoint_resume_check",
+          "_cuda_gradient_parity",
+          "_cuda_resource_mode_attempts",
+          "_example_node_count",
+          "_fit_cell",
+          "_initial_cell_file_index",
+          "_load_all_cell_manifests",
+          "_metric_summary",
+          "_predict_test_groups",
+          "_write_final_outputs",
+          "common_eligible_partitions",
+          "effective_batch_microbatches",
+          "fold_partitions",
+          "main",
+          "record_resource_failure",
+          "resolve_feature_paths",
+          "run_cuda_preflight",
+          "validate_gpu_handoff",
+          "validate_initial_qa_receipt",
+          "validate_initial_stage_state",
+          "validate_preflight_authorization",
+          "write_csv_atomic"
+        ],
+        "benchmark26/qonductor_regression.py": [
+          "aggregate",
+          "check_authority",
+          "fit_all",
+          "freeze_candidates",
+          "json_sha",
+          "load_panel",
+          "main",
+          "read_csv_path",
+          "sha_file",
+          "split_ids"
+        ],
+        "benchmark26/circuit_representation.py": [
+          "write_report (and its call in main)"
+        ]
+      },
+      "files_with_changed_code": [
+        "benchmark26/circuit_representation.py",
+        "benchmark26/mali_batching.py",
+        "benchmark26/mali_training.py",
+        "benchmark26/qonductor_materialize.py",
+        "benchmark26/qonductor_models.py",
+        "benchmark26/qonductor_regression.py",
+        "benchmark26/shots.py"
+      ]
     }
   }
 }

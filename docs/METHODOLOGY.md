@@ -58,13 +58,9 @@ The analytical routes produce different quantities and are not interchangeable:
 
 ## Terms from the original study process
 
-Some code carries approval steps of the original study. They are checks that ran before or after a step, and they do not enter any estimate. You can ignore them when you read the results.
+`benchmark26/circuit_representation.py` still has the preparation steps of the earlier study under the names C133 (backend snapshot registry), C134 (feature sidecar) and C135 (target preflight). They produce inputs of the 3,443-observation study or check them; they are not part of the evaluation.
 
-- **GPU handoff ID, C1-C3 receipt and execution authorization** (`benchmark26/mali_training.py`): the training script of the earlier 8,767-row Ma-Li study refuses to run without them. The 3,443-observation study does not use this script as its entry point.
-- **Wave 0 and C133 to C135** (`benchmark26/circuit_representation.py`): names of preparation steps for the earlier study: the backend snapshot registry (C133), the feature sidecar (C134) and the target preflight (C135). The `REPORT.md` it writes is a status note of that batch.
-- **Independent first-cell QA**: the original run stopped after its first cell and continued with the remaining folds only after a separate review receipt.
-
-These checks are the reason some scripts need files from the study bundle although no estimate depends on them.
+The trainers, tuners and approval checks that belonged only to the earlier 8,767-row Ma-Li study and the 340-row Qonductor panel were removed from the code. They produced no input of the current study.
 
 ## Code map
 
