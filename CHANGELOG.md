@@ -18,6 +18,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 - Tests for the graph controls, the median-of-seeds estimand, the stratified paired bootstrap and the shared results.
 
 ### Removed
+- Internal process steps of the original study: `experiments/qpu/lock_protocol.py` (creates the execution lock), `profile_batch.py` (batch profile), `validate_first_cell.py` (first-cell QA) and `audit_classical_inputs.py`. The original lock still names them, so `prepare_run.py` now records files named in the lock but not distributed as `code_not_distributed` instead of stopping.
 - `configs/study/` (three summaries that no code read and that could drift from the docs), `requirements-review.txt` (unused), `scripts/verify_analytical_kernel.py` and `experiments/analytical/export_kernel_fixtures.py` (a pair that was never run on the study bundle: the verifier needs fixtures that the bundle does not contain), and the `acquire`, `latency`, `screen` and `analytical` stages of `scripts/run_benchmark_pipeline.py`, which only wrapped other commands.
 - Report and figure writers that nothing called and that only wrote narrative reports and plots into the private bundle: `experiments/analytical/write_report.py`, `experiments/analytical/make_figures.py` and `experiments/qpu/write_final_report.py`. Also `scripts/verify_cost.py`, which checked the aggregates of an earlier timing campaign that was removed in 0.3.0 and that no document references.
 

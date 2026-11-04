@@ -84,10 +84,8 @@ def main() -> int:
             print("  " + p, file=sys.stderr)
         return 1
     current = current_code_hashes(lock)
-    missing = sorted(k for k, v in current.items() if v is None)
-    if missing:
-        print("Code files named in the lock are missing: " + ", ".join(missing), file=sys.stderr)
-        return 1
+    # Some files named in the original lock are internal process steps and are not distributed.
+    not_distributed = sorted(k for k, v in current.items() if v is None)
     if RUN_MANIFEST.is_file():
         remaining = run_manifest_problems(lock, current)
         if remaining:
@@ -110,6 +108,7 @@ def main() -> int:
         "code_dependency_hashes": code_dependency_inventory(lock),
         "code_dependency_rule": DEPENDENCY_RULE,
         "code_identical_to_historical_lock": sorted(set(current) - set(differ)),
+        "code_not_distributed": not_distributed,
         "code_differing_from_historical_lock": differ,
         "inherited_settings": {k: lock[k] for k in ("neural", "classical", "evaluations") if k in lock},
         "repository_revision": git_revision(),

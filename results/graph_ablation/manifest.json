@@ -33,17 +33,13 @@
       "benchmark26/qonductor_regression.py": "e54d0f23a9dfc85bd3c4b1be7a88eb06281a474788f388f452b454a351aeb980",
       "benchmark26/shots.py": "8e48ace2453ff983663b419777ab82b564ba66eef4d28c8b25a2a448cc09e60f",
       "experiments/graph_ablation/transforms.py": "3661c0c7dba5c9a2f4a8c19c0c9052ca0108a9f6164cc10fd1deeaa92bfc3991",
-      "experiments/qpu/audit_classical_inputs.py": "2e1bcc5598d53832403edfbfd7f3eac732a8ea67d50b1bf4ee280326948da651",
       "experiments/qpu/core.py": "aa5544f1d5eb6eb96bf17b50241f0552624e65d5769008828bdd1539b4387dbf",
       "experiments/qpu/graph_ablation_runner.py": "0f19f091e487db23d7b9a384f2810d0eccd865425941781378ca87b2bd64d53a",
-      "experiments/qpu/lock_protocol.py": "2a32be5ea5635c70aedd01e139548641a46264d2efffff067d7e85af8c347963",
       "experiments/qpu/prepare_cohort.py": "328189eba440f51e2e5389f736a8d15a6404b03515771cd3edac9fdeaedfc400",
-      "experiments/qpu/prepare_run.py": "7b6a40150af6053946a460de596ca0b48f3349fdae9105e68486a204e6fc36db",
+      "experiments/qpu/prepare_run.py": "40d4ace250565fe972b6472467adcac6cc039420420841b03b0964c9777f0272",
       "experiments/qpu/prepare_splits.py": "1cfcfa31c399d2d6d1a59328f3feba023c4b346d2527de63549ffe770dde9072",
-      "experiments/qpu/profile_batch.py": "8a6d7bdd3dcc680a4547778f730fd9b1613dfa771b7196bc0d093745a5f5ebb0",
       "experiments/qpu/run_classical.py": "10f208653912863a4875f56d5c02a0ab7a929aab83c2030ea4228bcd6139c100",
       "experiments/qpu/train_neural.py": "2ea67569197dc927256d0e3a215fb32dcdfe87944ca8480e186fa767e7f91885",
-      "experiments/qpu/validate_first_cell.py": "c6247e2b32be6c52504de21c8135671e536a30d73ec2c64eb0866bc6347ea03d",
       "experiments/qpu/validate_splits.py": "98895c274d6b9d9e3ebb412012219f2cc691b5f433a0deb02d5457045d05e8cd"
     },
     "byte_sha256": {
@@ -174,6 +170,9 @@
         ],
         "benchmark26/circuit_representation.py": [
           "write_report (and its call in main)"
+        ],
+        "experiments/qpu/prepare_run.py": [
+          "(change) a locked file that is not distributed no longer stops prepare_run; it is recorded as code_not_distributed"
         ]
       },
       "files_with_changed_code": [
@@ -183,8 +182,18 @@
         "benchmark26/qonductor_materialize.py",
         "benchmark26/qonductor_models.py",
         "benchmark26/qonductor_regression.py",
-        "benchmark26/shots.py"
-      ]
+        "benchmark26/shots.py",
+        "experiments/qpu/prepare_run.py"
+      ],
+      "files_not_distributed": {
+        "files": [
+          "experiments/qpu/lock_protocol.py",
+          "experiments/qpu/profile_batch.py",
+          "experiments/qpu/validate_first_cell.py",
+          "experiments/qpu/audit_classical_inputs.py"
+        ],
+        "reason": "Internal process steps of the original study (execution lock, batch profile, first-cell QA, classical-input audit). The executed run pinned them; they are not published. prepare_run.py records files named in the original lock but not distributed as `code_not_distributed`."
+      }
     }
   }
 }
