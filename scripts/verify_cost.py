@@ -1,6 +1,10 @@
 """Portable stdlib review: checks published aggregates, not private raw timings."""
 
-import argparse, csv, json, hashlib, math
+import argparse
+import csv
+import hashlib
+import json
+import math
 from pathlib import Path
 
 

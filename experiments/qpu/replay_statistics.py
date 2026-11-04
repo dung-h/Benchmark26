@@ -2,18 +2,21 @@
 """Independent CSV-level arithmetic replay, without importing analysis_core."""
 
 from __future__ import annotations
+
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-from benchmark26.paths import recorded
 import collections
 import datetime
 import json
 import math
 from pathlib import Path
+
 import numpy as np
-from core import OUT, ROOT, rows, sha, atomic_json
+from core import OUT, atomic_json, rows, sha
+
+from benchmark26.paths import recorded
 
 DEST = OUT / "analysis_v1"
 

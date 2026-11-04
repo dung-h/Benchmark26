@@ -9,8 +9,6 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repository root
-from benchmark26.paths import ARTIFACTS
-from pathlib import Path
 import argparse
 import collections
 import csv
@@ -20,6 +18,9 @@ import math
 import sqlite3
 import statistics
 import zipfile
+from pathlib import Path
+
+from benchmark26.paths import ARTIFACTS
 
 ROOT = Path(__file__).resolve().parents[1]
 STUDY = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"

@@ -2,16 +2,22 @@
 """Create final scientific report, provenance ledgers and checksums."""
 
 from __future__ import annotations
+
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-from benchmark26.paths import ARTIFACTS
-from pathlib import Path
-import csv, hashlib, json, platform, subprocess
-from collections import Counter, defaultdict
-from datetime import datetime, timezone
+import csv
+import hashlib
 import importlib.metadata as md
+import json
+import platform
+import subprocess
+from collections import defaultdict
+from datetime import datetime, timezone
+from pathlib import Path
+
+from benchmark26.paths import ARTIFACTS
 
 ROOT = Path(__file__).resolve().parents[2]
 NS = ARTIFACTS / "postfreeze_unified_analytical_completion_v1"
@@ -46,7 +52,6 @@ def mdtable(head, rows):
 
 def main():
     panel = read(ST / "cohort/panel.csv")
-    targets = {r["canonical_observation_id"]: r for r in read(ST / "cohort/targets.csv")}
     line = {r["canonical_observation_id"]: r for r in read(NS / "lineage.csv")}
     bysource = defaultdict(list)
     for r in panel:
@@ -95,7 +100,6 @@ def main():
     paired = read(NS / "paired_comparisons.csv")
     corr = read(NS / "correlations.csv")
     sliced = read(NS / "sliced_metrics.csv")
-    fold = read(NS / "fold_metrics.csv")
 
     def get(ev, case, m):
         return next(r for r in metrics if r["evaluation"] == ev and r["case"] == case and r["method_id"] == m)

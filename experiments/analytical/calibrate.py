@@ -2,14 +2,20 @@
 """Apply frozen scalar methods and fit outer-train-only affine adaptations."""
 
 from __future__ import annotations
+
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-from benchmark26.paths import ARTIFACTS
+import csv
+import hashlib
+import json
+import math
 from pathlib import Path
-import csv, hashlib, json, math
+
 import numpy as np
+
+from benchmark26.paths import ARTIFACTS
 
 ROOT = Path(__file__).resolve().parents[2]
 NS = ARTIFACTS / "postfreeze_unified_analytical_completion_v1"
@@ -239,7 +245,7 @@ def main():
     rec = {
         "status": "PASS_OUTER_TRAIN_CALIBRATION",
         "observations": len(ids),
-        "groups": len(set(r["group_id"] for r in panel)),
+        "groups": len({r["group_id"] for r in panel}),
         "cases": len(cases),
         "calibration_fits": len(calreceipts),
         "prediction_rows": len(predictions),

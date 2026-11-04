@@ -1,8 +1,8 @@
 """Keep personal paths out of executable source and check external-root relocation."""
 
 import importlib.util
-from pathlib import Path
 import re
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 

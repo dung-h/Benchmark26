@@ -2,20 +2,19 @@
 """Build qualified logical-input tables and supplemental grouped splits; no fitting."""
 
 from __future__ import annotations
-from benchmark26.paths import ARTIFACTS, PROTOCOLS, record_name
-from pathlib import Path
 
 import argparse
 import csv
 import hashlib
 import json
-import os
-import sys
 from collections import Counter
+from pathlib import Path
+
+from benchmark26.paths import ARTIFACTS, PROTOCOLS, record_name
 
 ROOT = Path(__file__).resolve().parents[1]
-from benchmark26 import mali_features as mf
 from benchmark26 import circuit_representation as c135
+from benchmark26 import mali_features as mf
 
 CANON = ARTIFACTS / "benchmark_v1/canonical_corpus_8767_20260926/canonical_observations.csv"
 REP = ARTIFACTS / "benchmark_v3/real_qpu/compiled_unified/representation_rows.csv"
@@ -93,7 +92,7 @@ def main():
     if out.exists() and any(out.iterdir()) and args.stage not in {"sidecar", "groups", "splits", "validate"}:
         raise SystemExit(f"output directory is nonempty; refusing overwrite: {out}")
     out.mkdir(parents=True, exist_ok=True)
-    contract = json.loads(CONTRACT.read_text())
+    json.loads(CONTRACT.read_text())  # fail early if the contract file is missing or malformed
     canonical, representation, recovery = read_canonical_without_target(CANON), read(REP), read(RECOVERY)
     rec_by_id = {r["canonical_observation_id"]: r for r in recovery}
     rep_by_id = {r["canonical_row_id"]: r for r in representation}
@@ -175,27 +174,25 @@ def main():
     if args.stage not in {"features", "all"}:
         return
 
-    import numpy as np
-    from qiskit import qasm2, qasm3
     from zipfile import ZipFile
+
+    from qiskit import qasm2, qasm3
 
     extractor, source_pins = mf.load_pinned_global_extractor()
     cand_manifest = json.loads(CANDIDATES.read_text())
     cand_path = CANDIDATES.parent
     cand_by_digest = {r["qasm_sha256"]: r for r in cand_manifest["records"]}
-    qpack_rows = {r["source_row_index"]: r for r in read(QPACK)}
-    qond_zip = ZipFile(c135.QONDUCTOR_ZIP)
+    read(QPACK)  # fail early if the QPack table is missing
+    ZipFile(c135.QONDUCTOR_ZIP).close()  # fail early if the Qonductor archive cannot be opened
     # Cache source circuit/global features. Node calibration is context-specific.
     input_cache, global_cache, graph_cache, properties_cache = {}, {}, {}, {}
-    attempts, global_rows = [], []
+    attempts = []
     mf.OUT_ROOT = out
-    qasm3_mod = qasm3
     source_iter = canonical[: args.max_rows] if args.max_rows else canonical
     for i, c in enumerate(source_iter):
         rid, source = c["canonical_row_id"], c["source_id"]
         rep, side = rep_by_id[rid], next(x for x in recovery_side if x["canonical_observation_id"] == rid)
         tier, qasm_bytes, circuit, inp_digest = side["logical_input_tier"], None, None, ""
-        reason = ""
         try:
             if tier == "unavailable":
                 raise ValueError("logical_recipe_not_qualified")
@@ -280,7 +277,7 @@ def main():
                 "reason": "",
             }
             rec.update({f"g{i:02d}": v for i, v in enumerate(features)})
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - one unusable row must not stop the panel; the reason is recorded
             rec = {
                 "canonical_observation_id": rid,
                 "source_id": source,
@@ -504,6 +501,7 @@ def materialize_model_input_groups(out, canonical, representation, rec_by_id):
 
 def validate_outputs(out, canonical):
     import math
+
     import numpy as np
 
     feat = read(out / "feature_attempts.csv")
@@ -538,7 +536,6 @@ def validate_outputs(out, canonical):
     groups_by_fold = {f: set() for f in range(5)}
     source_by_fold = {f: Counter() for f in range(5)}
     canonical_by_id = {r["canonical_row_id"]: r for r in canonical}
-    group_lookup = {r["canonical_observation_id"]: r["group_id"] for r in outer}
     for r in outer:
         f = int(r["outer_fold"])
         groups_by_fold[f].add(r["group_id"])

@@ -2,12 +2,10 @@
 """Materialize pinned 51-global and 178-node Ma--Li inputs for the common panel."""
 
 from __future__ import annotations
-from benchmark26.paths import ARTIFACTS, NEURAL_PYTHON
 
 import argparse
 import csv
 import hashlib
-import importlib.metadata
 import json
 import os
 import pickle
@@ -23,22 +21,23 @@ from typing import Any
 
 from qiskit import qasm3
 
-ROOT = Path(__file__).resolve().parents[1]
-from benchmark26 import mali_features as _mali_features  # noqa: E402
+from benchmark26.paths import ARTIFACTS, NEURAL_PYTHON
 
-from benchmark26.mali_features import (  # noqa: E402
+ROOT = Path(__file__).resolve().parents[1]
+from benchmark26 import mali_features as _mali_features
+from benchmark26.mali_features import (
     CANONICAL,
     COMPILED_ROOT,
     HASH_MANIFEST,
     INNER,
-    OUTER,
     OUT_ROOT,
+    OUTER,
     PROTOCOL_PATH,
     QONDUCTOR_ZIP,
     REPRESENTATION,
     SNAPSHOT_REGISTRY,
-    UPSTREAM_ROOT,
     SOURCE_PINS,
+    UPSTREAM_ROOT,
     compact_graph_record,
     compact_graph_record_from_s71,
     extract_global_features,
@@ -49,11 +48,11 @@ from benchmark26.mali_features import (  # noqa: E402
     parse_qasm,
     qasm_bytes_for,
     save_sparse_graph,
+    saved_graph_fast_path_source_gate,
+    saved_s71_graph_signature,
     sha256_bytes,
     sha256_file,
     snapshot_t1_t2,
-    saved_s71_graph_signature,
-    saved_graph_fast_path_source_gate,
     stable_hash,
 )
 
@@ -146,7 +145,7 @@ def input_manifest() -> dict[str, Any]:
 
 
 def environment_lock() -> dict[str, Any]:
-    import importlib.metadata as metadata
+    from importlib import metadata
 
     def freeze_from_metadata(python: str) -> str:
         code = (
@@ -475,7 +474,7 @@ def make_row_attempt(
         base["wire_restoration_json"] = json.dumps(restoration, sort_keys=True, separators=(",", ":"))
     except ValueError as exc:
         reason = str(exc)
-        if reason.startswith("source_identity_width_mismatch") or reason.startswith("feature_signature_gate_failed"):
+        if reason.startswith(("source_identity_width_mismatch", "feature_signature_gate_failed")):
             raise RuntimeError(f"{canonical_id}:{reason}") from exc
         base["global_reason"] = reason
         base["graph_reason"] = reason

@@ -5,10 +5,14 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-from benchmark26.paths import ARTIFACTS
-import csv, hashlib, json, math
+import csv
+import hashlib
+import json
+import math
 from collections import Counter
 from pathlib import Path
+
+from benchmark26.paths import ARTIFACTS
 
 R = Path(__file__).resolve().parents[2]
 N = ARTIFACTS / "postfreeze_unified_analytical_completion_v1"
@@ -67,7 +71,7 @@ with open(N / "qiskit_parity_rows.csv", "w", newline="", encoding="utf-8") as f:
 rec = {
     "status": "PASS_EXACT_QISKIT_ESTIMATE_PARITY_ON_SHARED_GRAPH_SNAPSHOT_INPUTS",
     "rows": len(out),
-    "unique_graph_snapshot_pairs": len(set((x["graph_file_sha256"], x["snapshot_id"]) for x in out)),
+    "unique_graph_snapshot_pairs": len({(x["graph_file_sha256"], x["snapshot_id"]) for x in out}),
     "source_rows": dict(Counter(x["source_id"] for x in out)),
     "max_absolute_difference_seconds": 0.0,
     "comparison": "saved Qiskit estimate_duration-derived nominal path vs current duration-weighted DAG path",

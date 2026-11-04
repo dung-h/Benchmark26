@@ -2,24 +2,24 @@
 """Final label-blind checkpoint/OOF replay. Never trains or rewrites producer files."""
 
 from __future__ import annotations
+
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
 import argparse
 import collections
-import csv
 import datetime
 import gc
 import json
 import math
-from pathlib import Path
 import sys
 import time
+from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-from core import RUN, load_context, parts_for, rows, sha, stable, atomic_json, atomic_csv
+from core import RUN, atomic_csv, atomic_json, load_context, parts_for, rows, sha, stable
 
 SEEDS = (42, 1234, 31415)
 TREATMENTS = ("M0", "M1", "G0", "G1")
@@ -65,6 +65,7 @@ def main():
     import numpy as np
     import torch
     import train_neural as producer
+
     from benchmark26 import mali_training as base
     from benchmark26.gpu_lease import acquire_gpu_lease
 

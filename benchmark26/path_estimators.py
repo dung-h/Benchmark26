@@ -1,15 +1,28 @@
 """Bounded scalar analytical applications; no transpilation or circuit execution."""
 
 from __future__ import annotations
-from benchmark26.paths import ARTIFACTS, QONDUCTOR_DATABASE, record_name, recorded
+
 import os
+
+from benchmark26.paths import ARTIFACTS, QONDUCTOR_DATABASE, record_name, recorded
 
 for key in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
     os.environ[key] = "1"
-import argparse, csv, ctypes, hashlib, importlib.metadata, json, math, pickle
-import platform, resource, subprocess, sys, sqlite3
-from collections import Counter, defaultdict, deque
+import argparse
+import csv
+import ctypes
+import hashlib
+import importlib.metadata
+import json
+import math
+import pickle
+import platform
+import resource
+import sqlite3
+import subprocess
+from collections import Counter, defaultdict
 from pathlib import Path
+
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -444,7 +457,7 @@ def metric(rows, method, scope):
 
 
 def score():
-    panel, split, reps = tables()
+    panel, split, _reps = tables()
     receipt = json.loads((OUT / "feature_receipt.json").read_text())
     assert receipt["status"] == "PASS" and sha(OUT / "features.csv") == receipt["feature_sha256"]
     for p, h in receipt["inputs_sha256"].items():

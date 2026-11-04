@@ -5,11 +5,13 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-from benchmark26.paths import ARTIFACTS
-from pathlib import Path
 import csv
-import numpy as np
+from pathlib import Path
+
 import matplotlib
+import numpy as np
+
+from benchmark26.paths import ARTIFACTS
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt

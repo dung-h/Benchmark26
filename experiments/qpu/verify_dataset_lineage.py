@@ -5,14 +5,16 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-from benchmark26.paths import COHORT_PLAN, recorded
 import collections
 import hashlib
 import json
 import math
 import statistics
 from pathlib import Path
-from core import OUT, rows, sha, atomic_json, atomic_csv
+
+from core import OUT, atomic_csv, atomic_json, rows, sha
+
+from benchmark26.paths import COHORT_PLAN, recorded
 
 
 def main():

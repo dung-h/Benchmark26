@@ -5,15 +5,15 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-from benchmark26.paths import record_name
-
 import collections
 import datetime
 import json
 from pathlib import Path
-import subprocess
+
 import numpy as np
-from core import OUT, ROOT, rows, sha, atomic_json
+from core import OUT, atomic_json, rows, sha
+
+from benchmark26.paths import record_name
 
 NAMES = {
     "M0": "MLP không shots",

@@ -7,10 +7,16 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repository root
-from benchmark26.paths import ARTIFACTS, recorded
-import ctypes, hashlib, json, subprocess, tempfile
+import ctypes
+import hashlib
+import json
+import subprocess
+import tempfile
 from pathlib import Path
+
 import numpy as np
+
+from benchmark26.paths import ARTIFACTS, recorded
 
 R = Path(__file__).resolve().parents[1]
 sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()

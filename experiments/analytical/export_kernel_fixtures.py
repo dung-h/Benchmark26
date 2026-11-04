@@ -1,7 +1,13 @@
 """Export identity-pinned archived graph/duration fixtures; no circuit execution."""
 
-import argparse, csv, hashlib, importlib.metadata, json, pickle
+import argparse
+import csv
+import hashlib
+import importlib.metadata
+import json
+import pickle
 from pathlib import Path
+
 import numpy as np
 from qiskit_ibm_runtime import fake_provider
 

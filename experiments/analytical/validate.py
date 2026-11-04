@@ -2,16 +2,22 @@
 """Independent replay of unified analytical predictions, metrics, and fits."""
 
 from __future__ import annotations
+
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-from benchmark26.paths import ARTIFACTS, recorded
-from pathlib import Path
-import csv, hashlib, json, math
+import csv
+import hashlib
+import json
+import math
 from collections import defaultdict
+from pathlib import Path
+
 import numpy as np
 from scipy.stats import pearsonr, spearmanr
+
+from benchmark26.paths import ARTIFACTS, recorded
 
 ROOT = Path(__file__).resolve().parents[2]
 NS = ARTIFACTS / "postfreeze_unified_analytical_completion_v1"
@@ -99,13 +105,13 @@ def corr(x, y):
 def main():
     receipt = json.loads((NS / "evaluation_receipt.json").read_text())
     cal = json.loads((NS / "calibration_receipt.json").read_text())
-    inv = json.loads((NS / "inventory.json").read_text())
-    ext = json.loads((NS / "extraction_receipt.json").read_text())
+    json.loads((NS / "inventory.json").read_text())  # fail early if a receipt is missing or malformed
+    json.loads((NS / "extraction_receipt.json").read_text())
     panel_rows = read(ST / "cohort/panel.csv")
     panel = {r["canonical_observation_id"]: r for r in panel_rows}
     targets = {r["canonical_observation_id"]: float(r["target_seconds"]) for r in read(ST / "cohort/targets.csv")}
     ids = sorted(panel)
-    assert len(ids) == 3443 and len(set(panel[x]["group_id"] for x in ids)) == 203 and set(ids) == set(targets)
+    assert len(ids) == 3443 and len({panel[x]["group_id"] for x in ids}) == 203 and set(ids) == set(targets)
     raw = read(NS / "raw_features.csv")
     line = read(NS / "lineage.csv")
     lin = {r["canonical_observation_id"]: r for r in line}
@@ -203,9 +209,6 @@ def main():
         )
         assert not train & test
         field = base_raw[baseid.removesuffix("_SHOT_SCALED") if baseid.endswith("_SHOT_SCALED") else baseid]
-        multiplier = 1.0 if baseid == field else 1.0
-        if baseid.endswith("_SHOT_SCALED"):
-            multiplier = float(panel[next(iter(train))]["shots"])  # replaced per row below
         x = np.array(
             [
                 float(feats[i][field]) * (float(panel[i]["shots"]) if baseid.endswith("_SHOT_SCALED") else 1.0)

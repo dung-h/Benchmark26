@@ -2,21 +2,24 @@
 """Offline final aggregation of immutable saved predictions. Never trains."""
 
 from __future__ import annotations
+
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-from benchmark26.paths import record_name
 import argparse
 import collections
 import datetime
 import json
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
+
 import numpy as np
-from core import OUT, RUN, ROOT, rows, sha, stable, atomic_json, atomic_csv, load_context, parts_for
-from analysis_core import aligned, metrics, group_errors, bootstrap_draws, paired_intervals, CONTRASTS
+from analysis_core import CONTRASTS, aligned, bootstrap_draws, group_errors, metrics, paired_intervals
+from core import OUT, ROOT, RUN, atomic_csv, atomic_json, load_context, parts_for, rows, sha
+
+from benchmark26.paths import record_name
 
 METHODS = ("M0", "M1", "G0", "G1", "R0", "C0")
 SEEDS = (42, 1234, 31415)

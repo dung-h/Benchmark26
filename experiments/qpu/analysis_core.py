@@ -1,6 +1,7 @@
 """Prespecified offline metrics; no estimator fitting or model selection."""
 
 from __future__ import annotations
+
 import numpy as np
 
 CONTRASTS = (("G0", "M0"), ("G1", "M1"), ("M1", "M0"), ("G1", "G0"))
@@ -31,30 +32,30 @@ def metrics(y, p, groups, sources):
         denominator = np.square(ly - ly.mean()).sum()
         log_r2 = float(1 - np.square(ly - lp).sum() / denominator) if denominator > 0 and len(y) > 1 else None
         log_status = "DEFINED" if log_r2 is not None else "UNDEFINED_CONSTANT_OR_SINGLE_TARGET"
-    return dict(
-        rows=len(y),
-        groups=len(set(groups)),
-        sources=len(set(sources)),
-        group_balanced_mae_seconds=float(np.mean([ae[groups == g].mean() for g in sorted(set(groups))])),
-        pooled_mae_seconds=float(ae.mean()),
-        source_macro_mae_seconds=float(np.mean([ae[sources == s].mean() for s in sorted(set(sources))])),
-        medae_seconds=float(np.median(ae)),
-        rmse_seconds=float(np.sqrt(np.square(signed).mean())),
-        raw_seconds_r2=raw_r2,
-        log1p_seconds_r2=log_r2,
-        log_r2_status=log_status,
-        bias_seconds=float(signed.mean()),
-        p90_absolute_error_seconds=float(np.quantile(ae, 0.90)),
-        p99_absolute_error_seconds=float(np.quantile(ae, 0.99)),
-        max_absolute_error_seconds=float(ae.max()),
-        negative_predictions=int((p < 0).sum()),
-        zero_predictions=int((p == 0).sum()),
-        overprediction_fraction=float((signed > 0).mean()),
-        underprediction_fraction=float((signed < 0).mean()),
-        target_mean_seconds=float(y.mean()),
-        target_std_seconds=float(y.std()),
-        prediction_mean_seconds=float(p.mean()),
-    )
+    return {
+        "rows": len(y),
+        "groups": len(set(groups)),
+        "sources": len(set(sources)),
+        "group_balanced_mae_seconds": float(np.mean([ae[groups == g].mean() for g in sorted(set(groups))])),
+        "pooled_mae_seconds": float(ae.mean()),
+        "source_macro_mae_seconds": float(np.mean([ae[sources == s].mean() for s in sorted(set(sources))])),
+        "medae_seconds": float(np.median(ae)),
+        "rmse_seconds": float(np.sqrt(np.square(signed).mean())),
+        "raw_seconds_r2": raw_r2,
+        "log1p_seconds_r2": log_r2,
+        "log_r2_status": log_status,
+        "bias_seconds": float(signed.mean()),
+        "p90_absolute_error_seconds": float(np.quantile(ae, 0.90)),
+        "p99_absolute_error_seconds": float(np.quantile(ae, 0.99)),
+        "max_absolute_error_seconds": float(ae.max()),
+        "negative_predictions": int((p < 0).sum()),
+        "zero_predictions": int((p == 0).sum()),
+        "overprediction_fraction": float((signed > 0).mean()),
+        "underprediction_fraction": float((signed < 0).mean()),
+        "target_mean_seconds": float(y.mean()),
+        "target_std_seconds": float(y.std()),
+        "prediction_mean_seconds": float(p.mean()),
+    }
 
 
 def group_errors(y, predictions, groups, sources):
@@ -93,21 +94,21 @@ def paired_intervals(group_values, methods, draws, adjusted_level):
         lo, hi = np.quantile(boot, [0.025, 0.975])
         alo, ahi = np.quantile(boot, [q, 1 - q])
         result.append(
-            dict(
-                contrast=f"{a}-{b}",
-                treatment=a,
-                control=b,
-                delta_group_balanced_mae_seconds=float(delta.mean()),
-                ci95_lower_seconds=float(lo),
-                ci95_upper_seconds=float(hi),
-                adjusted_level=adjusted_level,
-                adjusted_ci_lower_seconds=float(alo),
-                adjusted_ci_upper_seconds=float(ahi),
-                empirical_bootstrap_fraction_delta_below_zero=float((boot < 0).mean()),
-                valid_replicates=len(boot),
-                resampling_unit="structural_group",
-                improvement_direction="negative",
-                fraction_is_p_value=False,
-            )
+            {
+                "contrast": f"{a}-{b}",
+                "treatment": a,
+                "control": b,
+                "delta_group_balanced_mae_seconds": float(delta.mean()),
+                "ci95_lower_seconds": float(lo),
+                "ci95_upper_seconds": float(hi),
+                "adjusted_level": adjusted_level,
+                "adjusted_ci_lower_seconds": float(alo),
+                "adjusted_ci_upper_seconds": float(ahi),
+                "empirical_bootstrap_fraction_delta_below_zero": float((boot < 0).mean()),
+                "valid_replicates": len(boot),
+                "resampling_unit": "structural_group",
+                "improvement_direction": "negative",
+                "fraction_is_p_value": False,
+            }
         )
     return result

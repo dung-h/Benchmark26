@@ -5,9 +5,12 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-from benchmark26.paths import ARTIFACTS
-import csv, hashlib, json
+import csv
+import hashlib
+import json
 from pathlib import Path
+
+from benchmark26.paths import ARTIFACTS
 
 R = Path(__file__).resolve().parents[2]
 N = ARTIFACTS / "postfreeze_unified_analytical_completion_v1"
@@ -42,12 +45,7 @@ unitless = {
     m
     for m in methods
     if m.startswith("NOTADS_")
-    and (
-        m.endswith("SCORE")
-        or m.endswith("SCORE_SHOT_SCALED")
-        or m.endswith("FILTERED_DEPTH")
-        or m.endswith("FILTERED_DEPTH_SHOT_SCALED")
-    )
+    and (m.endswith(("SCORE", "SCORE_SHOT_SCALED", "FILTERED_DEPTH", "FILTERED_DEPTH_SHOT_SCALED")))
 }
 expected = methods | {"R0", "C0"}
 for (e, c), ii in cases.items():

@@ -5,13 +5,13 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repository root
-from benchmark26.paths import ARTIFACTS
 import argparse
 import json
-import os
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
+
+from benchmark26.paths import ARTIFACTS
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -69,7 +69,7 @@ def main():
     else:
         test = "test_qonductor_recipe_screen.py" if stage == "screen" else "test_analytical_path_kernel.py"
         command = [sys.executable, "-m", "pytest", str(ROOT / "tests" / test)]
-    return subprocess.run(command, cwd=ROOT).returncode
+    return subprocess.run(command, cwd=ROOT, check=False).returncode
 
 
 if __name__ == "__main__":

@@ -4,9 +4,9 @@
 import argparse
 import hashlib
 import json
-from pathlib import Path
 import tempfile
 import urllib.request
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 

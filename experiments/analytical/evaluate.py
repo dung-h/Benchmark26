@@ -2,16 +2,22 @@
 """Score frozen analytical routes on the unified cohort and frozen splits."""
 
 from __future__ import annotations
+
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-from benchmark26.paths import ARTIFACTS, record_name
-from pathlib import Path
-import csv, hashlib, json, math
+import csv
+import hashlib
+import json
+import math
 from collections import defaultdict
+from pathlib import Path
+
 import numpy as np
 from scipy.stats import pearsonr, spearmanr
+
+from benchmark26.paths import ARTIFACTS, record_name
 
 ROOT = Path(__file__).resolve().parents[2]
 NS = ARTIFACTS / "postfreeze_unified_analytical_completion_v1"
@@ -131,9 +137,8 @@ def main():
         if cid not in panel or float(r["target_seconds"]) != targets[cid]:
             raise RuntimeError("target_mismatch:" + cid)
         for k in ("group_id", "source_id", "backend", "shots"):
-            if r[k] != panel[cid][k]:
-                if not (k == "shots" and float(r[k]) == float(panel[cid][k])):
-                    raise RuntimeError("metadata_mismatch:" + cid + ":" + k)
+            if r[k] != panel[cid][k] and not (k == "shots" and float(r[k]) == float(panel[cid][k])):
+                raise RuntimeError("metadata_mismatch:" + cid + ":" + k)
         idx[key] = r
     reduced = read(AN / "reduced_predictions.csv")
     base = {}
@@ -241,8 +246,8 @@ def main():
                     "case": case,
                     "method_id": m,
                     "rows": len(rs),
-                    "groups": len(set(x["group_id"] for x in rs)),
-                    "sources": len(set(x["source_id"] for x in rs)),
+                    "groups": len({x["group_id"] for x in rs}),
+                    "sources": len({x["source_id"] for x in rs}),
                     "status": "FULL_COMMON_COVERAGE",
                 }
             )
@@ -265,8 +270,6 @@ def main():
                             **fm,
                         }
                     )
-            y = np.asarray(yy)
-            p = np.asarray(pp)
             for scope in ("overall", "source", "backend", "structure_provenance", "timing_provenance"):
                 values = (
                     ["ALL"]
@@ -464,7 +467,6 @@ def main():
             )
     # Check route parity and exactly-once shot multiplication from stored features.
     rawfeat = {(r["graph_file"], r["snapshot_id"]): r for r in read(NS / "raw_features.csv")}
-    parity = []
     for i in ids:
         l = lin[i]
         x = rawfeat[(l["graph_file"], l["snapshot_id"])]

@@ -53,7 +53,7 @@ def main():
         if not np.isfinite(values).all():
             raise ValueError(f"Nonfinite features for {row['task_key']}")
 
-        def predict():
+        def predict(values=values):
             features = np.asarray(values, dtype=np.float64).reshape(1, 5)
             return float(model.predict(features)[0])
 
@@ -74,7 +74,7 @@ def main():
                 samples.append(time.perf_counter_ns() - start)
                 if not np.isclose(value, expected, atol=1e-9, rtol=0):
                     raise ValueError("Prediction changed between repetitions")
-            record = dict(task_key=row["task_key"], session=session, prediction=expected, durations_ns=samples)
+            record = {"task_key": row["task_key"], "session": session, "prediction": expected, "durations_ns": samples}
             path = args.output / f"{session}_{row['task_key']}.json"
             path.write_text(json.dumps(record, indent=2) + "\n")
 

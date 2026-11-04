@@ -15,8 +15,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repository root
-from benchmark26.integrity import check_frozen_pins  # noqa: E402
-from benchmark26.paths import ARTIFACTS, PROTOCOLS, ROOT, recorded  # noqa: E402
+from benchmark26.integrity import check_frozen_pins
+from benchmark26.paths import ARTIFACTS, PROTOCOLS, ROOT, recorded
 
 OPTIONAL_PACKAGES = ("numpy", "scipy", "sklearn", "pandas", "qiskit", "qiskit_ibm_runtime", "torch", "torch_geometric")
 STUDY_INPUTS = (

@@ -1,6 +1,7 @@
 import unittest
+
 import numpy as np
-from analysis_core import aligned, metrics, group_errors, bootstrap_draws, paired_intervals
+from analysis_core import aligned, bootstrap_draws, group_errors, metrics, paired_intervals
 from validate_completed import earliest_minimum
 
 
