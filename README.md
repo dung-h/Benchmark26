@@ -22,6 +22,7 @@ make smoke    # synthetic split–fit–evaluate–report example in work/smoke
 | `experiments/qpu/` | Main study: cohort, splits, neural and regression fitting, evaluation |
 | `experiments/analytical/` | Analytical duration estimators (Qiskit, QCRE, NoTaDS, HyperQ) |
 | `experiments/latency/` | Prediction-latency measurement, cost composition and verification |
+| `experiments/graph_ablation/` | Graph ablation (separate experiment): protocol, graph controls, analysis and verification |
 | `benchmark26/` | Shared code: feature extraction, models, path estimators, path configuration |
 | `protocols/` | Frozen study contracts, registries and reference code, verified by SHA-256 |
 | `results/` | Exported aggregate results |
@@ -34,6 +35,7 @@ make smoke    # synthetic split–fit–evaluate–report example in work/smoke
 - [Reproduction](docs/REPRODUCTION.md): data, environment variables, pipeline and verification commands
 - [Methodology](docs/METHODOLOGY.md): cohort, evaluation settings, metrics and estimands
 - [Prediction latency](docs/PREDICTION_LATENCY.md): what the latency results measure and how to verify them
+- [Graph ablation](docs/GRAPH_ABLATION.md): which parts of the graph input matter, results and how to verify them
 
 ## License
 

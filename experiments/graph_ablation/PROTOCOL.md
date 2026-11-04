@@ -1,0 +1,15 @@
+# Logical circuit graph ablation, prespecified experiment
+
+Cohort: locked 3,443 records, 203 group components; original E1/E2 outer and inner assignments. E1 holds out groups; E2 allows group overlap. Labels retain source-specific observation boundaries. All input preprocessing and selection are fitted on the inner-fit partition only.
+
+Four arms, all with shot count and the same seeds 42, 1234, 31415: M1 (global MLP), G1 (graph+MLP with original DAG), G1e (same architecture and nodes but no edges), G1p (same edges with node feature rows permuted using the first eight SHA-256 bytes of observation ID + graph-ablation-v1, interpreted big endian). Position is retained in node features; the empty-edge arm is not position-blind. G1p changes features relative to edges, not a graph relabeling. Optional masked-position arm is not part of the primary campaign.
+
+All graph arms use the original uncheckpointed model forward. A fit-only microbenchmark on representative and largest graphs passed loss/gradient/update tolerance checks; a full fit/validation epoch was approximately 20% faster and the largest stress batch used approximately 5.34 GiB reserved. This implementation choice was made using fit/validation inputs only and before inspecting new test metrics.
+
+All arms train from scratch with Adam lr 0.0005, weight decay 0.0001, effective batch 32, max 500 epochs, stop after 50 consecutive validation epochs without strict improvement; retain the first minimum-validation-MSE checkpoint. This rule is prespecified here but selected after other studies were observed, and is not presented as prospectively chosen for those historical studies. Outer test labels must not be read in fitting or preprocessing. Each observation's output is the median across three seed predictions.
+
+Primary metric is group-balanced MAE. For E1 and E2, three paired contrasts are G1-G1e, G1-G1p, and G1e-M1. Within-source whole-group bootstrap with 10,000 draws and seed 42; Bonferroni adjustment across six contrasts: two-sided 99.1667% intervals. Intervals containing zero do not establish equivalence. Report per-source data descriptively and the limited six QPack groups explicitly. Do not infer a causal property of graph models in general.
+
+Before training either ablation arm, rerun the E1 M1 and G1 baselines. The predeclared safety stop compares each baseline against its historical GB-MAE using the width of the saved E1 adjusted G1-M1 interval; this is an operational heuristic, not a statistical equivalence test. The safety check reads E1 test labels after both baseline runs; it does not use them for fitting.
+
+Lock this protocol, the current code and the original pinned inputs before fitting. Run two-epoch canary without test-label access and compare numerical/gradient behavior and GPU use. Confirm matched model parameter counts. Estimate runtime before full fitting and respect the 24 GPU-hour limit in the user-provided plan. Inputs, historical outputs, and original locks remain unchanged; use a new private run directory. Study results are separate from the original benchmark.

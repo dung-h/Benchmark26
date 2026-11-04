@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this benchmark methodology, code, or experimental protocol, please cite it as below."
 title: "Benchmark26: QPU runtime estimator benchmark"
 abstract: "Code and aggregate results for comparing neural, regression and analytical QPU runtime estimators on 3,443 archived observations in 203 logical-circuit groups from the Ma-Li, Qonductor and QPack sources."
-version: 0.3.2
+version: 0.4.0
 date-released: "2026-11-03"
 license: "MIT"
 repository-code: "https://github.com/dung-h/Benchmark26"

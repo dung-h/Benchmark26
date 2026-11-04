@@ -268,6 +268,7 @@ RUN_ENTRYPOINTS = (
     "experiments/qpu/prepare_run.py",
     "experiments/qpu/train_neural.py",
     "experiments/qpu/run_classical.py",
+    "experiments/qpu/graph_ablation_runner.py",
 )
 SOURCE_SUFFIXES = (".cpp", ".c", ".h")
 DEPENDENCY_RULE = (

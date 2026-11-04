@@ -2,6 +2,22 @@
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow the package version in `pyproject.toml`.
 
+## [0.4.0] - 2026-11-04
+
+### Added
+- Graph ablation, a separate experiment on the E1/E2 splits. It has four arms with shots: MLP, Graph+MLP, Graph+MLP without edges, and Graph+MLP with node features permuted relative to the edges; 3 seeds and 120 cells. The experiment adds:
+  - `experiments/graph_ablation/` (locked protocol, graph controls, analysis, verifier);
+  - `experiments/qpu/graph_ablation_runner.py`;
+  - aggregate results in `results/graph_ablation/`;
+  - `docs/GRAPH_ABLATION.md`.
+
+  The runner and protocol are byte-identical to the executed run. `analyze.py` is a portable port of the locked analysis script and reproduces the saved summary exactly.
+- `make check` recomputes the shared graph-ablation statistics from anonymous per-group errors.
+- Tests for the graph controls, the median-of-seeds estimand, the stratified paired bootstrap and the shared results.
+
+### Changed
+- `experiments/qpu/graph_ablation_runner.py` joins the run entry points, so a prepared run pins 29 code files. Run manifests prepared with 0.3.2 list fewer files and are rejected; prepare a new `B26_RUN_DIR`.
+
 ## [0.3.2] - 2026-11-03
 
 ### Fixed
