@@ -13,5 +13,37 @@
     "base_repository_revision": "4c6781bd41c2411833d9f8e740a1df01f729f82a",
     "training_cells": 120,
     "private_run": "Not distributed. The hashes above identify the locked protocol, code inventory and analysis script of that run."
-  }
+  },
+  "pinned_code_sha256": {
+    "benchmark26/__init__.py": "ec279344d67befd3ca2fed6d64720c08695c4e177cae647bcc3999461ce2c206",
+    "benchmark26/circuit_representation.py": "9417c4cca7036dd64508e9a046389cbd4d4e417e1a1437f54f75e80d5139214f",
+    "benchmark26/feature_pool.py": "ed1a6feb3b4e5ced5cc632b9388e09914a4fb0b8c6749629b8399eb856e8d074",
+    "benchmark26/gpu_lease.py": "a86732eff1e007aec2a65e15f6a62a63adab43df04ee00cd73adf80957de0a3b",
+    "benchmark26/mali_batching.py": "3ca072b0f8d09712cf67a20d65fd976f1482a3b43fb4bd1c364991c45b7cfe42",
+    "benchmark26/mali_features.py": "48a3c44bc5ec6e68f1fe2e71fe90ce915fc912ec1effe4157f6f5720f6e38b53",
+    "benchmark26/mali_training.py": "6f70e5558f87534f95ac0c3a03d20ed19180d7c01ea129bfab65f65cbf0f6a7b",
+    "benchmark26/path_kernel.cpp": "08ceec97d070620e18dd3f8a3821816f194bf0e4bc6a49350a8884093d7fb187",
+    "benchmark26/paths.py": "e4d5aff68033c92a5f4bf5b9f2b57b3b01d2eef49e8230895ff91bd314acfdb8",
+    "benchmark26/qasm3_wires.py": "e2ab10dfb33132c2f79358b2972c9fb28c69ae18498dd44dfb90f31b0e717041",
+    "benchmark26/qonductor_feature_tasks.py": "7b35fcfb71577ee3b685ef8d8c0c206ef9be1d1ec46f074df46c91caed121adb",
+    "benchmark26/qonductor_features.py": "1f959818e18b748847c0017d487c28ea6f73e2a853ecc00008eddfaa9c6be79c",
+    "benchmark26/qonductor_materialize.py": "f7973011e37294e80bf8855d6bb6768ef7af495c547d62bfe2699934aa3f99e4",
+    "benchmark26/qonductor_models.py": "d661fccaca6fea18f39bc38b88a85f9f1b8c9857c4dc1b3620e59102e3144039",
+    "benchmark26/qonductor_regression.py": "12c7d2af870d8a8c6eacd6f246efa558fa3e9c422f6ee91b4b370bca3cca7160",
+    "benchmark26/shots.py": "a7b4dfb4b98ae7b5d90d44c8e4ef5d3398c9b3c4dd983ee33366c8469f4df001",
+    "experiments/graph_ablation/transforms.py": "8d749bf3e65d2f3d0828bc0f8550278f8b95e895731dcd09088a2f1e723c4b53",
+    "experiments/qpu/audit_classical_inputs.py": "d1196c99544213e52738c124d6e898379bdaaeffb9e0c9d46327786b1baaea7c",
+    "experiments/qpu/core.py": "9b14c61883e3d04753a234dde1d09759058e47ecdda7b360eef8a7293b63936e",
+    "experiments/qpu/graph_ablation_runner.py": "6fab60086a1dc4f9b31b15bf704b03292c34c2a9c342b368f8b5324d1e24d3b0",
+    "experiments/qpu/lock_protocol.py": "ba2ad2fceb23a5d69853eeea4e3f36c960af1e051b7069e858a0b16d4a205f60",
+    "experiments/qpu/prepare_cohort.py": "b5d9b17651502d3d1718d7efc85e042965f64f8a95a7298428a5669843255c65",
+    "experiments/qpu/prepare_run.py": "a7b9ce6c68d93bfd08ba7a104cd04d486a8201a7f2c2b82ebf67bdd7b8019daf",
+    "experiments/qpu/prepare_splits.py": "e235dfc0a02e0b6fa3b8b38ebaea8d0f7d093759c1319597d5242e7c128ea358",
+    "experiments/qpu/profile_batch.py": "5d53f6c87878c8798234e86d649c2e80668e46b3b01094add84c10540c2a0cd2",
+    "experiments/qpu/run_classical.py": "d1053603ef7bfe8013dffc285811d2e9b278470123a05aaf44797f367509175b",
+    "experiments/qpu/train_neural.py": "d6edd6dd05966ececcd453b1d7156241e023f22423059b83c947f06f1043bf13",
+    "experiments/qpu/validate_first_cell.py": "65a0d93fff7e4dae6b7409f6c28e57870b5eafcaead0b7bd353aa291adf6c051",
+    "experiments/qpu/validate_splits.py": "ace2bde3a3b74872569702abe80303a31930b3d341f7d180193317cea1717ab0"
+  },
+  "pinned_code_note": "SHA-256 of the 29 repository files that the executed run pinned in its run manifest. They must stay byte-identical to the executed run; make check verifies them. A change needs a new run."
 }

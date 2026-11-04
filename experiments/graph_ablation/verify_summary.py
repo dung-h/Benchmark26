@@ -43,11 +43,23 @@ def manifest_problems() -> list[str]:
     return problems + [f"file not in manifest: {name}" for name in sorted(extra)]
 
 
+def pinned_code_problems() -> list[str]:
+    """The files pinned by the executed run must be byte-identical to it."""
+    manifest = json.loads((RESULTS / "manifest.json").read_text())
+    root = RESULTS.parents[1]
+    problems = []
+    for name, expected in manifest["pinned_code_sha256"].items():
+        path = root / name
+        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+            problems.append(f"pinned file differs from the executed run: {name}")
+    return problems
+
+
 def main() -> int:
     with (RESULTS / "group_errors.csv").open(newline="") as handle:
         rows = list(csv.DictReader(handle))
     summary = json.loads((RESULTS / "summary.json").read_text())
-    problems, checked = manifest_problems(), 0
+    problems, checked = manifest_problems() + pinned_code_problems(), 0
     for evaluation in EVALUATIONS:
         part = [r for r in rows if r["evaluation"] == evaluation]
         names = [r["group"] for r in part]

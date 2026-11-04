@@ -108,6 +108,17 @@ Shared modules can also be run directly, for example `python3 -m benchmark26.mal
 
 Frozen protocols and execution locks record SHA-256 hashes of the code that produced the study. The code here differs from those hashes. Checks against the saved study therefore compare data and results, not code; fitting with this code requires a new run as described above. Files whose hashes are pinned by other frozen files (`protocols/`, including two reference programs in `protocols/reference_code/`) are kept byte-identical; `make check` verifies them.
 
+### Files that must stay unchanged
+
+Two sets of files are kept byte-identical. Do not reformat or refactor them. `make check` fails if one changes.
+
+| Set | Files | Why |
+| --- | --- | --- |
+| `protocols/` | All frozen contracts, registries and reference programs | Frozen files pin each other by SHA-256 |
+| Graph-ablation run | 29 files: `benchmark26/` (all modules except `integrity.py`, `logical_panel.py`, `mali_materialize.py`, `path_estimators.py`), `experiments/graph_ablation/transforms.py`, and in `experiments/qpu/`: `core.py`, `prepare_run.py`, `prepare_cohort.py`, `prepare_splits.py`, `train_neural.py`, `run_classical.py`, `graph_ablation_runner.py`, `lock_protocol.py`, `audit_classical_inputs.py`, `profile_batch.py`, `validate_first_cell.py`, `validate_splits.py` | The executed run pinned exactly these files. Their hashes are in `results/graph_ablation/manifest.json` |
+
+All other Python files (analytical estimators, latency tools, scripts, tests, the remaining `experiments/qpu/` files) can be changed freely. A change to a file of the second set means the published ablation no longer matches the code. Make such a change only together with a new run.
+
 ## Not reproducible from this repository
 
 - Individual raw timing samples and request-level latency quantiles: only aggregates are exported (see [Prediction latency](PREDICTION_LATENCY.md)).
