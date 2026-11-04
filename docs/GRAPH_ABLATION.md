@@ -118,5 +118,5 @@ Write equivalent files before you read any test label in a new run.
 
 The original run is private and is not distributed.
 
-- The runner (`experiments/qpu/graph_ablation_runner.py`), the graph controls (`transforms.py`), `core.py` and the other pinned files are byte-identical to the executed versions. They are not reformatted on purpose. `PROTOCOL.md` is identical to the locked protocol.
+- The runner (`experiments/qpu/graph_ablation_runner.py`), the graph controls (`transforms.py`), `core.py` and the other 26 pinned Python files have the same code as the executed versions: their syntax trees match, and only docstrings and comments may differ. `path_kernel.cpp` is byte-identical. `make check` verifies this. `PROTOCOL.md` is identical to the locked protocol.
 - `analyze.py` is a port of the locked analysis script (SHA-256 `8d48c0a4…`). The locked script read the bundle from a fixed local path. The port reads it through `B26_ARTIFACTS` and gives a summary identical to the saved one, field for field. Check this with `analyze.py --check <saved summary>`.

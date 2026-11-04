@@ -23,7 +23,10 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parents[1]))  # repository root
 from analyze import ARMS, CONTRASTS, EVALUATIONS, paired_contrast, stratified_draws
+
+from benchmark26.codesig import code_signature
 
 RESULTS = HERE.parents[1] / "results/graph_ablation"
 TOLERANCE = 1e-12
@@ -44,14 +47,22 @@ def manifest_problems() -> list[str]:
 
 
 def pinned_code_problems() -> list[str]:
-    """The files pinned by the executed run must be byte-identical to it."""
-    manifest = json.loads((RESULTS / "manifest.json").read_text())
+    """The files pinned by the executed run must still have the same code.
+
+    A Python file is compared by the signature of its syntax tree, so docstrings,
+    comments and layout may change. Other files must be byte-identical.
+    """
+    manifest = json.loads((RESULTS / "manifest.json").read_text())["pinned_code"]
     root = RESULTS.parents[1]
     problems = []
-    for name, expected in manifest["pinned_code_sha256"].items():
+    for name, expected in manifest["python_signature_sha256"].items():
+        path = root / name
+        if not path.is_file() or code_signature(path.read_text(encoding="utf-8")) != expected:
+            problems.append(f"code differs from the executed run: {name}")
+    for name, expected in manifest["byte_sha256"].items():
         path = root / name
         if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
-            problems.append(f"pinned file differs from the executed run: {name}")
+            problems.append(f"file differs from the executed run: {name}")
     return problems
 
 

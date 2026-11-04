@@ -108,16 +108,16 @@ Shared modules can also be run directly, for example `python3 -m benchmark26.mal
 
 Frozen protocols and execution locks record SHA-256 hashes of the code that produced the study. The code here differs from those hashes. Checks against the saved study therefore compare data and results, not code; fitting with this code requires a new run as described above. Files whose hashes are pinned by other frozen files (`protocols/`, including two reference programs in `protocols/reference_code/`) are kept byte-identical; `make check` verifies them.
 
-### Files that must stay unchanged
+### Files whose code must stay unchanged
 
-Two sets of files are kept byte-identical. Do not reformat or refactor them. `make check` fails if one changes.
-
-| Set | Files | Why |
+| Set | Files | What may change |
 | --- | --- | --- |
-| `protocols/` | All frozen contracts, registries and reference programs | Frozen files pin each other by SHA-256 |
-| Graph-ablation run | 29 files: `benchmark26/` (all modules except `integrity.py`, `logical_panel.py`, `mali_materialize.py`, `path_estimators.py`), `experiments/graph_ablation/transforms.py`, and in `experiments/qpu/`: `core.py`, `prepare_run.py`, `prepare_cohort.py`, `prepare_splits.py`, `train_neural.py`, `run_classical.py`, `graph_ablation_runner.py`, `lock_protocol.py`, `audit_classical_inputs.py`, `profile_batch.py`, `validate_first_cell.py`, `validate_splits.py` | The executed run pinned exactly these files. Their hashes are in `results/graph_ablation/manifest.json` |
+| `protocols/` | All frozen contracts, registries and reference programs | Nothing. Frozen files pin each other by SHA-256 |
+| Graph-ablation run | 29 files: `benchmark26/` (all modules except `integrity.py`, `logical_panel.py`, `mali_materialize.py`, `path_estimators.py`, `tables.py`, `codesig.py`), `experiments/graph_ablation/transforms.py`, and in `experiments/qpu/`: `core.py`, `prepare_run.py`, `prepare_cohort.py`, `prepare_splits.py`, `train_neural.py`, `run_classical.py`, `graph_ablation_runner.py`, `lock_protocol.py`, `audit_classical_inputs.py`, `profile_batch.py`, `validate_first_cell.py`, `validate_splits.py` | Docstrings, comments and layout of the Python files. The code itself and `path_kernel.cpp` must stay identical |
 
-All other Python files (analytical estimators, latency tools, scripts, tests, the remaining `experiments/qpu/` files) can be changed freely. A change to a file of the second set means the published ablation no longer matches the code. Make such a change only together with a new run.
+For the 29 files, `make check` compares a signature of each Python file's syntax tree (docstrings removed) with `results/graph_ablation/manifest.json`, so adding a docstring or a comment passes and any change to the code fails. The signature gives the same result on Python 3.10 to 3.14. The manifest also records the byte hashes of the files at the time of the run.
+
+All other Python files can be changed freely. A change to the code of a pinned file means the published ablation no longer matches the code. Make such a change only together with a new run.
 
 ## Not reproducible from this repository
 
