@@ -28,6 +28,7 @@ Next steps:
 | Know what the latency numbers include and exclude | [Prediction latency](docs/PREDICTION_LATENCY.md) |
 | See whether graph edges help, and how that was tested | [Graph ablation](docs/GRAPH_ABLATION.md) |
 | Fix an error message you ran into | [Pitfalls](docs/PITFALLS.md) |
+| Look up a name such as cohort, E1 or `G1e` | [Glossary](docs/GLOSSARY.md) |
 
 ## Layout
 

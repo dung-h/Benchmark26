@@ -4,7 +4,7 @@
 
 These terms are used the same way in every document and in the code.
 
-- **Observation**: one row of the cohort. It has a circuit, a shot count, a backend and one archived runtime label.
+- **Observation**: one row of the study dataset (called the cohort in the code; see the [Glossary](GLOSSARY.md)). It has a circuit, a shot count, a backend and one archived runtime label.
 - **Label**: the archived runtime of an observation, in seconds. Each source defines it differently (see the table below).
 - **Source**: where the observation comes from. There are three: Ma–Li, Qonductor and QPack.
 - **Logical circuit**: the circuit before it is compiled to a backend's native gates. The neural estimators take it as input. For Qonductor it is reconstructed from the circuit family and width, not recovered byte for byte.
