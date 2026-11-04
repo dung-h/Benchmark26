@@ -4,6 +4,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## [0.4.0] - 2026-11-04
 
+### Changed
+- `experiments/qpu/verify_dataset_lineage.py` is now `verify_dataset_from_sources.py`. Public documents say "dataset" where they said "cohort", and `docs/GLOSSARY.md` explains the names that stay because frozen files or pinned code refer to them.
+
 ### Added
 - Graph ablation, a separate experiment on the E1/E2 splits. It has four arms with shots: MLP, Graph+MLP, Graph+MLP without edges, and Graph+MLP with node features permuted relative to the edges; 3 seeds and 120 cells. The experiment adds:
   - `experiments/graph_ablation/` (locked protocol, graph controls, analysis, verifier);

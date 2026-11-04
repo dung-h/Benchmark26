@@ -4,7 +4,7 @@
 
 These terms are used the same way in every document and in the code.
 
-- **Observation**: one row of the study dataset (called the cohort in the code; see the [Glossary](GLOSSARY.md)). It has a circuit, a shot count, a backend and one archived runtime label.
+- **Observation**: one row of the study dataset (the code calls the dataset the "cohort"; see the [Glossary](GLOSSARY.md)). It has a circuit, a shot count, a backend and one archived runtime label.
 - **Label**: the archived runtime of an observation, in seconds. Each source defines it differently (see the table below).
 - **Source**: where the observation comes from. There are three: Ma–Li, Qonductor and QPack.
 - **Logical circuit**: the circuit before it is compiled to a backend's native gates. The neural estimators take it as input. For Qonductor it is reconstructed from the circuit family and width, not recovered byte for byte.
@@ -13,7 +13,7 @@ These terms are used the same way in every document and in the code.
 - **Estimator**: anything that maps an input to a predicted runtime: a neural model, the regression selector, or an analytical duration formula.
 - **Group-balanced MAE (GB-MAE)**: the mean absolute error in seconds, averaged within each group and then over groups, so every group counts once. It is the primary metric.
 
-## Cohort
+## Dataset
 
 The study uses 3,443 archived QPU observations in 203 logical-circuit groups.
 
@@ -70,7 +70,7 @@ The trainers, tuners and approval checks that belonged only to the earlier 8,767
 | Ma–Li features and graph models | `benchmark26/mali_features.py`, `mali_materialize.py`, `mali_training.py`, `mali_batching.py` |
 | Qonductor features and regression | `benchmark26/qonductor_features.py`, `qonductor_materialize.py`, `qonductor_regression.py`, `qonductor_models.py` |
 | Shot features | `benchmark26/shots.py` |
-| Cohort, splits, fitting, evaluation | `experiments/qpu/` |
+| Dataset table, splits, fitting, evaluation | `experiments/qpu/` |
 | Analytical estimators | `experiments/analytical/`, `benchmark26/path_estimators.py`, `benchmark26/path_kernel.cpp` |
 | Prediction latency | `experiments/latency/` |
 

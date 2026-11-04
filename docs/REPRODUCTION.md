@@ -6,7 +6,7 @@ There are three levels, each needing more data than the previous one.
 | --- | --- | --- |
 | 1. Repository checks | This checkout | Code parses, frozen protocols are intact, unit tests pass, exported latency and graph-ablation statistics recompute |
 | 2. Upstream sources | Network access | The upstream files match their pinned SHA-256 hashes |
-| 3. Study replay | The external study bundle and the upstream sources | Cohort, splits, analytical estimates and statistics can be recomputed and compared with the saved results |
+| 3. Study replay | The external study bundle and the upstream sources | Dataset table, splits, analytical estimates and statistics can be recomputed and compared with the saved results |
 
 ## 1. Repository checks
 
@@ -38,8 +38,8 @@ All machine-specific locations are read from environment variables in `benchmark
 
 | Variable | Default | Contents |
 | --- | --- | --- |
-| `B26_ARTIFACTS` | `artifacts/` | Study bundle: cohort, labels, splits, graphs, predictions, receipts |
-| `B26_COHORT_PLAN` | `inputs/cohort_plan/` | Cohort plan tables (proposed observations, inventories) |
+| `B26_ARTIFACTS` | `artifacts/` | Study bundle: dataset table, labels, splits, graphs, predictions, receipts |
+| `B26_COHORT_PLAN` | `inputs/cohort_plan/` | Input tables of the dataset (the list of observations and inventories) |
 | `B26_MALI_SOURCE` | `inputs/mali/` | Ma–Li Git checkout at the pinned revision |
 | `B26_MALI_QASM` | `$B26_MALI_SOURCE/data/quantum_circuits/` | Ma–Li circuits |
 | `B26_QONDUCTOR_SOURCE` | `inputs/qonductor/` | Qonductor Git checkout at the pinned revision |
@@ -58,7 +58,7 @@ These commands read the bundle and write only to the path given (or, for `valida
 ```bash
 python3 scripts/check_setup.py --require-study-inputs
 python3 experiments/qpu/validate_splits.py --receipt /tmp/b26/split_validation.json
-python3 experiments/qpu/verify_dataset_lineage.py --output /tmp/b26/lineage
+python3 experiments/qpu/verify_dataset_from_sources.py --output /tmp/b26/dataset_from_sources
 python3 experiments/qpu/replay_statistics.py --receipt /tmp/b26/statistics.json
 python3 experiments/analytical/validate_portable.py
 python3 experiments/qpu/train_neural.py --stage preflight --evaluation E1
@@ -68,10 +68,10 @@ python3 experiments/qpu/validate_completed.py --output /tmp/b26/validation   # a
 | Command | Recomputes |
 | --- | --- |
 | `validate_splits.py` | All E1/E2/E3 folds, without reading runtime labels |
-| `verify_dataset_lineage.py` | Source tables → cohort rows, QPack means and groups |
+| `verify_dataset_from_sources.py` | Source tables → dataset rows, QPack means and groups |
 | `replay_statistics.py` | Every metric, paired contrast and bootstrap interval from the saved predictions; hashes of all locked inputs and graphs |
 | `validate_portable.py` | Analytical metrics and intervals from the saved estimates |
-| `train_neural.py --stage preflight` | Cohort and split inputs, then training readiness: lock, inputs, graphs, code identity, run manifest, pinned model source, PyTorch and GPU; nothing is fitted |
+| `train_neural.py --stage preflight` | Dataset and split inputs, then training readiness: lock, inputs, graphs, code identity, run manifest, pinned model source, PyTorch and GPU; nothing is fitted |
 | `validate_completed.py` | Structure, identities and selections of all saved fitted outputs; with `--replay-all`, every saved neural prediction from its checkpoint |
 
 The following checks write their receipt into the bundle, as the original pipeline did. Run them on a copy of the bundle: `experiments/analytical/extract_raw.py --check-only`, `experiments/analytical/validate.py`, `validate_coverage.py`, `validate_qiskit_parity.py`, and `experiments/qpu/run_classical.py --stage preflight`.
@@ -92,7 +92,7 @@ python3 experiments/qpu/train_neural.py --stage preflight --require-ready
 
 | Step | Command |
 | --- | --- |
-| Cohort | `python3 experiments/qpu/prepare_cohort.py` |
+| Dataset table | `python3 experiments/qpu/prepare_cohort.py` |
 | Splits | `python3 experiments/qpu/prepare_splits.py`, then `validate_splits.py` |
 | Neural models | `python3 experiments/qpu/train_neural.py --stage train --evaluation E1` (also E2, E3) |
 | Regression selector | `python3 experiments/qpu/run_classical.py --stage train --evaluation E1` (also E2, E3) |

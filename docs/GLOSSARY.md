@@ -27,7 +27,7 @@ Plain meanings of names that appear in the code, tables and file names. The name
 | Name | Plain meaning |
 | --- | --- |
 | materialize | Compute the model input (features, graphs or circuits) from the source files and write it to disk. |
-| lineage | The trace from the source tables to the dataset rows. `verify_dataset_lineage.py` recomputes that trace independently. |
+| lineage | The trace from the source tables to the dataset rows. `verify_dataset_from_sources.py` (formerly `verify_dataset_lineage.py`) recomputes that trace independently. |
 | qualified | Passed the logical-input qualification checks of the original study. The criteria are in `protocols/qualified_logical_benchmark.json`. |
 | frozen, lock, freeze | Fixed before the corresponding results were produced. Frozen files carry SHA-256 hashes and pin each other. Do not edit them. |
 | receipt | A small JSON file that records what a check read and what it found. |

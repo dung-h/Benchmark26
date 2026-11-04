@@ -35,7 +35,7 @@ Next steps:
 | Path | Contents |
 | --- | --- |
 | `benchmark26/` | Shared code: feature extraction, models, path estimators, path configuration |
-| `experiments/qpu/` | Main study: cohort, splits, neural and regression fitting, evaluation |
+| `experiments/qpu/` | Main study: dataset table, train/test splits, neural and regression fitting, evaluation |
 | `experiments/analytical/` | Analytical duration estimators (Qiskit, QCRE, NoTaDS, HyperQ) |
 | `experiments/latency/` | Prediction-latency measurement, cost composition and verification |
 | `experiments/graph_ablation/` | Graph ablation: protocol, graph controls, analysis and verification |
