@@ -17,6 +17,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 - `docs/PITFALLS.md`: error messages and misreadings, each with cause and fix.
 - Tests for the graph controls, the median-of-seeds estimand, the stratified paired bootstrap and the shared results.
 
+### Removed
+- Report and figure writers that nothing called and that only wrote narrative reports and plots into the private bundle: `experiments/analytical/write_report.py`, `experiments/analytical/make_figures.py` and `experiments/qpu/write_final_report.py`. Also `scripts/verify_cost.py`, which checked the aggregates of an earlier timing campaign that was removed in 0.3.0 and that no document references.
+
 ### Changed
 - Code clarity: every public function now has a docstring, the longest `main` functions have step comments, and the copied CSV-reading and hashing helpers of ten scripts are replaced by `benchmark26/tables.py` and `integrity.py`. In the 47 files that no run manifest pins, imports are sorted, unused imports and dead variables are removed, and subprocess checks are explicit. In the 28 Python files that the executed graph-ablation run pinned, only docstrings, comments and layout changed. `make check` now verifies them by the signature of their syntax tree (`benchmark26/codesig.py`, the same on Python 3.10 to 3.14), so a documentation change passes and any change to the code fails. `path_kernel.cpp` stays byte-identical. `docs/REPRODUCTION.md` lists which code must stay unchanged.
 - README: the first command now checks the published numbers; a table points each reader task to its document. `docs/METHODOLOGY.md` starts with definitions, and `docs/PREDICTION_LATENCY.md` states what is and is not timed.

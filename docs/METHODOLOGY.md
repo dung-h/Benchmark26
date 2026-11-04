@@ -56,6 +56,16 @@ The analytical routes produce different quantities and are not interchangeable:
 - unitless scores (NoTaDS);
 - predictors calibrated on outer-training labels (historical variants in `experiments/analytical/calibrate.py`; not reported in the paper).
 
+## Terms from the original study process
+
+Some code carries approval steps of the original study. They are checks that ran before or after a step, and they do not enter any estimate. You can ignore them when you read the results.
+
+- **GPU handoff ID, C1-C3 receipt and execution authorization** (`benchmark26/mali_training.py`): the training script of the earlier 8,767-row Ma-Li study refuses to run without them. The 3,443-observation study does not use this script as its entry point.
+- **Wave 0 and C133 to C135** (`benchmark26/circuit_representation.py`): names of preparation steps for the earlier study: the backend snapshot registry (C133), the feature sidecar (C134) and the target preflight (C135). The `REPORT.md` it writes is a status note of that batch.
+- **Independent first-cell QA**: the original run stopped after its first cell and continued with the remaining folds only after a separate review receipt.
+
+These checks are the reason some scripts need files from the study bundle although no estimate depends on them.
+
 ## Code map
 
 | Stage | Code |
