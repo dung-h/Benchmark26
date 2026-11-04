@@ -28,6 +28,12 @@ STUDY_INPUTS = (
 
 
 def main() -> int:
+    """Check the code release and report which external study inputs are available.
+
+    Parses every Python and protocol file, verifies the frozen protocol hash chain
+    (exit 1 if it is broken), lists optional packages and study-bundle files, and exits
+    with 2 when `--require-study-inputs` is set and an input is missing.
+    """
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument(
         "--require-study-inputs", action="store_true", help="exit with status 2 if a study input is missing"

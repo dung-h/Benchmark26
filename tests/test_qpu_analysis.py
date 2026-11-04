@@ -1,3 +1,5 @@
+"""Group-balanced and pooled metrics, the R^2 policy, bootstrap contrasts and epoch selection."""
+
 import unittest
 
 import numpy as np

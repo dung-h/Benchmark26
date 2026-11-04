@@ -22,6 +22,7 @@ DEST = OUT / "analysis_v1"
 
 
 def close(actual, expected):
+    """Assert that two numbers agree to 1e-11, or that a missing expected value is empty."""
     if expected is None:
         assert actual in ("", None)
     else:
@@ -29,6 +30,12 @@ def close(actual, expected):
 
 
 def independent(records):
+    """Recompute the metrics of a set of prediction records with plain NumPy.
+
+    Covers pooled, group-balanced and source-balanced MAE, median error, RMSE, raw
+    and log1p R^2, bias, tail errors, over- and under-prediction fractions and the
+    means and spread of target and prediction.
+    """
     y = np.array([float(r["target_seconds"]) for r in records])
     p = np.array([float(r["predicted_seconds"]) for r in records])
     ae = abs(p - y)
@@ -71,6 +78,14 @@ def independent(records):
 
 
 def main():
+    """Replay the saved statistics tables from the saved CSVs without importing analysis_core.
+
+    Checks the 61,974 reduced and 123,948 per-seed predictions, recomputes the pooled,
+    sliced, paired and per-seed metrics, and compares them with the saved tables. It
+    also checks that every locked input and graph is unchanged; the lock's code
+    hashes belong to the original study and are not expected to match this code.
+    Writes a receipt and refuses to overwrite an existing one.
+    """
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__)

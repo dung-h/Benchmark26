@@ -36,6 +36,7 @@ CODE = ROOT / "benchmark26/path_estimators.py"
 
 
 def sha(path):
+    """Return the SHA-256 hex digest of a file, read in 1 MiB chunks."""
     h = hashlib.sha256()
     with open(path, "rb") as f:
         for b in iter(lambda: f.read(1 << 20), b""):
@@ -44,11 +45,13 @@ def sha(path):
 
 
 def rows(path):
+    """Read a CSV file into a list of dicts."""
     with open(path, newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
 def write(path, rs):
+    """Write rows as a CSV file through a temporary file; raise if there are none."""
     if not rs:
         raise RuntimeError(f"empty_output:{path}")
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -61,6 +64,7 @@ def write(path, rs):
 
 
 def load_module():
+    """Load the locked NoTaDS and HyperQ kernel module from its file."""
     spec = importlib.util.spec_from_file_location("locked_notads_hyperq_kernel", CODE)
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
@@ -68,6 +72,15 @@ def load_module():
 
 
 def main():
+    """Extract the analytical scalars from the identity-pinned saved native DAGs.
+
+    Exactly one mode is required. `--check-only` verifies the inputs (3,443
+    observations, 203 groups, the source counts, the split files, the pinned hashes
+    and the join with the earlier feature cache) and writes an inventory without
+    extracting. `--canary` extracts a bounded set. `--full` extracts every graph and
+    snapshot task in the Qiskit environment and writes raw_features.csv. Target labels
+    are not read.
+    """
     ap = argparse.ArgumentParser()
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--check-only", action="store_true")
@@ -77,6 +90,7 @@ def main():
     out = NS
     if a.full and (out / "raw_features.csv").exists():
         raise RuntimeError("refuse_overwrite_raw_features")
+    # Check the cohort identity and the pinned inputs.
     source = rows(PANEL / "cohort/panel.csv")
     # This step does not read target labels.
     qmap = {r["workflow_mean_id"]: r for r in rows(PANEL / "cohort/qpack_feature_source_map.csv")}
@@ -163,6 +177,7 @@ def main():
         )
     if len({x["canonical_observation_id"] for x in target_free}) != 3443:
         raise RuntimeError("lineage_duplicate")
+    # One task per unique (graph file, snapshot) pair.
     taskkeys = sorted({(x["graph_file"], x["snapshot_id"]) for x in target_free})
     # Verify the already-produced feature cache joins by exact graph and Target, not row label.
     old = {r["canonical_observation_id"]: r for r in rows(FEATURE)}
@@ -215,6 +230,7 @@ def main():
     results = []
     cache = {}
     start = time.time()
+    # Extract the scalars of each task with the kernel.
     for graphfile, snapshot in tasks:
         gp = REP / "graphs" / graphfile
         g0 = __import__("pickle").load(gp.open("rb"))

@@ -23,6 +23,7 @@ D.mkdir(exist_ok=True)
 
 
 def read(p):
+    """Read a CSV file into a list of dicts."""
     with open(p, newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
@@ -33,6 +34,7 @@ base = read(ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1/analysis_v1/r
 
 
 def metric(ev, case, m):
+    """Return the metric row of (evaluation, case, method)."""
     return next(r for r in metrics if r["evaluation"] == ev and r["case"] == case and r["method_id"] == m)
 
 

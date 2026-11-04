@@ -18,6 +18,15 @@ from benchmark26.paths import COHORT_PLAN, recorded
 
 
 def main():
+    """Rebuild the cohort from the retained source tables and compare it with the saved cohort.
+
+    The 3,443 rows are 570 earlier non-QPack rows, 2,828 further qualified Qonductor
+    rows and 45 QPack workflow means (over 3,854 constituent timings). Replays their
+    targets (QPack milliseconds converted to seconds), the Qonductor physical-circuit
+    hash join, and the 203 connected components, using key expansion rather than the
+    producer's union-find. Writes the QPack constituents and a receipt under `--output`,
+    which must not exist yet. It starts at retained tables, not at raw external files.
+    """
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__)
@@ -30,8 +39,10 @@ def main():
     dest = parser.parse_args().output
     if dest.exists():
         raise RuntimeError("Refuse existing lineage output")
+    # The saved cohort and its targets.
     panel = {r["canonical_observation_id"]: r for r in rows(OUT / "cohort/panel.csv")}
     targets = {r["canonical_observation_id"]: float(r["target_seconds"]) for r in rows(OUT / "cohort/targets.csv")}
+    # The retained source tables and qualification evidence.
     proposed = rows(COHORT_PLAN / "proposed_observations.csv")
     paths = [
         "artifacts/real_qpu/qualified_logical_panel/panel.csv",
@@ -64,6 +75,7 @@ def main():
         expected[c] = float(origin["target_seconds"])
         assert float(panel[c]["shots"]) == float(origin["shots"])
         assert panel[c]["backend"] == origin["backend"].replace("ibmq_", "ibm_")
+    # QPack: group the constituent timings into the 45 workflow means.
     buckets = collections.defaultdict(list)
     for r in qp:
         raw = json.loads(r["raw_row_json"])
@@ -93,6 +105,7 @@ def main():
                     "shots": r["shots"],
                 }
             )
+    # Every replayed target must equal the saved target exactly.
     assert len(constituents) == 3854 and len(expected) == 3443 and set(expected) == set(targets) == set(panel)
     assert all(expected[c] == targets[c] for c in expected)
     # Build connected components with key expansion, independent of the producer union-find.
@@ -133,6 +146,7 @@ def main():
         assert all(panel[c]["group_id"] == digest for c in members)
         components.append(members)
     assert len(components) == 203
+    # Write the QPack constituents and the receipt.
     dest.mkdir(parents=True)
     atomic_csv(dest / "qpack_mean_constituents.csv", constituents)
     receipt = {

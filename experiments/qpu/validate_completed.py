@@ -26,6 +26,7 @@ TREATMENTS = ("M0", "M1", "G0", "G1")
 
 
 def earliest_minimum(history):
+    """Return the 1-based epoch of the first minimum validation MSE; raise if the curve is empty or not finite."""
     vals = [float(r["validation_mse"]) for r in history]
     if not vals or not all(math.isfinite(x) for x in vals):
         raise RuntimeError("Invalid validation curve")
@@ -33,6 +34,7 @@ def earliest_minimum(history):
 
 
 def unique_predictions(records, expected_ids):
+    """Check that the records cover exactly the expected observation IDs once each and are finite."""
     ids = [r["canonical_observation_id"] for r in records]
     if len(ids) != len(set(ids)) or set(ids) != set(expected_ids):
         raise RuntimeError("Prediction IDs missing, duplicate, or foreign")
@@ -41,6 +43,7 @@ def unique_predictions(records, expected_ids):
 
 
 def finite_state(value, torch):
+    """Return True if every tensor in a (nested) checkpoint state is finite."""
     if isinstance(value, torch.Tensor):
         return bool(torch.isfinite(value).all())
     if isinstance(value, dict):
@@ -51,6 +54,15 @@ def finite_state(value, torch):
 
 
 def main():
+    """Replay-check all saved neural and classical outputs without reading labels or training.
+
+    Reads the protocol lock, then for each evaluation (E1, E2, E3), fold, method and
+    seed checks the cell's saved manifest, epoch history, checkpoint state and
+    predictions, and checks the classical selector cases. With `--replay-all`, every
+    saved neural prediction is recomputed from its checkpoint on the GPU (a GPU
+    lease is taken). Writes a receipt under `--output` and refuses to overwrite an
+    existing one.
+    """
     ap = argparse.ArgumentParser()
     ap.add_argument("--output", type=Path, default=RUN / "validation/final_v2")
     ap.add_argument("--replay-all", action="store_true", help="Inference only, all saved held-out predictions")
@@ -71,6 +83,7 @@ def main():
 
     torch.set_num_threads(8)
     torch.set_num_interop_threads(1)
+    # Data identity only: the lock pins the inputs; its code hashes belong to the original study.
     lock, lock_sha = producer.protocol_lock(require_code=False)
     lease = acquire_gpu_lease("expanded-qpu-final-saved-checkpoint-replay") if args.replay_all else None
     cases = []

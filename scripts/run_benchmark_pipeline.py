@@ -17,6 +17,16 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main():
+    """Run one pipeline stage (`--stage`, default `status`).
+
+    - `status`: print which study inputs are present (presence only, not readiness).
+    - `smoke`: run the synthetic example; needs `--output`, and `--config` is accepted only here.
+    - `acquire`: download the pinned upstream files into `--inputs`.
+    - `latency`: recompute the exported latency statistics.
+    - `screen`, `analytical`: run the Qonductor recipe-screen or analytical path-kernel test.
+
+    Returns the exit code of the stage.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--status", action="store_true", help="Inspect external input availability")
     parser.add_argument(

@@ -11,6 +11,12 @@ from scipy.stats import pearsonr, spearmanr
 
 
 def main():
+    """Compute post-score support and error diagnostics for E1, E2 and E3 from existing outputs.
+
+    Reads the reduced predictions and the panel and writes the diagnostics directory
+    (case input support, training-curve summaries, correlations and breakdowns). It
+    refuses to run if the directory exists.
+    """
     dest = OUT / "analysis_v1/diagnostics"
     if dest.exists():
         raise RuntimeError("Refuse diagnostics overwrite")

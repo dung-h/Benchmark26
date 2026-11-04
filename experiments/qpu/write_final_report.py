@@ -31,6 +31,7 @@ EVALS = {
 
 
 def table(headers, body):
+    """Format headers and rows as a Markdown table."""
     return "\n".join(
         ["| " + " | ".join(headers) + " |", "|" + "|".join(["---"] * len(headers)) + "|"]
         + ["| " + " | ".join(map(str, r)) + " |" for r in body]
@@ -38,14 +39,24 @@ def table(headers, body):
 
 
 def f(x):
+    """Format a number with six decimals; an empty or missing value becomes 'không xác định' (unknown)."""
     return "không xác định" if x in ("", None) else f"{float(x):.6f}"
 
 
 def main():
+    """Render the final report from verified saved results; no new estimates.
+
+    Requires PASS in both the validation receipt and the independent statistics
+    receipt. Reads the pooled metrics, paired comparisons, slices and case-input
+    support, draws the figures (vector PDFs with PNG previews) under analysis_v1,
+    writes FINAL_REPORT.md with an explicit claim table, and writes a receipt that
+    lists the artifacts.
+    """
     dest = OUT / "analysis_v1"
     final = OUT / "FINAL_REPORT.md"
     if final.exists() or (OUT / "completion_receipt.json").exists():
         raise RuntimeError("Refuse final report overwrite")
+    # Require passed validation and independent statistics, then load the saved tables.
     vr = OUT / "validation/final_v2/receipt.json"
     sr = dest / "independent_statistics_receipt.json"
     assert json.loads(vr.read_text())["status"] == "PASS" and json.loads(sr.read_text())["status"] == "PASS"
@@ -67,6 +78,7 @@ def main():
     import matplotlib.pyplot as plt
 
     plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 10, "pdf.fonttype": 42})
+    # Figures.
     figs = dest / "figures"
     figs.mkdir(exist_ok=True)
     short = {
@@ -300,6 +312,7 @@ def main():
 
     atomic_csv(dest / "claim_matrix.csv", claims)
     final.write_text("\n".join(text), encoding="utf-8")
+    # Receipt with the hash of every artifact.
     artifacts = [p for p in dest.rglob("*") if p.is_file()] + [final, vr]
     receipt = {
         "status": "PASS_SCIENTIFIC_AGGREGATION_COMPLETE",

@@ -18,11 +18,18 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def read(path):
+    """Read a CSV file into a list of dicts."""
     with path.open(newline="") as stream:
         return list(csv.DictReader(stream))
 
 
 def main():
+    """Write a ledger that explains why each of the 8,767 canonical observations is included or excluded.
+
+    Uses retained evidence only and does not rebuild data. Checks that the observations
+    kept in the ledger are exactly those of the final cohort. Refuses to write if the
+    output exists or lies inside the study bundle.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()

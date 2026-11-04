@@ -18,11 +18,13 @@ S = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
 
 
 def read(p):
+    """Read a CSV file into a list of dicts."""
     with open(p, newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
 def sha(p):
+    """Return the SHA-256 hex digest of a file."""
     return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 
 

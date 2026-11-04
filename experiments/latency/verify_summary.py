@@ -11,7 +11,14 @@ import numpy as np
 
 
 def verify(results):
+    """Recompute the exported latency statistics and compare them with the saved tables.
+
+    Checks the file hashes in the manifest, the session and group-mean tables, the
+    summaries, and the paired group-bootstrap intervals (seed 42).
+    """
+
     def read(name):
+        """Read a results CSV into a list of dicts."""
         with (results / name).open(newline="") as handle:
             return list(csv.DictReader(handle))
 
@@ -60,6 +67,7 @@ def verify(results):
     for name, left_method, right_method in contrasts:
 
         def values(method):
+            """Return the latency in milliseconds of one method, keyed by (source, group)."""
             return {(r["source_id"], r["group_id"]): float(r["latency_ms"]) for r in groups if r["method"] == method}
 
         left, right = values(left_method), values(right_method)

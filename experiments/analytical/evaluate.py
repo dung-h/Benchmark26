@@ -26,11 +26,13 @@ AN = STUDY / "analysis_v1"
 
 
 def read(path):
+    """Read a CSV file into a list of dicts."""
     with open(path, newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
 def write(path, records):
+    """Write records as a CSV file; raise if there are none."""
     if not records:
         raise RuntimeError("empty_output:" + str(path))
     with open(path, "w", newline="", encoding="utf-8") as f:
@@ -40,14 +42,20 @@ def write(path, records):
 
 
 def sha(path):
+    """Return the SHA-256 hex digest of a file."""
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
 def fnum(v):
+    """Convert a value to float."""
     return float(v)
 
 
 def metric(y, p, g, s):
+    """Return the error metrics of predictions p against targets y, with group labels g and source labels s.
+
+    Undefined values are empty strings.
+    """
     y = np.asarray(y, dtype=float)
     p = np.asarray(p, dtype=float)
     g = np.asarray(g)
@@ -100,6 +108,7 @@ def metric(y, p, g, s):
 
 
 def corr(x, y):
+    """Return (Pearson, Spearman) correlations, or ('', '') for fewer than 3 points, non-finite values or a constant input."""
     x = np.asarray(x, float)
     y = np.asarray(y, float)
     if (
@@ -114,6 +123,17 @@ def corr(x, y):
 
 
 def main():
+    """Score the frozen analytical routes on the 3,443-observation cohort with the frozen splits.
+
+    Checks the cohort and lineage, then for E1, E2 and each E3 held-out backend computes
+    metrics, source, backend and provenance slices, fold metrics, correlations and
+    coverage. The Qonductor selector predictions and the outer-training medians are
+    combined without refitting. Unitless NoTaDS rows are correlation-only. Paired
+    whole-group intervals reuse the frozen draw arrays. Route parity and exactly-once
+    shot multiplication are checked from the stored features. Writes the metric,
+    sliced, fold, correlation, paired-comparison and coverage tables and a receipt
+    with the input hashes.
+    """
     cohort = read(STUDY / "cohort/panel.csv")
     targets = {r["canonical_observation_id"]: float(r["target_seconds"]) for r in read(STUDY / "cohort/targets.csv")}
     ids = sorted(r["canonical_observation_id"] for r in cohort)
@@ -212,11 +232,19 @@ def main():
 
     # Combine the frozen Qonductor selector and outer-training median predictions without refitting.
     def getrow(ev, case, cid, m):
+        """Return the saved prediction row for (evaluation, case, observation, method).
+
+        For E1 and E2 with case ALL, the case is the observation's fold.
+        """
         if ev in ("E1", "E2") and case == "ALL":
             case = foldmap[ev][cid]
         return idx[(ev, case, cid, m)]
 
     def getpred(ev, case, cid, m):
+        """Return a method's prediction in seconds.
+
+        R0 and C0 come from the reduced baseline; any other method must have a prediction in seconds.
+        """
         if m in ("R0", "C0"):
             return base[(ev, cid, m)]
         r = getrow(ev, case, cid, m)

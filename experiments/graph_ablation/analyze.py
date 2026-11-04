@@ -44,10 +44,12 @@ LOCKED_ANALYSIS_SHA256 = "8d48c0a4e1fced2cd81cb92653e152f73109a21c362fb8cdd894a0
 
 
 def sha(path: Path) -> str:
+    """Return the SHA-256 hex digest of a file."""
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def read(path: Path) -> list[dict[str, str]]:
+    """Read a CSV file into a list of dicts."""
     with path.open(newline="") as handle:
         return list(csv.DictReader(handle))
 
@@ -75,6 +77,7 @@ def stratified_draws(names: list[str], source: dict[str, str], draws: int = DRAW
 
 
 def paired_contrast(treatment: dict[str, float], control: dict[str, float], names: list[str], draws) -> dict:
+    """Return the mean paired difference of group errors and its Bonferroni-adjusted bootstrap interval."""
     delta = np.array([treatment[g] - control[g] for g in names])
     sample = delta[draws].mean(axis=1)
     low, high = np.quantile(sample, [ALPHA / 2, 1 - ALPHA / 2])
@@ -82,6 +85,13 @@ def paired_contrast(treatment: dict[str, float], control: dict[str, float], name
 
 
 def analyze(run: Path) -> dict:
+    """Aggregate the 120 completed cells into metrics, contrasts and per-group errors.
+
+    Requires complete training, a passed baseline check and the analysis lock. For E1 and
+    E2 it takes the median of the three seed predictions per observation, averages the
+    absolute error within groups and over groups, and computes the three paired contrasts.
+    Returns the per-group rows and the summary.
+    """
     progress = json.loads((run / "training/run_progress.json").read_text())
     if progress["status"] != "COMPLETE_120_OF_120" or progress["completed_cells"] != 120:
         raise RuntimeError("training_incomplete")
@@ -173,6 +183,7 @@ def analyze(run: Path) -> dict:
 
 
 def main() -> int:
+    """Run the analysis and, as requested, write the summary, export per-group errors, or compare with a saved summary."""
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--run", type=Path, default=RUN_DIR, help="run directory (default: $B26_RUN_DIR)")
     parser.add_argument("--output", type=Path, help="write the summary here (refuses to overwrite)")

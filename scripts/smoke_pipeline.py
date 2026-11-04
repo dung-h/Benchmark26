@@ -8,6 +8,14 @@ import numpy as np
 
 
 def run(config_path, output):
+    """Run the synthetic split, fit and report example and return its metrics.
+
+    Generates grouped observations from the config, holds out whole groups, fits least
+    squares on the training groups with preprocessing fitted on them only, predicts the
+    held-out groups, computes group-balanced errors, and writes the tables under
+    `output`. Uses generated data, so it shows that the pipeline runs, not any measured
+    result.
+    """
     config = json.loads(Path(config_path).read_text())
     if config.get("dataset") != "synthetic" or config.get("model") != "least_squares":
         raise ValueError("Smoke config requires dataset=synthetic and model=least_squares")
@@ -44,6 +52,7 @@ def run(config_path, output):
     assert {r["group_id"] for r in train}.isdisjoint({r["group_id"] for r in heldout})
 
     def features(selected):
+        """Return the width, depth and shots of the selected rows as a float matrix."""
         return np.asarray([[r[k] for k in ("width", "depth", "shots")] for r in selected], dtype=float)
 
     # Fit preprocessing on train only, then reuse it on held-out groups.
@@ -52,6 +61,7 @@ def run(config_path, output):
     scale[scale == 0] = 1
 
     def design(selected):
+        """Return the standardized feature matrix with a leading column of ones."""
         normalized = (features(selected) - mean) / scale
         return np.column_stack([np.ones(len(selected)), normalized])
 

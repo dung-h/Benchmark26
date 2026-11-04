@@ -25,11 +25,13 @@ ST = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
 
 
 def read(p):
+    """Read a CSV file into a list of dicts."""
     with open(p, newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
 def write(p, rows):
+    """Write rows as a CSV file."""
     with open(p, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0]), lineterminator="\n")
         w.writeheader()
@@ -37,20 +39,31 @@ def write(p, rows):
 
 
 def sha(p):
+    """Return the SHA-256 hex digest of a file."""
     return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 
 
 def f(v, d=4):
+    """Format a number with `d` decimals; a blank becomes an em dash."""
     return "—" if v in ("", None) else f"{float(v):.{d}f}"
 
 
 def mdtable(head, rows):
+    """Format a Markdown table, escaping pipe characters."""
     out = ["| " + " | ".join(head) + " |", "|" + "|".join(["---"] * len(head)) + "|"]
     out += ["| " + " | ".join(str(x).replace("|", "\\|") for x in row) + " |" for row in rows]
     return "\n".join(out)
 
 
 def main():
+    """Write the analytical evaluation report, the provenance ledgers and the checksums.
+
+    Builds the source inventory and, from the saved metrics, the main score table, the
+    contrast table, the NoTaDS score table, the E3 backend table and the per-source
+    table. Writes the Markdown report and a manifest with the git revision and the
+    file hashes.
+    """
+    # Source inventory.
     panel = read(ST / "cohort/panel.csv")
     line = {r["canonical_observation_id"]: r for r in read(NS / "lineage.csv")}
     bysource = defaultdict(list)
@@ -96,12 +109,14 @@ def main():
             }
         ],
     )
+    # Tables of the report, built from the saved metrics.
     metrics = read(NS / "metrics.csv")
     paired = read(NS / "paired_comparisons.csv")
     corr = read(NS / "correlations.csv")
     sliced = read(NS / "sliced_metrics.csv")
 
     def get(ev, case, m):
+        """Return the metric row of (evaluation, case, method)."""
         return next(r for r in metrics if r["evaluation"] == ev and r["case"] == case and r["method_id"] == m)
 
     labels = {
@@ -407,6 +422,7 @@ python3 experiments/analytical/make_figures.py
 `extract_raw.py --full` intentionally refuses to overwrite an existing full extraction. Reproduction should use a clean, separately named namespace after pinning the same hashes.
 """
     (NS / "REPORT.md").write_text(report)
+    # Provenance: git revision and file hashes.
     githead = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     branch = subprocess.check_output(["git", "branch", "--show-current"], cwd=ROOT, text=True).strip()
     manifest = {

@@ -56,6 +56,11 @@ def pinned_code_problems() -> list[str]:
 
 
 def main() -> int:
+    """Recompute the published group-balanced errors and the six contrasts from the per-group errors.
+
+    Also checks the manifest hashes and the pinned code files. Prints a JSON status and
+    returns 1 on any difference.
+    """
     with (RESULTS / "group_errors.csv").open(newline="") as handle:
         rows = list(csv.DictReader(handle))
     summary = json.loads((RESULTS / "summary.json").read_text())

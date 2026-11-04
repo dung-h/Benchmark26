@@ -8,6 +8,7 @@ CONTRASTS = (("G0", "M0"), ("G1", "M1"), ("M1", "M0"), ("G1", "G0"))
 
 
 def aligned(records, expected_ids):
+    """Return the records in the order of the expected IDs; raise if any ID is missing, duplicated or foreign."""
     indexed = {r["canonical_observation_id"]: r for r in records}
     if len(indexed) != len(records) or set(indexed) != set(expected_ids):
         raise ValueError("Missing, duplicate, or foreign prediction identity")
@@ -15,6 +16,12 @@ def aligned(records, expected_ids):
 
 
 def metrics(y, p, groups, sources):
+    """Return the error metrics of predictions p against targets y, in seconds.
+
+    Pooled, group-balanced and source-balanced MAE, median error, RMSE, raw R^2,
+    log1p R^2 with a status, bias, tail errors, over- and under-prediction fractions,
+    and target and prediction statistics. Targets must be positive and finite.
+    """
     y, p = np.asarray(y, dtype=np.float64), np.asarray(p, dtype=np.float64)
     groups, sources = np.asarray(groups), np.asarray(sources)
     if not len(y) or y.shape != p.shape or len(groups) != len(y) or len(sources) != len(y):
@@ -59,6 +66,10 @@ def metrics(y, p, groups, sources):
 
 
 def group_errors(y, predictions, groups, sources):
+    """Return the group order, the source of each group, and each method's mean absolute error per group.
+
+    Raises if a group mixes sources, because the bootstrap resamples within sources.
+    """
     groups, sources = np.asarray(groups), np.asarray(sources)
     order = sorted(set(groups))
     source_order = []
@@ -85,6 +96,12 @@ def bootstrap_draws(sources, stratified, replicates=10000, seed=42):
 
 
 def paired_intervals(group_values, methods, draws, adjusted_level):
+    """Return the bootstrap intervals of the paired contrasts in CONTRASTS.
+
+    Each contrast is the difference of group-balanced MAE between two methods. `draws`
+    holds the resampled group indices. Reports a 95% interval and an interval at the
+    adjusted level; the bootstrap fraction below zero is not a p-value.
+    """
     values = np.asarray(group_values)
     result = []
     for a, b in CONTRASTS:

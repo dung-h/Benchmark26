@@ -9,6 +9,12 @@ from pathlib import Path
 
 
 def main():
+    """Check the published cost aggregates from files, using only the standard library.
+
+    Verifies the SHA-256 of the indexed files and the internal consistency of the
+    latency, accuracy, stage-cost, route-coverage and cold-start tables and the
+    reconstruction receipt. It does not read private raw timings.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
     a = parser.parse_args()
@@ -28,6 +34,7 @@ def main():
     folder = root / "artifacts/estimator_cost"
 
     def read(n):
+        """Read a CSV file of the cost folder into a list of dicts."""
         with (folder / n).open(newline="") as f:
             return list(csv.DictReader(f))
 

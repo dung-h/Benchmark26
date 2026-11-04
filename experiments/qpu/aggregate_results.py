@@ -34,6 +34,15 @@ NAMES = {
 
 
 def main():
+    """Aggregate the saved predictions into final metrics, comparisons and tables.
+
+    Requires a PASS validation receipt (240 neural cells, 123,948 replayed
+    predictions) and checks the cohort (3,443 observations, 203 groups, sources of
+    45, 340 and 3,058 observations). For E1, E2 and E3 it computes pooled and sliced
+    metrics, per-seed and seed-reduced results, the 48 paired comparisons, fold
+    deltas, tail errors and provenance tables, and writes them with a summary under
+    `--output`, which must not exist yet.
+    """
     ap = argparse.ArgumentParser()
     ap.add_argument("--output", type=Path, default=RUN / "analysis_v1")
     ap.add_argument("--validation", type=Path, default=RUN / "validation/final_v2/receipt.json")
@@ -45,6 +54,7 @@ def main():
     assert receipt["prediction_replay_rows"] == 123948
     dest = args.output
     dest.mkdir(parents=True)
+    # Load the cohort and check its counts before reading any prediction.
     panel = rows(OUT / "cohort/panel.csv")
     ids = sorted(r["canonical_observation_id"] for r in panel)
     panelmap = {r["canonical_observation_id"]: r for r in panel}
@@ -68,6 +78,7 @@ def main():
     fold_deltas = []
     tails = []
     provenance = []
+    # For each evaluation setting: metrics, per-seed and seed-reduced results, paired comparisons.
     for ev in ("E1", "E2", "E3"):
         context, _, _ = load_context(ev, include_targets=False)
         collection = {m: [] for m in METHODS}
@@ -246,6 +257,7 @@ def main():
                         "delta_pooled_mae_seconds": ma["pooled_mae_seconds"] - mb["pooled_mae_seconds"],
                     }
                 )
+    # Check the row counts, then write the tables and the summary.
     assert len(raw_seed) == 123948 and len(reduced) == 61974 and len(comparisons) == 48
     for name, data in [
         ("pooled_metrics", pooled),

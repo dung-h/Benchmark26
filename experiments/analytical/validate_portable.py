@@ -25,15 +25,18 @@ AN = ST / "analysis_v1"
 
 
 def read(p):
+    """Read a CSV file into a list of dicts."""
     with open(p, newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
 def sha(p):
+    """Return the SHA-256 hex digest of a file."""
     return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 
 
 def close(a, b, tol=1e-10):
+    """Assert that two values agree within `tol`, or are equal strings; a blank expected value requires a blank actual value."""
     if b in ("", None):
         if a not in ("", None):
             raise AssertionError(("expected_blank", a, b))
@@ -47,6 +50,7 @@ def close(a, b, tol=1e-10):
 
 
 def independently_metric(rows, pred):
+    """Recompute the metric row of the predictions `pred(row)` over the rows with plain NumPy."""
     y = np.array([float(r["target_seconds"]) for r in rows])
     p = np.array([float(pred(r)) for r in rows])
     g = np.array([r["group_id"] for r in rows])
@@ -94,6 +98,7 @@ def independently_metric(rows, pred):
 
 
 def ranks(values):
+    """Return the average ranks of the values; tied values share the mean rank."""
     values = np.asarray(values, float)
     order = np.argsort(values, kind="mergesort")
     out = np.empty(len(values), float)
@@ -108,6 +113,7 @@ def ranks(values):
 
 
 def corr(x, y):
+    """Return (Pearson, Spearman) correlations with NumPy only, or ('', '') for fewer than 3 points or a constant input."""
     x = np.asarray(x, float)
     y = np.asarray(y, float)
     if len(x) < 3 or len(np.unique(x)) < 2 or len(np.unique(y)) < 2:
@@ -116,6 +122,15 @@ def corr(x, y):
 
 
 def main():
+    """Replay the unified analytical results with NumPy only, so it runs outside the original environment.
+
+    Same checks as `validate.py`: it re-derives the predictions, checks the 615 Qiskit
+    parity rows and the 200 calibration fits, recomputes the metrics, the paired
+    whole-group intervals and the correlations, and checks that the frozen results and
+    input hashes are unchanged. Writes verification/analytical_replay.json and refuses
+    to overwrite it.
+    """
+    # Load the saved receipts, the cohort and the saved tables.
     receipt = json.loads((NS / "evaluation_receipt.json").read_text())
     cal = json.loads((NS / "calibration_receipt.json").read_text())
     json.loads((NS / "inventory.json").read_text())  # fail early if a receipt is missing or malformed
@@ -246,6 +261,7 @@ def main():
             bpred[(r["evaluation"], r["canonical_observation_id"], r["treatment"])] = float(r["predicted_seconds"])
 
     def predval(ev, case, i, m):
+        """Return the saved prediction for (evaluation, case, observation, method); R0 and C0 come from the baseline."""
         if m in ("R0", "C0"):
             return bpred[(ev, i, m)]
         if ev in ("E1", "E2") and case == "ALL":

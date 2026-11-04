@@ -21,6 +21,13 @@ import numpy as np
 
 
 def main():
+    """Time the prediction of a fitted regression model on five-feature inputs.
+
+    For each task, in three sessions after warm-ups, times only the model call on
+    features already in memory; loading the model is outside the timer. Records the CPU
+    affinity, library versions and model and input hashes in a receipt. `--output` must
+    not exist yet.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--features", type=Path, required=True)
     parser.add_argument("--model", type=Path, required=True)
@@ -54,6 +61,7 @@ def main():
             raise ValueError(f"Nonfinite features for {row['task_key']}")
 
         def predict(values=values):
+            """Return the model prediction for one five-feature input."""
             features = np.asarray(values, dtype=np.float64).reshape(1, 5)
             return float(model.predict(features)[0])
 

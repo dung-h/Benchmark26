@@ -27,11 +27,13 @@ STUDY = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
 
 
 def rows(path):
+    """Read a UTF-8 CSV file into a list of dicts."""
     with path.open(newline="", encoding="utf-8") as stream:
         return list(csv.DictReader(stream))
 
 
 def digest(path):
+    """Return the SHA-256 hex digest of a file, read in 1 MiB chunks."""
     h = hashlib.sha256()
     with path.open("rb") as stream:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
@@ -40,11 +42,20 @@ def digest(path):
 
 
 def require(condition, message):
+    """Raise ValueError with the message if the condition is false."""
     if not condition:
         raise ValueError(message)
 
 
 def main():
+    """Check the study labels and source joins against the original upstream files.
+
+    Checks the cohort identity (3,443 observations), then for each source root given
+    (`--mali-root`, `--qonductor-root`, `--qpack-root`) compares the labels read from the
+    original CSV, SQLite, ZIP or JSON files with the study targets to 1e-10 seconds.
+    Every source file is checked against its pinned size and SHA-256. Writes a receipt
+    to `--output`, which must not exist yet.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mali-root", type=Path)
     parser.add_argument("--qonductor-root", type=Path)
@@ -64,6 +75,7 @@ def main():
     maximum_difference = 0.0
 
     def compare(a, b, context):
+        """Require two numbers to be finite and within 1e-10; track the largest difference seen."""
         nonlocal maximum_difference
         a, b = float(a), float(b)
         require(math.isfinite(a) and math.isfinite(b), "Nonfinite: " + context)
@@ -71,6 +83,7 @@ def main():
         require(math.isclose(a, b, rel_tol=0, abs_tol=1e-10), "Value differs: " + context)
 
     def asset_path(source, base, asset):
+        """Return the path of a pinned source file after checking that it exists and matches its size and SHA-256."""
         path = base / asset["path"]
         require(path.is_file(), "Missing source file: " + str(path))
         require(

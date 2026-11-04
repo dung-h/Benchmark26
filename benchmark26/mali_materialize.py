@@ -58,6 +58,7 @@ from benchmark26.mali_features import (
 
 
 def atomic_json(path: Path, value: Any) -> None:
+    """Write a JSON file through a temporary `.partial` file, so a reader never sees a half-written file."""
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".partial")
     temporary.write_text(json.dumps(value, indent=2, sort_keys=True, allow_nan=False) + "\n", encoding="utf-8")
@@ -80,6 +81,11 @@ def implementation_hashes() -> dict[str, str]:
 
 
 def input_manifest() -> dict[str, Any]:
+    """Verify the frozen protocol, the execution authorization and the pinned source files, and return the input manifest.
+
+    Raises if a hash differs, the authorization status is not the expected one, or
+    the limit on GPU training workers is not 1.
+    """
     protocol = json.loads(PROTOCOL_PATH.read_text(encoding="utf-8"))
     auth_path = ARTIFACTS / "unified_runtime_estimation/execution_authorization.json"
     auth = json.loads(auth_path.read_text(encoding="utf-8"))
@@ -145,9 +151,16 @@ def input_manifest() -> dict[str, Any]:
 
 
 def environment_lock() -> dict[str, Any]:
+    """Record the Python environments used for features and for neural training.
+
+    The installed packages of each interpreter are frozen into a dependency lock
+    file under OUT_ROOT (an existing file is kept). Returns the file hashes and the
+    versions of the key packages.
+    """
     from importlib import metadata
 
     def freeze_from_metadata(python: str) -> str:
+        """Return sorted `name==version` lines for every package installed in the given Python."""
         code = (
             "import importlib.metadata as m; "
             "items=sorted((d.metadata.get('Name','').lower().replace('_','-'), d.version) "
@@ -243,6 +256,12 @@ def saved_graph_signature(circuit, repr_row: dict[str, str]) -> dict[str, Any]:
 def verify_source_graph_file(
     repr_row: dict[str, str], graph_hashes: dict[str, str], verified: set[str]
 ) -> tuple[str, str]:
+    """Check that the saved operation graph of a representation row exists and matches its recorded SHA-256.
+
+    Returns the file name and expected hash, or two empty strings when the row has
+    no graph file and none is required. `verified` remembers the files already
+    hashed, so each file is read once.
+    """
     name = str(repr_row.get("graph_file", ""))
     if not name:
         if repr_row.get("graph_status") == "available":
@@ -275,6 +294,18 @@ def make_row_attempt(
     code_sha256: str = "",
     implementation_hashes_by_name: dict[str, str] | None = None,
 ) -> dict[str, Any]:
+    """Materialize the features of one canonical observation and return its ledger row.
+
+    Reads the circuit bytes, verifies the saved graph, and extracts the global and
+    graph features with the pinned extractor. Results are cached by (QASM hash,
+    register width, property hash), so identical inputs are computed once; a cache
+    hit is marked `feature_cache_reuse`. With `input_route_mode` set to
+    `verified_graph_fast_path`, hash-verified saved Ma-Li and QPack operation graphs
+    replace the QASM parse and the exact parser is the fallback; Qonductor rows
+    always use the parser. A hash or digest violation, a width mismatch or a failed
+    signature gate raises an error and never falls back. Other failures are recorded
+    as reasons in the row.
+    """
     if input_route_mode not in {"qasm_parse", "verified_graph_fast_path"}:
         raise ValueError(f"unknown_input_route_mode:{input_route_mode}")
     canonical_id = row["canonical_row_id"]
@@ -565,6 +596,7 @@ def make_row_attempt(
 
 
 def feature_fields() -> list[str]:
+    """Return the column names of the feature status ledger, in order."""
     return [
         "canonical_row_id",
         "source_id",
@@ -607,6 +639,12 @@ def feature_fields() -> list[str]:
 
 
 def selected_canaries(rows: list[dict[str, str]], representations: dict[str, dict[str, str]]) -> list[dict[str, str]]:
+    """Choose the predeclared canary rows.
+
+    For each (source, backend) cell, take the available graph with the fewest
+    operations, or the first row if none is available. Add the two special
+    Qonductor rows (row39 and row4477) when present.
+    """
     chosen: dict[str, dict[str, str]] = {}
     by_cell: dict[tuple[str, str], list[dict[str, str]]] = {}
     for row in rows:
@@ -631,6 +669,7 @@ def selected_canaries(rows: list[dict[str, str]], representations: dict[str, dic
 
 
 def read_existing(path: Path) -> dict[str, dict[str, str]]:
+    """Read an existing ledger CSV into a dict by canonical row ID; return {} if the file does not exist."""
     if not path.is_file():
         return {}
     with path.open(newline="", encoding="utf-8") as handle:
@@ -638,6 +677,7 @@ def read_existing(path: Path) -> dict[str, dict[str, str]]:
 
 
 def write_ledger(path: Path, rows: list[dict[str, Any]], fields: list[str]) -> None:
+    """Write the ledger CSV through a temporary file and an fsync, then rename it into place."""
     path.parent.mkdir(parents=True, exist_ok=True)
     temp = path.with_suffix(path.suffix + ".partial")
     with temp.open("w", newline="", encoding="utf-8") as handle:
@@ -650,6 +690,15 @@ def write_ledger(path: Path, rows: list[dict[str, Any]], fields: list[str]) -> N
 
 
 def main() -> None:
+    """Materialize the features of the canonical observations and write the status ledger.
+
+    Checks the pinned inputs and records the environment, then processes each row
+    with `make_row_attempt` and writes feature_status_ledger.csv under the output
+    root, with run_manifest.json, input_manifest.json and feature_dictionary.json. `--canary` runs the predeclared canary set; `--resume` continues from an
+    existing ledger after checking its IDs; `--max-rows` is a development-only
+    subset whose manifest stays partial; `--input-route` chooses between the exact
+    QASM parser and the hash-verified saved-graph fast path.
+    """
     global OUT_ROOT
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -683,6 +732,7 @@ def main() -> None:
     _mali_features.OUT_ROOT = OUT_ROOT
     OUT_ROOT.mkdir(parents=True, exist_ok=True)
     started = time.monotonic()
+    # Check the pinned inputs and record the environment.
     pinned = input_manifest()
     code_sha256 = sha256_file(Path(__file__))
     implementation_pins = pinned["implementation_hashes"]
@@ -710,6 +760,7 @@ def main() -> None:
     graph_hashes = json.loads(HASH_MANIFEST.read_text(encoding="utf-8"))
     verified_graph_files: set[str] = set()
     cache: dict[tuple[str, int, str], dict[str, Any]] = {}
+    # Materialize each row that is not already in the ledger.
     with zipfile.ZipFile(QONDUCTOR_ZIP) as qond_zip:
         for number, row in enumerate(chosen, start=1):
             canonical_id = row["canonical_row_id"]

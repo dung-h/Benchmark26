@@ -23,11 +23,13 @@ P = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
 
 
 def read(p):
+    """Read a CSV file into a list of dicts."""
     with open(p, newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
 def write(p, rs):
+    """Write rows as a CSV file; raise if there are none."""
     if not rs:
         raise RuntimeError("empty_output")
     with p.open("w", newline="", encoding="utf-8") as f:
@@ -37,10 +39,19 @@ def write(p, rs):
 
 
 def sha(p):
+    """Return the SHA-256 hex digest of a file."""
     return hashlib.sha256(p.read_bytes()).hexdigest()
 
 
 def main():
+    """Apply the frozen scalar methods and fit the affine adaptations on outer-training data only.
+
+    For each evaluation case (E1 and E2 folds, E3 held-out backends) with disjoint
+    train and test identities, applies each frozen route (raw and shot-scaled) to every
+    observation and fits an intercept and slope on the training observations. Writes
+    calibration_receipts.csv, predictions.csv and a receipt.
+    """
+    # Load the raw features, lineage, targets and panel, and check the cohort.
     raw = read(NS / "raw_features.csv")
     lin = read(NS / "lineage.csv")
     target_rows = read(P / "cohort/targets.csv")
@@ -127,6 +138,7 @@ def main():
     bases = [name for route in raw_base_ids.values() for name in (route, route + "_SHOT_SCALED")]
     predictions = []
     calreceipts = []
+    # Per case: apply each frozen route and fit the calibration on the training observations only.
     for evaluation, case, train, test in cases:
         yfit = np.array([targets[i] for i in sorted(train)], dtype=float)
         for base in bases:
@@ -240,6 +252,7 @@ def main():
                     "fit_ids_sha256": "",
                 }
             )
+    # Write the tables and the receipt.
     write(NS / "calibration_receipts.csv", calreceipts)
     write(NS / "predictions.csv", predictions)
     rec = {

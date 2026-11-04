@@ -51,12 +51,14 @@ FIELDS = [
 
 
 def read(path):
+    """Read a CSV file into a list of dicts, with the csv field-size limit raised."""
     csv.field_size_limit(100_000_000)
     with Path(path).open(newline="") as f:
         return list(csv.DictReader(f))
 
 
 def sha(path):
+    """Return the SHA-256 hex digest of a file, read in 1 MiB chunks."""
     h = hashlib.sha256()
     with Path(path).open("rb") as f:
         for chunk in iter(lambda: f.read(1 << 20), b""):
@@ -65,10 +67,12 @@ def sha(path):
 
 
 def idsha(ids):
+    """Return the SHA-256 of the sorted observation IDs joined by newlines."""
     return hashlib.sha256("\n".join(sorted(ids)).encode()).hexdigest()
 
 
 def dump(name, obj):
+    """Write an object as indented JSON under OUT, through a temporary file."""
     p = OUT / name
     p.parent.mkdir(parents=True, exist_ok=True)
     tmp = p.with_suffix(p.suffix + ".tmp")
@@ -77,6 +81,7 @@ def dump(name, obj):
 
 
 def write(name, rows):
+    """Write a list of dict rows as a CSV file under OUT."""
     p = OUT / name
     p.parent.mkdir(parents=True, exist_ok=True)
     with p.open("w", newline="") as f:
@@ -86,6 +91,7 @@ def write(name, rows):
 
 
 def guard():
+    """Return the peak memory use in bytes; raise if it exceeds 8 GiB."""
     rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024
     if rss > 8 * 1024**3:
         raise RuntimeError("RSS_above_8GiB")
@@ -93,6 +99,12 @@ def guard():
 
 
 def tables():
+    """Load the tables of the 4,515-observation study and cross-check them.
+
+    Checks the observation, group and fold counts, joins the representation rows,
+    compares shot counts with the Qonductor database and writes the 82 shot
+    discrepancies found. Returns the panel, the split and the representation rows.
+    """
     panel = read(PANEL)
     ids = [r["canonical_observation_id"] for r in panel]
     assert len(panel) == len(set(ids)) == 4515
@@ -158,6 +170,10 @@ def tables():
 
 
 def kernel():
+    """Compile the C++ path kernel if needed, load it, and return `call(graph, durations)`.
+
+    `call` returns the ten path features of one saved operation DAG.
+    """
     so = OUT / "path_kernel.so"
     if not so.exists():
         subprocess.run(
@@ -179,6 +195,7 @@ def kernel():
     fn.restype = ctypes.c_int
 
     def call(g, durations):
+        """Return the ten path features of one saved graph for the given operation durations."""
         n = int(g["operation_count"])
         arity = np.frombuffer(g["arity"], dtype=np.uint8)
         q0 = np.frombuffer(g["q0"], dtype=np.int32)
@@ -197,6 +214,10 @@ def kernel():
 
 def reference(g, durations):
     # Independent explicit graph recurrence, not a last-use resource simulation.
+    """Compute the same ten path features in Python from an explicit graph recurrence.
+
+    Used to cross-check the C++ kernel; it is not a last-use resource simulation.
+    """
     n = g["operation_count"]
     arity = np.frombuffer(g["arity"], dtype=np.uint8)
     measure = np.array([x == "measure" for x in g["names"]])
@@ -243,6 +264,11 @@ def reference(g, durations):
 
 
 def backends():
+    """Load the pinned fake backends after checking the SHA-256 of their files.
+
+    Requires Qiskit 2.5.2 and Qiskit IBM Runtime 0.49.0. Returns the backend objects
+    by snapshot ID and the pinned file hashes.
+    """
     from qiskit_ibm_runtime import fake_provider
 
     assert importlib.metadata.version("qiskit") == "2.5.2"
@@ -264,6 +290,10 @@ def backends():
 
 
 def duration_values(g, backend):
+    """Return the duration in seconds of every operation of a graph on a backend's target.
+
+    Only rz, sx, x, cx, ecr and measure are allowed.
+    """
     n = g["operation_count"]
     q0 = np.frombuffer(g["q0"], dtype=np.int32)
     q1 = np.frombuffer(g["q1"], dtype=np.int32)
@@ -287,6 +317,10 @@ def duration_values(g, backend):
 
 
 def check_qiskit_depths(g, features):
+    """Rebuild the circuit shape in Qiskit and assert its depths equal the kernel's.
+
+    Compares the unitary, one-qubit and two-qubit depths.
+    """
     from qiskit import QuantumCircuit
 
     qc = QuantumCircuit(g["num_qubits"])
@@ -303,6 +337,13 @@ def check_qiskit_depths(g, features):
 
 
 def extract():
+    """Compute the path features of every saved graph and write features.csv with a receipt.
+
+    The C++ kernel computes the features. For the smallest graph of each snapshot
+    and the largest graph overall, the result is checked against the Python
+    reference; the smallest graphs are also checked against Qiskit depths. Target
+    values are removed from the rows before the structural calculation.
+    """
     panel, split, reps = tables()
     # Target values deliberately removed before structural calculation.
     safe = [{k: v for k, v in r.items() if k != "target_seconds"} for r in panel]
@@ -428,6 +469,11 @@ def extract():
 
 
 def metric(rows, method, scope):
+    """Return the error metrics of one method on a set of rows.
+
+    MAE, group-balanced and source-balanced MAE, RMSE, raw R^2, bias, and the
+    median, 90th and 99th percentile and maximum absolute error, in seconds.
+    """
     y = np.array([float(r["target_seconds"]) for r in rows])
     pred = np.array([float(r["prediction_seconds"]) for r in rows])
     errors = pred - y
@@ -457,6 +503,14 @@ def metric(rows, method, scope):
 
 
 def score():
+    """Build the predictions of every method, score them and write the result tables.
+
+    Checks the feature receipt and input hashes. The NoTaDS and HyperQ scores are
+    fitted with a two-coefficient affine map on outer-training folds only; the saved
+    Qiskit duration times shots is kept as a reference. Metrics, paired comparisons
+    (10,000 whole-group bootstrap draws, seed 42), calibration fits, leakage receipts
+    and a completion receipt are written.
+    """
     panel, split, _reps = tables()
     receipt = json.loads((OUT / "feature_receipt.json").read_text())
     assert receipt["status"] == "PASS" and sha(OUT / "features.csv") == receipt["feature_sha256"]

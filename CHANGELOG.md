@@ -17,6 +17,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 - Tests for the graph controls, the median-of-seeds estimand, the stratified paired bootstrap and the shared results.
 
 ### Changed
+- Code clarity in the 47 Python files that no run manifest pins: every public function now has a docstring, the longest `main` functions have step comments, imports are sorted, unused imports and dead variables are removed, and subprocess checks are explicit. Only docstrings and comments were added to the code; an AST comparison against the previous commit confirmed that nothing else changed. The 29 files pinned by the executed graph-ablation run and `protocols/` are untouched; `make check` now verifies the 29 files against `results/graph_ablation/manifest.json`, and `docs/REPRODUCTION.md` lists which files must stay unchanged.
 - README: the first command now checks the published numbers; a table points each reader task to its document. `docs/METHODOLOGY.md` starts with definitions, and `docs/PREDICTION_LATENCY.md` states what is and is not timed.
 - `experiments/qpu/graph_ablation_runner.py` joins the run entry points, so a prepared run pins 29 code files. Run manifests prepared with 0.3.2 list fewer files and are rejected; prepare a new `B26_RUN_DIR`.
 
