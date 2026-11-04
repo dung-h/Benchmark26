@@ -28,9 +28,11 @@ python3 scripts/fetch_upstream_data.py --source all --destination /path/to/upstr
 python3 scripts/fetch_upstream_data.py --source all --destination /path/to/upstream
 ```
 
-The Qonductor archive uses Git LFS. Downloading the sources does not rebuild the study tables; level 3 needs the study bundle.
+The Qonductor circuit archive (`circuits.zip`) is stored with Git LFS: a plain `git clone` gives a small pointer file, and `git lfs pull` (or this script) gives the real archive. These downloads are selected files, not the full Git checkouts that level 3 expects in `B26_MALI_SOURCE` and `B26_QONDUCTOR_SOURCE`, and they do not rebuild the study tables.
 
 ## 3. Study replay
+
+Level 3 needs the external study bundle. It is not published at present, so outside readers can carry out levels 1 and 2 and check `runs.csv`, but not this level.
 
 ### Configure paths
 
@@ -43,7 +45,7 @@ All machine-specific locations are read from environment variables in `benchmark
 | `B26_MALI_SOURCE` | `inputs/mali/` | Ma–Li Git checkout at the pinned revision |
 | `B26_MALI_QASM` | `$B26_MALI_SOURCE/data/quantum_circuits/` | Ma–Li circuits |
 | `B26_QONDUCTOR_SOURCE` | `inputs/qonductor/` | Qonductor Git checkout at the pinned revision |
-| `B26_QONDUCTOR_ARCHIVE` | `$B26_QONDUCTOR_SOURCE/data/database/circuits.zip` | Hydrated circuit archive |
+| `B26_QONDUCTOR_ARCHIVE` | `$B26_QONDUCTOR_SOURCE/data/database/circuits.zip` | Circuit archive with its Git LFS content downloaded, not the pointer file |
 | `B26_QONDUCTOR_DATABASE` | `$B26_QONDUCTOR_SOURCE/data/database/quantum_scheduler.db` | Qonductor database |
 | `B26_WORK` | `work/` | Scratch outputs (smoke example, verifier output) |
 | `B26_RUN_DIR` | unset | Output directory of a new fitting run (see [Run the pipeline](#run-the-pipeline)) |
@@ -53,7 +55,7 @@ The bundle keeps the directory names of the original study (for example `postfre
 
 ### Verify against the saved results
 
-These commands read the bundle and write only to the path given (or, for `validate_portable.py`, to `verification/` in the checkout). They can be run from any directory.
+These commands read the bundle and write only to the path given (or, for `validate_portable.py`, to `verification/` in the checkout). Run them from the repository root, as written; from another directory, give the full path of each script.
 
 ```bash
 python3 scripts/check_setup.py --require-study-inputs

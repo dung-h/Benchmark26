@@ -4,9 +4,9 @@ Benchmark26 compares neural, classical-regression and analytical estimators that
 
 ## Download the dataset
 
-The runtimes of all 3,443 runs are published as one table, `runs.csv`, in the [benchmark26-data folder](https://drive.google.com/drive/folders/1lXiRepBX3S7rzdscwnVyqXfis1qcp8-K) on Google Drive. Each row is one run: source, circuit group, backend, shot count and runtime in seconds. The folder's `README.md` explains every column, and `SHA256SUMS` holds the checksum (`86ee98ff2408…`). [`scripts/export_dataset.py`](scripts/export_dataset.py) shows how the table was made from the study files.
+The runtimes of all 3,443 runs are published as one table, `runs.csv`, in the [benchmark26-data folder](https://drive.google.com/drive/folders/1lXiRepBX3S7rzdscwnVyqXfis1qcp8-K) on Google Drive. Each row is one run (for QPack, the mean over the timings of one workflow): source, circuit group, backend, shot count and runtime in seconds. The folder's `README.md` explains every column, and `SHA256SUMS` holds the checksum (`86ee98ff2408…`). [`scripts/export_dataset.py`](scripts/export_dataset.py) shows how the table was made from the study files.
 
-The circuit caches and fitted models are not published. Together with the study tables they form an external study bundle, which is needed to retrain the models. Without the bundle you can still recompute the published latency and graph-ablation statistics. With it you can replay the study checks.
+The circuit caches, graphs, splits and fitted models are not published. Together with the study tables they form an external study bundle, which is needed to replay the study or retrain the models; it is not currently available to outside readers. Without the bundle you can still recompute the published latency and graph-ablation statistics. With it you can replay the study checks.
 
 ## Check the published numbers
 
