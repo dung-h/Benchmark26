@@ -2,7 +2,7 @@
 
 Code and aggregate results for a benchmark of QPU runtime estimators. The study compares neural, classical-regression and analytical estimators on 3,443 archived QPU observations from the Ma–Li, Qonductor and QPack sources, grouped into 203 logical-circuit groups.
 
-The repository contains the experiment code, the frozen study protocols, source pins for the upstream data, and the exported prediction-latency statistics. It does not contain the runtime labels, circuit caches, fitted models or other study data; these form an external study bundle (see [Reproduction](docs/REPRODUCTION.md)).
+The repository contains the experiment code, the frozen settings of the study, source pins for the upstream data, and the exported aggregate results (prediction latency and the graph ablation). It does not contain the runtime labels, circuit caches, fitted models or other study data; these form an external study bundle (see [Reproduction](docs/REPRODUCTION.md)).
 
 ## Quick start
 
@@ -24,7 +24,7 @@ make smoke    # synthetic split–fit–evaluate–report example in work/smoke
 | `experiments/latency/` | Prediction-latency measurement, cost composition and verification |
 | `experiments/graph_ablation/` | Graph ablation (separate experiment): protocol, graph controls, analysis and verification |
 | `benchmark26/` | Shared code: feature extraction, models, path estimators, path configuration |
-| `protocols/` | Frozen study contracts, registries and reference code, verified by SHA-256 |
+| `protocols/` | The frozen settings of the study that produced the results (seeds, feature rules, registries, pinned reference code). The code reads them at run time and `make check` verifies their SHA-256 chain. You do not need to read them to run or review the code. |
 | `results/` | Exported aggregate results |
 | `upstream/` | Source URLs, revisions and hashes of the upstream data |
 | `scripts/` | Setup check, data download, smoke example and verification tools |
