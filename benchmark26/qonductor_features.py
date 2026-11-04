@@ -17,6 +17,7 @@ from qiskit.circuit import Clbit
 
 
 def sha256_bytes(data: bytes) -> str:
+    """Return the SHA-256 hex digest of bytes."""
     return hashlib.sha256(data).hexdigest()
 
 
@@ -95,6 +96,7 @@ def _compile_qasm_string_parser(module: ast.Module) -> Any:
 
     class RenameCircuitString(ast.NodeTransformer):
         def visit_Name(self, node: ast.Name):
+            """Rename the identifier `circuit_string` to `qasm_string`."""
             if node.id == "circuit_string":
                 return ast.copy_location(ast.Name(id="qasm_string", ctx=node.ctx), node)
             return node

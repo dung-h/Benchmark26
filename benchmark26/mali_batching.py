@@ -52,6 +52,10 @@ class ExampleCache:
         self.verified = set()
 
     def get(self, cid, variant):
+        """Return the cached example for (observation, variant), building and caching it if needed.
+
+        The cache is limited to `budget` bytes and evicts the least recently used examples.
+        """
         key = (cid, variant)
         if key in self.items:
             value, size = self.items.pop(key)
@@ -79,6 +83,13 @@ class ExampleCache:
 
 
 def load_context(feature_root):
+    """Load and verify everything the batch tools need from a materialized feature root.
+
+    Checks the input manifest against the protocol hash and the feature ledger hash
+    (8,767 canonical identities), the feature and environment pins, the technical gate
+    receipt and the preflight report. Returns the ledger, the canonical rows, the outer and
+    inner splits and the pins.
+    """
     protocol, protocol_sha, execution_sha = base.canonical_protocol_hashes()
     inp_path = feature_root / "input_manifest.json"
     inp = json.loads(inp_path.read_text())
@@ -125,6 +136,12 @@ def load_context(feature_root):
 
 
 def partitions_and_transform(context, fold):
+    """Return the fit, validation and test partitions of a fold and its feature transform.
+
+    If the parent run saved a transform, it is checked against the fit identity, the
+    protocol and the input manifest and then reused. Otherwise the transform is fitted on
+    the fit partition only.
+    """
     parts = base.common_eligible_partitions(
         base.fold_partitions(context["outer"], context["inner"], fold), context["ledger"]
     )
@@ -158,6 +175,7 @@ def partitions_and_transform(context, fold):
 
 
 def model_for(variant, transform, recompute, torch):
+    """Build the pinned model of a variant for the transform and move it to the GPU, with activation recomputation if requested."""
     cls, _ = base.load_pinned_model()
     model = base.make_model(cls, variant, len(transform["global"]["retained_indices"]), recompute).to("cuda:0")
     if variant == base.METHODS[0]:
@@ -244,6 +262,13 @@ def gradient_gate(context, transform, cache, ids, torch):
 
 
 def tune(context, output, contract, torch, gpu):
+    """Measure CUDA throughput of candidate batch settings and write `batch_profile.json`.
+
+    Checks gradient parity on the two smallest fit graphs, probes the batch candidates of
+    the contract on a seeded sample of fit graphs, keeps the settings that pass, chooses
+    the one with the best throughput within the contract's rule, and estimates the time of a
+    full pass. Refuses to run if the profile already exists.
+    """
     import numpy as np
 
     parts, transform = partitions_and_transform(context, 0)
@@ -381,6 +406,12 @@ def tune(context, output, contract, torch, gpu):
 
 
 def fit_cell(context, output, parts, transform, variant, fold, seed, profile, torch):
+    """Fit one Ma-Li cell (method, fold, seed) and return its result.
+
+    Uses Adam (learning rate 0.0005, weight decay 0.0001). It returns the saved result if
+    the cell is complete and resumes from its checkpoint otherwise. Only fit and validation
+    labels are used until the final test-scoring pass. CUDA out-of-memory errors are caught.
+    """
     import numpy as np
 
     method = METHOD_IDS[variant]
@@ -566,6 +597,15 @@ def fit_cell(context, output, parts, transform, variant, fold, seed, profile, to
 
 
 def main():
+    """Run a batch-optimization stage for fold 0 (`--stage tune` or `train`).
+
+    `tune` measures throughput and writes the batch profile. `train` first checks that the
+    saved profile passed and matches the current code, data and contract pins, then fits
+    the six fold-0 cells (every method and seed) with it and records them in
+    run_manifest.json; the run then waits for the fold-0 optimization QA before other
+    folds are allowed. The output directory must be separate from the feature root, and
+    the GPU lease keeps other timing runs from overlapping.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stage", choices=("tune", "train"), required=True)
     parser.add_argument("--feature-root", type=Path, default=DEFAULT_FEATURES)

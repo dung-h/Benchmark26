@@ -49,6 +49,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def git_revision() -> str | None:
+    """Return the git revision of the repository, with `-dirty` if the working tree has changes, or None."""
     try:
         out = subprocess.run(
             ["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture_output=True, text=True, check=True
@@ -62,6 +63,12 @@ def git_revision() -> str | None:
 
 
 def main() -> int:
+    """Prepare a directory for a new fitting run with the current code.
+
+    Checks that `B26_RUN_DIR` is set and outside the study, verifies the locked protocol, inputs and
+    graphs, and writes run_manifest.json with the hashes of the current code. An existing manifest must
+    match. Returns 0 on success.
+    """
     if not NEW_RUN:
         print("B26_RUN_DIR is not set. Set it to a new directory for the run's outputs.", file=sys.stderr)
         return 2

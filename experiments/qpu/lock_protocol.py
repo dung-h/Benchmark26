@@ -15,6 +15,7 @@ OUT = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
 
 
 def sha(p):
+    """Return the SHA-256 hex digest of a file, read in 1 MiB chunks."""
     h = hashlib.sha256()
     with Path(p).open("rb") as f:
         for b in iter(lambda: f.read(1 << 20), b""):
@@ -23,10 +24,17 @@ def sha(p):
 
 
 def read(p):
+    """Read a JSON file."""
     return json.loads(Path(p).read_text(encoding="utf-8"))
 
 
 def main():
+    """Create the immutable execution lock before any outcome is seen.
+
+    Requires the previous lock, the protocol amendment and the passed feature, split, classical and batch
+    receipts. Records the hashes of the code, the inputs and every graph file, with the git state, in
+    execution_lock_v2.json. Refuses to overwrite an existing lock.
+    """
     lock_path = OUT / "execution_lock_v2.json"
     if lock_path.exists():
         raise RuntimeError("protocol_already_locked_refuse_overwrite")

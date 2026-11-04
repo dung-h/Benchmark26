@@ -33,10 +33,12 @@ GRAPHSTATE_QASM = ARTIFACTS / "postfreeze_qonductor_generator_version_semantics_
 
 
 def sha_bytes(b: bytes) -> str:
+    """Return the SHA-256 hex digest of bytes."""
     return hashlib.sha256(b).hexdigest()
 
 
 def sha(path: Path) -> str:
+    """Return the SHA-256 hex digest of a file, read in 1 MiB chunks."""
     h = hashlib.sha256()
     with path.open("rb") as f:
         for b in iter(lambda: f.read(1 << 20), b""):
@@ -45,11 +47,13 @@ def sha(path: Path) -> str:
 
 
 def read(path: Path) -> list[dict[str, str]]:
+    """Read a UTF-8 CSV file into a list of dicts."""
     with path.open(newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
 def write_csv(path: Path, rows: list[dict], fields=None):
+    """Write rows as a CSV file through a temporary file; raise if there are none."""
     if not rows:
         raise RuntimeError(f"refuse_empty_output:{path}")
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -64,6 +68,7 @@ def write_csv(path: Path, rows: list[dict], fields=None):
 
 
 def write_json(path: Path, obj):
+    """Write a value as JSON through a temporary file."""
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".partial")
     tmp.write_text(json.dumps(obj, sort_keys=True, indent=2, allow_nan=False) + "\n", encoding="utf-8")
@@ -73,6 +78,13 @@ def write_json(path: Path, obj):
 
 
 def main():
+    """Build the target-separated, hash-pinned model-input tables of the 3,443-observation cohort.
+
+    Joins the proposed observations with their features, native-feature rows, groups and representation
+    rows. Picks a target-blind representative for each QPack workflow mean, extracts any missing graph
+    representation, and writes the panel, the targets and the feature ledger separately. Checks the
+    counts (340, 3,058 and 45 observations; 203 groups) and audits feature collisions.
+    """
     if (OUT / "cohort/feature_ledger.csv").exists():
         raise RuntimeError("refuse_overwrite_existing_cohort; use a new amendment attempt directory")
     import numpy as np
@@ -81,6 +93,10 @@ def main():
 
     def canonical_instruction_digest(circuit, *, include_parameters=True):
         # Use the same ordered operation/operand signature as logical-input grouping.
+        """Return a hash of the ordered operations and operands of a circuit, optionally without parameters.
+
+        The same signature is used for logical-input grouping.
+        """
         body = {"qubits": circuit.num_qubits, "clbits": circuit.num_clbits, "instructions": []}
         for inst in circuit.data:
             op = inst.operation

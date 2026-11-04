@@ -66,10 +66,12 @@ ALIASES = {
 
 
 def sha256_bytes(data: bytes) -> str:
+    """Return the SHA-256 hex digest of bytes."""
     return hashlib.sha256(data).hexdigest()
 
 
 def sha256_file(path: Path) -> str:
+    """Return the SHA-256 hex digest of a file, read in 1 MiB chunks."""
     h = hashlib.sha256()
     with path.open("rb") as handle:
         for block in iter(lambda: handle.read(1 << 20), b""):
@@ -78,15 +80,18 @@ def sha256_file(path: Path) -> str:
 
 
 def stable_digest(value: object) -> str:
+    """Return the SHA-256 of the canonical JSON (sorted keys, compact separators) of a value."""
     return sha256_bytes(json.dumps(value, sort_keys=True, separators=(",", ":")).encode())
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
+    """Read a UTF-8 CSV file into a list of dicts."""
     with path.open(newline="", encoding="utf-8") as handle:
         return list(csv.DictReader(handle))
 
 
 def write_csv(path: Path, rows: list[dict[str, object]], fields: list[str]) -> str:
+    """Write rows as a UTF-8 CSV file and return its SHA-256."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore")
@@ -96,25 +101,35 @@ def write_csv(path: Path, rows: list[dict[str, object]], fields: list[str]) -> s
 
 
 def write_json(path: Path, payload: object) -> str:
+    """Write a value as indented JSON with sorted keys and return its SHA-256."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return sha256_file(path)
 
 
 def canonical_backend(name: str) -> str:
+    """Return the canonical name of a backend, mapping known aliases."""
     return ALIASES.get(name, name)
 
 
 def seed_for(qasm_digest: str, source: str, backend: str, repetition: int = 0) -> int:
+    """Return a reproducible integer seed derived from the root seed, the QASM digest, the context, source, backend and repetition."""
     material = f"{ROOT_SEED}|{TRANSPILE_STREAM}|{qasm_digest}|{CONTEXT_ID}:{source}:{backend}|{repetition}"
     return int.from_bytes(hashlib.sha256(material.encode()).digest()[:4], "big")
 
 
 def qubit_index(circuit: QuantumCircuit, qubit: object) -> int:
+    """Return the integer index of a qubit in a circuit."""
     return int(circuit.find_bit(qubit).index)
 
 
 def qasm_features(circuit: QuantumCircuit) -> dict[str, object]:
+    """Return the structural features of a circuit.
+
+    Register and active width, depth, counts of one-qubit, two-qubit, swap-like and
+    measurement operations, and the gate and operation-name counts as JSON. Barriers
+    and snapshots are not counted as gates.
+    """
     counts = Counter(str(inst.operation.name) for inst in circuit.data)
     active: set[int] = set()
     one_q = two_q = measurement = swap_like = 0
@@ -168,6 +183,7 @@ def compiled_ir_digest(circuit: QuantumCircuit) -> str:
 
 
 def regular_graph_edges(size: int) -> list[tuple[int, int]]:
+    """Return the edges of the regular graph used for a QPack circuit of the given size."""
     if size == 2:
         return [(0, 1)]
     if size == 3:
@@ -182,6 +198,7 @@ def regular_graph_edges(size: int) -> list[tuple[int, int]]:
 
 
 def qpack_circuit(size: int, p: int) -> QuantumCircuit:
+    """Build the QPack circuit of a given size and number of layers `p`."""
     circuit = QuantumCircuit(size, size)
     circuit.h(range(size))
     for _ in range(p):
@@ -195,6 +212,7 @@ def qpack_circuit(size: int, p: int) -> QuantumCircuit:
 
 
 def environment_fingerprint() -> dict[str, object]:
+    """Return the Python version, platform and `pip freeze` output of the current environment."""
     freeze = subprocess.run([sys.executable, "-m", "pip", "freeze"], check=True, capture_output=True, text=True).stdout
     return {
         "python": sys.executable,
@@ -211,11 +229,18 @@ def environment_fingerprint() -> dict[str, object]:
 
 
 def metric_value(config: object, key: str) -> object:
+    """Return a config attribute, or None if it is missing, None, "None" or "null"."""
     value = getattr(config, key, None)
     return None if value in (None, "None", "null") else value
 
 
 def snapshot_registry(out: Path, env: dict[str, object]) -> tuple[list[dict[str, object]], dict[str, object]]:
+    """Build the registry of backend snapshots (C133).
+
+    Records each backend of BACKENDS with the hashes of its pinned files, writes
+    c133_snapshot_registry_v3.csv and a manifest under `out`, and returns the rows and
+    the manifest.
+    """
     rows: list[dict[str, object]] = []
     errors: list[str] = []
     for backend_name, class_name in BACKENDS.items():
@@ -297,6 +322,11 @@ def snapshot_registry(out: Path, env: dict[str, object]) -> tuple[list[dict[str,
 def load_circuits(
     canonical: list[dict[str, str]],
 ) -> tuple[dict[str, QuantumCircuit], dict[str, bytes], dict[str, str]]:
+    """Load and parse the QASM of every Ma-Li and Qonductor row once per distinct QASM hash.
+
+    Returns the parsed circuits, the raw bytes and an error message per hash. QPack rows
+    are skipped. A hash mismatch or a parse failure is recorded as an error, not raised.
+    """
     qasm_cache: dict[str, QuantumCircuit] = {}
     raw_bytes: dict[str, bytes] = {}
     errors: dict[str, str] = {}
@@ -334,6 +364,12 @@ def materialize_features(
     qasm_cache: dict[str, QuantumCircuit],
     parse_errors: dict[str, str],
 ) -> tuple[list[dict[str, object]], dict[str, object]]:
+    """Build the feature sidecar (C134) for every canonical row.
+
+    Takes the structural features from the parsed circuit, or from the QPack structure
+    table, and records availability. Qonductor rows also get a semantic-audit record.
+    Writes the sidecar, the audit and a manifest, and returns the rows and the manifest.
+    """
     rows: list[dict[str, object]] = []
     audit: list[dict[str, object]] = []
     qpack_cache: dict[tuple[int, int], tuple[QuantumCircuit, str]] = {}
@@ -474,6 +510,7 @@ def materialize_features(
 
 
 def target_supported(target: object, name: str, qargs: tuple[int, ...]) -> bool:
+    """Return True if the backend target supports the operation on the qubits; barriers and snapshots always count as supported."""
     if name in {"barrier", "snapshot"}:
         return True
     try:
@@ -483,6 +520,13 @@ def target_supported(target: object, name: str, qargs: tuple[int, ...]) -> bool:
 
 
 def qcre_path_seconds(circuit: QuantumCircuit, backend: object) -> float:
+    """Return the duration of a circuit in seconds with the QCRE-style recurrence.
+
+    Each operation starts when its predecessors in the DAG have finished and adds its
+    duration from the backend target. The result is the latest finish time times dt.
+    Barriers and snapshots take no time. Raises if dt is missing or an operation is not
+    supported by the target.
+    """
     target = backend.target
     durations = target.durations()
     dag = circuit_to_dag(circuit)
@@ -507,6 +551,12 @@ def qcre_path_seconds(circuit: QuantumCircuit, backend: object) -> float:
 
 
 def calibration_coverage(circuit: QuantumCircuit, backend: object) -> dict[str, object]:
+    """Count how much calibration data covers a circuit.
+
+    Returns the number of active qubits, those with T1, T2 and readout error, the share
+    of such qubits, and the number of operations that have a duration. Missing values are
+    not filled in.
+    """
     props = backend.properties()
     active = sorted({qubit_index(circuit, q) for inst in circuit.data for q in inst.qubits})
 
@@ -552,6 +602,10 @@ def calibration_coverage(circuit: QuantumCircuit, backend: object) -> dict[str, 
 
 
 def select_preflight(feature_rows: list[dict[str, object]]) -> list[dict[str, object]]:
+    """Choose up to 10 available rows for each (source, backend) cell for the preflight.
+
+    Rows are ranked by a seeded stable digest, so the choice is reproducible.
+    """
     grouped: dict[tuple[str, str], list[dict[str, object]]] = defaultdict(list)
     for row in feature_rows:
         if row["availability_status"] == "available":
@@ -594,6 +648,12 @@ def run_preflight(
     qpack_rows: dict[str, dict[str, str]],
     qasm_cache: dict[str, QuantumCircuit],
 ) -> dict[str, object]:
+    """Run the target preflight (C135) on the selected rows.
+
+    Each selected row is checked against its backend snapshot and its `checks_status` is
+    recorded. Writes the per-row results, a per-cell summary and a manifest, and returns
+    the manifest. The status is `pass` only if every row passes.
+    """
     selected = select_preflight(feature_rows)
     backend_cache = {name: getattr(fake_provider, class_name)() for name, class_name in BACKENDS.items()}
     qpack_cache: dict[tuple[int, int], QuantumCircuit] = {}
@@ -735,6 +795,7 @@ def run_preflight(
 
 
 def write_report(out: Path, manifests: dict[str, object]) -> None:
+    """Write REPORT.md summarizing Wave 0 and the C133 to C135 manifests."""
     lines = [
         "# Routine Wave 0 + C133–C135 recovery batch",
         "",
@@ -766,6 +827,12 @@ def write_report(out: Path, manifests: dict[str, object]) -> None:
 
 
 def main() -> int:
+    """Run the routine batch (Wave 0 and C133 to C135).
+
+    Refuses an existing output directory and checks that the input files exist, records
+    the environment, then builds the snapshot registry, parses the circuits, materializes
+    the features, runs the preflight and writes the manifests and the report. Returns 0.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=ARTIFACTS / "benchmark_v3/recovery_real_qpu_20260929")
     args = parser.parse_args()

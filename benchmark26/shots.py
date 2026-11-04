@@ -28,6 +28,7 @@ def fit_shot_transform(values: list[float] | tuple[float, ...]) -> dict[str, Any
 
 
 def transform_shots(value: float, transform: dict[str, Any]) -> float:
+    """Standardize a shot count with the fitted statistics; raise if it is not finite and positive."""
     import numpy as np
 
     x = float(value)
@@ -81,6 +82,10 @@ def append_shots(example, standardized_shots: float):
 def initialized_outputs_equal(
     old_model, new_model, old_batch, new_batch, torch, rtol: float = 1e-6, atol: float = 1e-6
 ) -> float:
+    """Return the largest absolute difference between the outputs of two models on their batches.
+
+    Raises if the outputs do not agree within `rtol` and `atol`.
+    """
     old_model.eval()
     new_model.eval()
     with torch.no_grad():

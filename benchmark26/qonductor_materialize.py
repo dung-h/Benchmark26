@@ -49,10 +49,12 @@ from benchmark26.qonductor_feature_tasks import (
 
 
 def sha256_bytes(data: bytes) -> str:
+    """Return the SHA-256 hex digest of bytes."""
     return hashlib.sha256(data).hexdigest()
 
 
 def sha256_file(path: Path) -> str:
+    """Return the SHA-256 hex digest of a file, read in 1 MiB chunks."""
     digest = hashlib.sha256()
     with path.open("rb") as stream:
         for block in iter(lambda: stream.read(1 << 20), b""):
@@ -61,11 +63,13 @@ def sha256_file(path: Path) -> str:
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
+    """Read a UTF-8 CSV file into a list of dicts."""
     with path.open(newline="", encoding="utf-8") as stream:
         return list(csv.DictReader(stream))
 
 
 def require_hash(path: Path, expected: str, label: str) -> str:
+    """Return the SHA-256 of a pinned input file; raise if it is missing or differs from the expected hash."""
     if not path.is_file():
         raise RuntimeError(f"pinned input is missing: {label} ({path})")
     observed = sha256_file(path)
@@ -76,6 +80,7 @@ def require_hash(path: Path, expected: str, label: str) -> str:
 
 def import_materializer(path: Path):
     # The pinned reference materializer imports this module by its original name.
+    """Import the pinned reference materializer under the module names it expects."""
     from benchmark26 import circuit_representation
 
     sys.modules.setdefault("run_recovery_c133_c135_v3", circuit_representation)
@@ -88,6 +93,7 @@ def import_materializer(path: Path):
 
 
 def json_canonical(value: object) -> str:
+    """Return a value as compact JSON with sorted keys."""
     return json.dumps(value, sort_keys=True, separators=(",", ":"))
 
 
@@ -167,6 +173,7 @@ def check_native_condition_support(circuit) -> None:
 
 
 def circuit_signature(circuit) -> dict[str, object]:
+    """Return a signature of the ordered operations of a circuit, including conditions."""
     operations = []
     for item in circuit.data:
         condition = getattr(item.operation, "condition", None)
@@ -212,6 +219,7 @@ def graph_digest_only(circuit, graph_format: str, skip_names: set[str]) -> str:
 
 
 def atomic_write_json(path: Path, payload: object) -> str:
+    """Write JSON through a temporary file in the same directory and rename it into place."""
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
     try:
@@ -389,6 +397,11 @@ def run_resource_canary(
     stage_state: dict[str, str] = {"stage": "archive_read"}
 
     def monitor_resources() -> None:
+        """Every 0.25 s record the lowest available RAM and the highest process RSS.
+
+        If available RAM falls below the reserve or RSS exceeds the cap, record the reason and the
+        stage and interrupt the process.
+        """
         while not stop_monitor.wait(0.25):
             available = _linux_available_bytes()
             rss = _linux_rss_bytes()
@@ -483,6 +496,11 @@ def run_resource_canary(
 def load_row_checkpoint(
     checkpoint_path: Path, manifest_path: Path, expected_manifest: dict[str, object]
 ) -> list[dict[str, object]]:
+    """Load the completed rows of a checkpoint file.
+
+    Checks its manifest against the expected identity, that the file ends with a newline, and
+    that no row appears twice. Returns the rows.
+    """
     if not checkpoint_path.exists():
         if manifest_path.exists():
             observed_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -673,6 +691,12 @@ def load_verified_parallel_checkpoint(
 def validate_split_identity(
     canonical: list[dict[str, str]], outer: list[dict[str, str]], inner: list[dict[str, str]]
 ) -> tuple[dict[str, dict[str, str]], dict[str, str], dict[str, str]]:
+    """Check the splits against the canonical rows.
+
+    There must be 8,767 canonical rows with one outer assignment each, every leakage group in
+    one outer fold, and consistent inner assignments for the five outer folds. Returns the inner
+    assignments, the group of each observation and its outer fold.
+    """
     canonical_by_id = {row["canonical_row_id"]: row for row in canonical}
     if len(canonical_by_id) != 8767:
         raise RuntimeError(f"canonical IDs are not unique 8,767-row identity: {len(canonical_by_id)}")
@@ -722,6 +746,15 @@ def validate_split_identity(
 
 
 def main() -> int:
+    """Build the five pinned Qonductor features for every canonical QPU row.
+
+    The features are swap, depth, num_qubits, shots and circuit_count. Verifies the frozen
+    contract, the execution authorization, the pinned input hashes and the split identity
+    before reading any circuit. Input tasks run on worker processes under a resource monitor
+    (minimum available RAM and a process RSS cap). Results go to a resumable row checkpoint with
+    a manifest and a progress file. `--import-checkpoint` with `--import-receipt` imports an
+    earlier checkpoint, and `--resource-canary-id` runs a resource canary for one row.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--source-root", type=Path, default=QONDUCTOR_SOURCE)
@@ -1179,6 +1212,7 @@ def main() -> int:
     last_completed_row_id = feature_rows[-1]["canonical_row_id"] if feature_rows else None
 
     def write_progress() -> None:
+        """Write the checkpoint progress file: completed rows, last row, per-source counts, workers, elapsed time and memory."""
         nonlocal progress_last_written
         atomic_write_json(
             checkpoint_progress_path,
@@ -1201,6 +1235,10 @@ def main() -> int:
         progress_last_written = time.perf_counter()
 
     def observe_memory(available: float, rss: float) -> None:
+        """Update the lowest available RAM and the peak process-tree RSS observed so far.
+
+        Also writes the progress file if it was last written 5 seconds ago or more.
+        """
         memory_observed["peak_process_tree_rss_gib"] = max(memory_observed["peak_process_tree_rss_gib"], rss)
         before = memory_observed["minimum_available_ram_gib"]
         memory_observed["minimum_available_ram_gib"] = available if before is None else min(before, available)
@@ -1208,6 +1246,7 @@ def main() -> int:
             write_progress()
 
     def commit_task(task: dict[str, Any], result: dict[str, Any], *, reused: bool = False) -> None:
+        """Record the result of one input task for each row that shares it and update the progress file."""
         nonlocal archive_member_checks, saved_qasm_checks, row4477_vector, completed_tasks, last_completed_row_id
         if result.get("execution_pid") is not None:
             worker_pids.add(int(result["execution_pid"]))

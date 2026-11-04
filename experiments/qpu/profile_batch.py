@@ -22,6 +22,11 @@ from benchmark26.shots import append_shots, fit_shot_transform, transform_shots
 
 
 def main():
+    """Profile CUDA batch sizes on E1 fold 0 without target labels.
+
+    Uses only the inner-fit IDs of that fold, picks 128 graphs that span the smallest and largest graphs
+    and shot counts, and measures the batch candidates under the GPU lease. Writes the batch profile.
+    """
     context, _targets, split_receipt = load_context("E1", include_targets=False)
     parts = parts_for(context, 0)
     # All transforms use only E1/fold0 inner-fit IDs.

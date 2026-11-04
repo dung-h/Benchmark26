@@ -16,11 +16,13 @@ OUT = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
 
 
 def read(p):
+    """Read a UTF-8 CSV file into a list of dicts."""
     with p.open(newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
 def sha(p):
+    """Return the SHA-256 hex digest of a file, read in 1 MiB chunks."""
     h = hashlib.sha256()
     with p.open("rb") as f:
         for b in iter(lambda: f.read(1 << 20), b""):
@@ -29,6 +31,11 @@ def sha(p):
 
 
 def main():
+    """Audit where each of the five Qonductor-style features of every observation comes from.
+
+    Writes classical_feature_provenance.csv and a receipt that counts the routes by source, input stage
+    and representation.
+    """
     panel = read(OUT / "cohort/panel.csv")
     features = {
         r["canonical_row_id"]: r for r in read(ARTIFACTS / "real_qpu/qonductor_native_features/feature_rows.csv")

@@ -70,16 +70,19 @@ from benchmark26.mali_features import (  # noqa: E402
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
+    """Read a UTF-8 CSV file into a list of dicts, with the csv field-size limit raised."""
     csv.field_size_limit(100_000_000)
     with path.open(newline="", encoding="utf-8") as handle:
         return list(csv.DictReader(handle))
 
 
 def json_bytes(value: Any) -> bytes:
+    """Return a value as indented, sorted JSON bytes with a trailing newline; NaN is rejected."""
     return (json.dumps(value, indent=2, sort_keys=True, allow_nan=False) + "\n").encode("utf-8")
 
 
 def atomic_bytes(path: Path, data: bytes) -> None:
+    """Write bytes through a temporary `.partial` file and rename it into place."""
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(path.name + ".partial")
     with temporary.open("wb") as handle:
@@ -90,10 +93,12 @@ def atomic_bytes(path: Path, data: bytes) -> None:
 
 
 def atomic_json(path: Path, value: Any) -> None:
+    """Write a value as JSON atomically."""
     atomic_bytes(path, json_bytes(value))
 
 
 def canonical_protocol_hashes() -> tuple[dict[str, Any], str, str]:
+    """Return the Ma-Li protocol, its SHA-256 and the SHA-256 of the execution protocol, after checking that they agree."""
     protocol = json.loads(PROTOCOL.read_text(encoding="utf-8"))
     execution = json.loads(EXECUTION.read_text(encoding="utf-8"))
     expected = execution["method_contracts"]["mali"]
@@ -146,6 +151,7 @@ def validate_technical_gate_receipt(receipt_path: Path, feature_root: Path = FEA
 
 
 def validate_gpu_handoff(handoff_id: str) -> str:
+    """Return the coordinator GPU handoff ID; raise if it is empty."""
     value = str(handoff_id).strip()
     if not value:
         raise RuntimeError("explicit_coordinator_gpu_handoff_id_required")
@@ -153,6 +159,7 @@ def validate_gpu_handoff(handoff_id: str) -> str:
 
 
 def feature_root_relative(feature_root: Path) -> str:
+    """Return the feature root relative to the repository; raise if it lies outside it."""
     resolved = feature_root.resolve()
     if ROOT.resolve() not in resolved.parents:
         raise RuntimeError("feature_root_must_be_inside_repository")
@@ -176,6 +183,7 @@ def validate_feature_root_binding(receipt: dict[str, Any], feature_root: Path, r
 
 
 def resolve_feature_paths(feature_root_arg: Path | None, output_dir_arg: Path | None) -> tuple[Path, Path]:
+    """Return the resolved feature root and output directory, checking that both are inside the repository."""
     selected_root = (feature_root_arg or FEATURE_ROOT).resolve()
     feature_root_relative(selected_root)
     selected_output = (output_dir_arg or selected_root / "training").resolve()
@@ -185,6 +193,13 @@ def resolve_feature_paths(feature_root_arg: Path | None, output_dir_arg: Path | 
 
 
 def validate_neural_environment(input_manifest: dict[str, Any], feature_root: Path) -> dict[str, Any]:
+    """Check that the current Python and installed packages are the ones pinned at materialization.
+
+    Uses the environment of the input manifest or, for older materializations that omitted
+    it, the separately pinned C1-C3 receipt. Compares the interpreter path, the dependency
+    lock file and the SHA-256 of the current package list. Returns the interpreter and lock
+    identity.
+    """
     import importlib.metadata as metadata
 
     environment = input_manifest.get("environment", {})
@@ -333,6 +348,10 @@ def validate_initial_qa_receipt(
 
 
 def validate_initial_stage_state(manifest: dict[str, Any], receipt_sha256: str) -> None:
+    """Allow the stage to continue only if the run awaits the independent initial-cell QA, or is running or complete with the same QA receipt.
+
+    Otherwise raise: the remaining folds need a completed fold 0 and the independent QA.
+    """
     status = manifest.get("status")
     if status == "awaiting_independent_initial_cell_qa":
         return
@@ -350,6 +369,12 @@ def validate_preflight_authorization(
     ledger_hash: str,
     feature_root: Path | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Check the GPU handoff and the C1-C3 receipt before training.
+
+    Both files must exist and agree, the execution authorization hash must match, gates C1,
+    C2 and C3 must have passed, and the receipt must pin the Ma-Li contract hash. Returns
+    the handoff and the receipt.
+    """
     if not handoff_path.is_file() or not C1_C3_RECEIPT_PATH.is_file():
         raise RuntimeError("preflight_handoff_or_c1_c3_receipt_missing")
     handoff = json.loads(handoff_path.read_text(encoding="utf-8"))
@@ -422,6 +447,12 @@ def load_pinned_model():
 
 
 def make_model(model_class, variant: str, global_width: int, checkpoint_layers: bool = False):
+    """Build the pinned Ma-Li model for a variant.
+
+    The graph variant uses node features, three graph layers and the global features; the
+    MLP variant uses the global features only. With `checkpoint_layers`, the graph layers use
+    activation checkpointing, which saves memory by recomputing them in the backward pass.
+    """
     from types import SimpleNamespace
     import torch
     import torch.nn.functional as F
@@ -443,6 +474,7 @@ def make_model(model_class, variant: str, global_width: int, checkpoint_layers: 
     if checkpoint_layers and graph:
 
         def checkpointed_forward(self, data):
+            """Forward pass of the graph model with each graph layer under activation checkpointing."""
             x, edge_index, gf = data.x, data.edge_index, data.global_features
             x = x.to(torch.float32)
             gf = gf.to(torch.float32)
@@ -473,6 +505,13 @@ def make_model(model_class, variant: str, global_width: int, checkpoint_layers: 
 def fold_partitions(
     outer_rows: list[dict[str, str]], inner_rows: list[dict[str, str]], fold: int
 ) -> dict[str, list[str]]:
+    """Return the fit, validation and test IDs of an outer fold.
+
+    The test set is the outer fold. The other observations are split by the inner assignment:
+    inner fold 0 is validation and folds 1 to 3 are fit. Checks that the split identities are
+    one-to-one for 8,767 observations, that no inner assignment is missing, and that no
+    leakage group spans fit, validation and test.
+    """
     outer_by_id = {row["canonical_observation_id"]: row for row in outer_rows}
     if len(outer_by_id) != len(outer_rows) or len(outer_by_id) != 8767:
         raise RuntimeError("outer_split_identity_not_one_to_one_8767")
@@ -515,6 +554,7 @@ def fold_partitions(
 
 
 def fit_transform_global(raw_by_id: dict[str, list[float]], fit_ids: list[str]) -> dict[str, Any]:
+    """Fit the standardization of the 51 global features on the fit rows."""
     values = __import__("numpy").asarray([raw_by_id[x] for x in fit_ids], dtype=__import__("numpy").float64)
     if values.shape != (len(fit_ids), 51):
         raise RuntimeError("global_fit_matrix_shape_mismatch")
@@ -535,6 +575,7 @@ def fit_transform_global(raw_by_id: dict[str, list[float]], fit_ids: list[str]) 
 
 
 def transform_global(raw: list[float], transform: dict[str, Any]):
+    """Apply a fitted global transform: select the retained features and standardize them."""
     import numpy as np
 
     selected = np.asarray(raw, dtype=np.float32)[transform["retained_indices"]]
@@ -547,6 +588,7 @@ def transform_global(raw: list[float], transform: dict[str, Any]):
 
 
 def seed_all(seed: int) -> None:
+    """Seed Python, NumPy and PyTorch (CPU and CUDA)."""
     import numpy as np
     import torch
 
@@ -557,6 +599,7 @@ def seed_all(seed: int) -> None:
 
 
 def capture_rng_state() -> dict[str, Any]:
+    """Return the random-number generator states of Python, NumPy and PyTorch."""
     import numpy as np
     import torch
 
@@ -569,6 +612,7 @@ def capture_rng_state() -> dict[str, Any]:
 
 
 def restore_rng_state(state: dict[str, Any]) -> None:
+    """Restore the random-number generator states captured by `capture_rng_state`."""
     import numpy as np
     import torch
 
@@ -579,6 +623,7 @@ def restore_rng_state(state: dict[str, Any]) -> None:
 
 
 def save_checkpoint(path: Path, payload: dict[str, Any]) -> None:
+    """Save a checkpoint through a temporary `.partial` file and rename it into place."""
     import torch
 
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -591,6 +636,11 @@ def save_checkpoint(path: Path, payload: dict[str, Any]) -> None:
 
 
 def validate_gpu_budget(torch, budget_gib: int = 12, reserve_gib: int = 4) -> dict[str, Any]:
+    """Check that CUDA is available and that the card leaves the contract reserve, then cap this process.
+
+    The declared budget is 12 GiB and the reserve 4 GiB. The cap accounts for memory used by
+    other processes. Returns the device facts and the budgets.
+    """
     if not torch.cuda.is_available():
         raise RuntimeError("cuda_required_for_mali_full_feature_training")
     properties = torch.cuda.get_device_properties(0)
@@ -654,6 +704,12 @@ def checkpoint_identity(
     activation_recomputation_enabled: bool,
     feature_implementation_sha256: str,
 ) -> dict[str, Any]:
+    """Return the identity record stored in a checkpoint.
+
+    It holds the method, fold and seed, the protocol, execution, input-manifest and ledger
+    hashes, the feature implementation hash (64 hex characters), the GPU handoff ID and
+    whether activation recomputation is on.
+    """
     if len(feature_implementation_sha256) != 64:
         raise RuntimeError("feature_implementation_hash_missing_or_invalid")
     return {
@@ -671,6 +727,7 @@ def checkpoint_identity(
 
 
 def validate_checkpoint_identity(checkpoint: dict[str, Any], expected: dict[str, Any]) -> None:
+    """Raise if the identity stored in a checkpoint differs from the expected one."""
     actual = checkpoint.get("identity")
     if actual != expected:
         raise RuntimeError("checkpoint_identity_mismatch")
@@ -779,6 +836,7 @@ def fit_node_transform(graph_paths: list[Path], fit_ids: list[str]) -> dict[str,
 
 
 def load_saved_checkpoint(path: Path, expected_identity: dict[str, Any], torch) -> dict[str, Any]:
+    """Load a checkpoint on the CPU and check its identity."""
     try:
         payload = torch.load(path, map_location="cpu", weights_only=False)
     except TypeError:  # Torch versions predating weights_only.
@@ -1186,6 +1244,10 @@ def record_resource_failure(
     partitions: dict[str, list[str]],
     error: BaseException,
 ) -> dict[str, Any]:
+    """Write the cell manifest and progress files of a cell that stopped with a CUDA out-of-memory error.
+
+    The manifest holds the partition sizes and hashes and the checkpoint hash. Returns it.
+    """
     cell_dir = output_dir / f"fold_{fold}" / method / f"seed_{seed}"
     cell_dir.mkdir(parents=True, exist_ok=True)
     checkpoint = cell_dir / "checkpoint.pt"
@@ -1433,6 +1495,7 @@ def _write_final_outputs(
 
 
 def write_csv_atomic(path: Path, rows: list[dict[str, Any]], fields: list[str]) -> None:
+    """Write rows as a CSV file through a temporary `.partial` file and rename it into place."""
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(path.name + ".partial")
     with temporary.open("w", newline="", encoding="utf-8") as handle:
@@ -1537,6 +1600,7 @@ def _cuda_checkpoint_resume_check(torch, model_class, device) -> dict[str, Any]:
     from types import SimpleNamespace
 
     def global_batch(values):
+        """Build a batch of global-feature rows for the MLP variant."""
         return _batch_to_device(
             [SimpleNamespace(global_features=row.reshape(1, -1)) for row in values], device, graph=False
         )
@@ -1650,6 +1714,11 @@ def run_cuda_preflight(
         data = data.to(device)
 
         def attempt(checkpoint_layers: bool) -> dict[str, Any]:
+            """Run one forward pass, backward pass and optimizer step on the largest graph.
+
+            With or without activation checkpointing. Raises on a non-finite gradient, output or loss.
+            Returns the elapsed time and the peak GPU memory.
+            """
             torch.cuda.empty_cache()
             torch.cuda.reset_peak_memory_stats(0)
             seed_all(31_415)
@@ -1715,6 +1784,13 @@ def run_cuda_preflight(
 
 
 def main() -> None:
+    """Run the frozen Ma-Li graph and matched-MLP cells.
+
+    Checks the pinned protocol, inputs, authorization, environment and technical gate receipt.
+    `--preflight-only` stops after the checks, `--validate-only` checks a finished run, and
+    `--folds` is either fold 0 or all five folds. Otherwise takes the GPU lease and trains the
+    cells, resuming unless `--no-resume` is given, and writes the run manifest and results.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--preflight-only",

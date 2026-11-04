@@ -92,6 +92,11 @@ class ExampleCache:
         self.misses = 0
 
     def get(self, cid, variant=None):
+        """Return the cached example for an observation, building and caching it if needed.
+
+        The cache is limited by a byte budget and evicts the least recently used examples. Shot variants
+        append the standardized shot count to the example.
+        """
         if variant is not None and variant != METHODS[self.treatment]["internal"]:
             raise RuntimeError(f"cache_variant_mismatch:{self.treatment}:{variant}")
         key = (cid, self.treatment)
@@ -128,6 +133,7 @@ class ExampleCache:
 
 
 def environment_receipt(torch) -> dict:
+    """Return the software, GPU and CPU environment of the run, with the git revision, as a dict."""
     import numpy
     import sklearn
     import torch_geometric
@@ -220,6 +226,7 @@ def training_readiness() -> dict:
 
 
 def fit_transform(context, parts, fold):
+    """Fit the feature transforms of a fold on its fit rows only: global features, node features and shots."""
     raw_global = {cid: [float(context["ledger"][cid][f"global_{j:02d}"]) for j in range(51)] for cid in parts["fit"]}
     global_transform = base.fit_transform_global(raw_global, parts["fit"])
     graph_paths = [recorded(context["ledger"][cid]["graph_artifact"]) for cid in parts["fit"]]
@@ -235,6 +242,7 @@ def fit_transform(context, parts, fold):
 
 
 def make_model(treatment, transform, seed, torch):
+    """Build the model of a treatment for a seed, with the shot column added when the treatment uses shots, and move it to the GPU."""
     spec = METHODS[treatment]
     base.seed_all(seed)
     model_class, model_sha = base.load_pinned_model()
@@ -256,6 +264,7 @@ def make_model(treatment, transform, seed, torch):
 
 
 def fit_transform_for_cell(context, parts, fold, evaluation):
+    """Return the transform of a fold, saving it on first use and checking it against the saved one afterwards."""
     path = RUN / "training" / evaluation / f"fold_{fold}" / "transform.json"
     fitted = fit_transform(context, parts, fold)
     if path.exists():
@@ -268,6 +277,12 @@ def fit_transform_for_cell(context, parts, fold, evaluation):
 
 
 def initialization_gate(context, parts, transform, treatment, seed, torch):
+    """Check that the model starts from the same function as its control before training.
+
+    Uses three fit rows (the lowest, median and highest shot count). For the shot variants it checks
+    that the added shot column leaves the initial output unchanged and receives a gradient. No test
+    labels are used. Returns the gate result.
+    """
     spec = METHODS[treatment]
     cache = ExampleCache(context, transform, treatment, 256 * 1024**2)
     fit_sorted = sorted(parts["fit"], key=lambda cid: float(context["panel_by_id"][cid]["shots"]))
@@ -383,6 +398,7 @@ def initialization_gate(context, parts, transform, treatment, seed, torch):
 
 
 def cell_paths(evaluation, treatment, fold, seed, canary=False):
+    """Return the directory of a cell (evaluation, treatment, fold, seed)."""
     parent = RUN / "training" / ("canary_v2" if canary else evaluation)
     return parent / f"fold_{fold}" / treatment / f"seed_{seed}"
 
@@ -401,6 +417,13 @@ def train_cell(
     max_epochs=EPOCHS,
     canary=False,
 ):
+    """Train one cell (treatment, fold, seed) and return its result.
+
+    Runs the initialization gate, then Adam (learning rate 0.0005, weight decay 0.0001) for the
+    planned epochs, resuming from the checkpoint if there is one and returning the saved result if the
+    cell is complete. Keeps the best-validation state, writes the epoch history, then predicts the test
+    rows. The training function never receives test labels.
+    """
     spec = METHODS[treatment]
     evaluation = context["evaluation"]
     folder = cell_paths(evaluation, treatment, fold, seed, canary=canary)
@@ -643,6 +666,11 @@ def train_cell(
 
 
 def main():
+    """Run one stage (`preflight`, `canary`, `first_cell` or `train`) for an evaluation (E1, E2 or E3).
+
+    `preflight` checks the data, the splits and the training readiness. The other stages require the
+    lock and CUDA, take the GPU lease and train the cells that belong to the stage.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("--stage", choices=("preflight", "canary", "first_cell", "train"), required=True)
     parser.add_argument("--evaluation", choices=("E1", "E2", "E3"), default="E1")

@@ -22,6 +22,7 @@ SEED = 42
 
 
 def sha(path):
+    """Return the SHA-256 hex digest of a file, read in 1 MiB chunks."""
     h = hashlib.sha256()
     with Path(path).open("rb") as f:
         for b in iter(lambda: f.read(1 << 20), b""):
@@ -30,11 +31,13 @@ def sha(path):
 
 
 def rows(path):
+    """Read a UTF-8 CSV file into a list of dicts."""
     with Path(path).open(newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
 def write(path, rs):
+    """Write rows as a CSV file; raise if there are none."""
     if not rs:
         raise RuntimeError(f"empty_split:{path}")
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -45,6 +48,7 @@ def write(path, rs):
 
 
 def digest_ids(ids):
+    """Return the SHA-256 of the sorted IDs joined by newlines."""
     return hashlib.sha256("\n".join(sorted(ids)).encode()).hexdigest()
 
 
@@ -82,6 +86,11 @@ def assign_groups(group_rows, source_by_id, folds, seed):
 
 
 def make_grouped(eligible_ids, group_by_id, source_by_id, folds, seed, tag):
+    """Assign whole groups to folds with `assign_groups`, balanced across sources, using a seed.
+
+    Returns the fold of each observation, the loads and the groups. Raises if there are fewer groups than
+    folds.
+    """
     groups = defaultdict(list)
     for cid in eligible_ids:
         groups[group_by_id[cid]].append(cid)
@@ -92,6 +101,12 @@ def make_grouped(eligible_ids, group_by_id, source_by_id, folds, seed, tag):
 
 
 def main():
+    """Create the target-blind folds of the study.
+
+    E1 holds out logical-circuit groups, E2 holds out random observations stratified by source, and E3 holds
+    out backends. E1 and E2 have 5 outer folds and E3 has one case per held-out backend; all have inner folds. Writes the
+    outer and inner split files and a receipt. Refuses to run if the splits already exist.
+    """
     if (SPLITS / "E1_outer.csv").exists():
         raise RuntimeError("refuse_overwrite_locked_splits")
     panel = rows(COHORT / "panel.csv")

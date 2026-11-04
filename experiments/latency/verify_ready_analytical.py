@@ -9,20 +9,19 @@ the per-observation values, which stay with the external measurement records.
 
 from __future__ import annotations
 
-import csv
 import hashlib
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
 
-RESULTS = Path(__file__).resolve().parents[2] / "results/ready_analytical_latency"
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))  # repository root
+from benchmark26.tables import read_csv as read
+
+RESULTS = ROOT / "results/ready_analytical_latency"
 COMPONENTS = ("qiskit", "qcre_conversion", "qcre_estimator", "qcre_total")
-
-
-def read(path: Path) -> list[dict[str, str]]:
-    with path.open(newline="") as handle:
-        return list(csv.DictReader(handle))
 
 
 def manifest_problems() -> list[str]:
@@ -40,6 +39,7 @@ def manifest_problems() -> list[str]:
 
 
 def main() -> int:
+    """Recompute the group-balanced means from the group means and compare them with the summary and the manifest."""
     groups = read(RESULTS / "ready_analytical_group_means.csv")
     summary = read(RESULTS / "ready_analytical_summary.csv")
     problems = manifest_problems()

@@ -169,6 +169,7 @@ def iter_feature_results(
                     break
 
                 def fits(candidate):
+                    """Return True if starting the candidate keeps the projected memory use under the RSS cap and above the RAM reserve."""
                     leases = [
                         float(task.get("memory_reservation_gib", task_memory_reservation_gib))
                         for task in [*pending.values(), candidate]

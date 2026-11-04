@@ -47,7 +47,9 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+from benchmark26.integrity import sha256_file as sha
 from benchmark26.paths import ARTIFACTS
+from benchmark26.tables import read_csv as read
 
 PANEL = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1/cohort/panel.csv"
 REPRESENTATIONS = ARTIFACTS / "benchmark_v3/real_qpu/compiled_unified/representation_rows.csv"
@@ -55,16 +57,13 @@ COMPONENTS = ("qiskit", "qcre_conversion", "qcre_estimator", "qcre_total")
 EXPECTED = {"observations": 3443, "groups": 203, "tasks": 1452, "workers": 8}
 
 
-def sha(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-def read(path: Path) -> list[dict[str, str]]:
-    with path.open(newline="") as handle:
-        return list(csv.DictReader(handle))
-
-
 def load(gate: Path, timing: Path) -> tuple[dict, list[str]]:
+    """Load the timing records and check them against the correctness gate.
+
+    Verifies the gate receipt and the protocol hash, that all workers finished, that every gate task
+    was timed with the expected number of positive samples, that the total equals conversion plus
+    estimator in every sample, and that every observation maps to a timed task. Returns the data and
+    the list of problems."""
     problems = []
     receipt = json.loads((gate / "receipt.json").read_text())
     if receipt.get("status") != "PASS" or receipt.get("observations") != EXPECTED["observations"]:
@@ -137,6 +136,7 @@ def load(gate: Path, timing: Path) -> tuple[dict, list[str]]:
 
 
 def summarize(data: dict) -> tuple[list[dict], list[dict]]:
+    """Return the per-group means and the summary rows (group-balanced mean, observation median and P90)."""
     observations, values = data["observations"], data["values"]
     groups = collections.defaultdict(list)
     for o in observations:
@@ -175,6 +175,7 @@ def summarize(data: dict) -> tuple[list[dict], list[dict]]:
 
 
 def write_csv(path: Path, rows: list[dict]) -> None:
+    """Write rows as a CSV file."""
     with path.open("w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]), lineterminator="\n")
         writer.writeheader()
@@ -182,6 +183,9 @@ def write_csv(path: Path, rows: list[dict]) -> None:
 
 
 def main() -> int:
+    """Summarize the ready-input timing and write the summary, the anonymous group means and a receipt.
+
+    Exits with status 1 and prints the problems if any check fails. `--output` must not exist yet."""
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--gate", type=Path, required=True)
     parser.add_argument("--timing", type=Path, required=True)

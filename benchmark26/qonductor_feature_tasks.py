@@ -56,6 +56,7 @@ def initialize_feature_worker(config: dict[str, Any]) -> None:
 
 def extraction_key(source_id: str, qasm_hash: str, width: str, shots: str) -> tuple[str, str, str, str]:
     # Shots are part of the returned vector, including for saved compiled QASM.
+    """Return the key that identifies an extraction task: source, QASM hash, register width and shots."""
     return source_id, qasm_hash, width, str(int(shots))
 
 

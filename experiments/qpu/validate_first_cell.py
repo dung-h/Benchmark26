@@ -18,6 +18,12 @@ from train_neural import ExampleCache, make_model, protocol_lock
 
 
 def main():
+    """Replay the first full cell (E1, fold 0, M0, seed 42) without labels and compare with its saved predictions.
+
+    Checks the manifest, the lock, the epoch selection, the transform identity and the initialization gate,
+    reloads the saved checkpoint, recomputes the test predictions and requires that they agree with the
+    saved ones to 1e-6 seconds. Writes a receipt.
+    """
     context, targets, split = load_context("E1", include_targets=False)
     if targets is not None or split.get("target_values_read") is not False:
         raise RuntimeError("validator_must_not_read_target_values")

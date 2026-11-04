@@ -26,6 +26,7 @@ PREPARE_HINT = "set B26_RUN_DIR to a new directory and run experiments/qpu/prepa
 
 
 def sha(path):
+    """Return the SHA-256 hex digest of a file, read in 1 MiB chunks."""
     h = hashlib.sha256()
     with Path(path).open("rb") as f:
         for b in iter(lambda: f.read(1 << 20), b""):
@@ -34,15 +35,22 @@ def sha(path):
 
 
 def stable(value):
+    """Return the SHA-256 of the canonical JSON of a value."""
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
 
 def rows(path):
+    """Read a UTF-8 CSV file into a list of dicts."""
     with Path(path).open(newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
 def load_targets(allowed_ids):
+    """Return the target seconds of the allowed observation IDs.
+
+    Raises if the set is empty, a target is not positive and finite, an ID is duplicated, or a target is
+    missing.
+    """
     allowed = set(allowed_ids)
     if not allowed:
         raise RuntimeError("refuse_empty_authorized_target_partition")
@@ -65,6 +73,7 @@ def load_targets(allowed_ids):
 
 
 def atomic_json(path, value):
+    """Write a value as JSON through a temporary `.partial` file and rename it into place."""
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".partial")
     tmp.write_text(json.dumps(value, sort_keys=True, indent=2, allow_nan=False) + "\n", encoding="utf-8")
@@ -78,6 +87,7 @@ def atomic_json(path, value):
 
 
 def atomic_csv(path, values, fieldnames=None):
+    """Write rows as a CSV file atomically; raise if there are none."""
     if not values:
         raise RuntimeError(f"refuse_empty_csv:{path}")
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -96,6 +106,12 @@ def atomic_csv(path, values, fieldnames=None):
 
 
 def load_context(evaluation: str, include_targets: bool = True):
+    """Load the cohort and splits of an evaluation (E1, E2 or E3) and verify them.
+
+    Checks the 3,443 observations and their feature ledger, the positive shot counts, and the outer and
+    inner splits. Targets are read only if `include_targets` is true. Returns the context, the targets
+    and a receipt.
+    """
     if evaluation not in {"E1", "E2", "E3"}:
         raise ValueError(f"unknown_evaluation:{evaluation}")
     cohort = OUT / "cohort"
@@ -177,6 +193,12 @@ def load_context(evaluation: str, include_targets: bool = True):
 
 
 def parts_for(context, fold):
+    """Return the fit, validation and test IDs of a fold, with the inner cross-validation folds.
+
+    For E1 and E2 the fold is an outer fold; for E3 it is a held-out backend. Inner fold 0 is validation
+    and the others are fit. Raises on overlapping IDs, on group leakage between fit and validation (E1,
+    E3) and between train and test (E1).
+    """
     ev = context["evaluation"]
     all_ids = context["all_ids"]
     group = {r["canonical_observation_id"]: r["group_id"] for r in context["panel"]}
@@ -230,6 +252,7 @@ def parts_for(context, fold):
 
 
 def load_lock() -> dict:
+    """Load the execution lock; raise if the protocol or the lock does not exist."""
     if not PROTOCOL.is_file() or not LOCK.is_file():
         raise RuntimeError("expansion_protocol_not_locked")
     return json.loads(LOCK.read_text(encoding="utf-8"))
@@ -340,6 +363,7 @@ def code_dependency_inventory(lock: dict) -> dict:
 
 
 def historical_code_differences(lock: dict, current: dict | None = None) -> list[str]:
+    """Return the code files whose current hash differs from the one in the lock."""
     current = current_code_hashes(lock) if current is None else current
     return sorted(k for k, v in lock.get("code_hashes", {}).items() if current.get(k) != v)
 

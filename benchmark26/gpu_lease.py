@@ -22,6 +22,7 @@ class GpuLease:
         self.released = False
 
     def release(self) -> None:
+        """Release the lock on the lease file; safe to call more than once."""
         if self.released:
             return
         try:
@@ -32,6 +33,11 @@ class GpuLease:
 
 
 def acquire_gpu_lease(runner: str) -> GpuLease:
+    """Take the exclusive, non-blocking lock on the GPU lease file and record the owner.
+
+    If another process holds the lock, exits with a message naming that owner. The lease is
+    released at exit.
+    """
     handle = LEASE_PATH.open("a+", encoding="utf-8")
     try:
         fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)

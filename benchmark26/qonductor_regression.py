@@ -51,10 +51,12 @@ EXPECTED_COUNTS = [64, 64, 64, 48, 64, 3]
 
 
 def sha_bytes(value: bytes) -> str:
+    """Return the SHA-256 hex digest of bytes."""
     return hashlib.sha256(value).hexdigest()
 
 
 def sha_file(path: Path) -> str:
+    """Return the SHA-256 hex digest of a file, read in 1 MiB chunks."""
     h = hashlib.sha256()
     with path.open("rb") as stream:
         for block in iter(lambda: stream.read(1 << 20), b""):
@@ -63,16 +65,19 @@ def sha_file(path: Path) -> str:
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
+    """Read a UTF-8 CSV file into a list of dicts."""
     with path.open(newline="", encoding="utf-8") as stream:
         return list(csv.DictReader(stream))
 
 
 def atomic_json(path: Path, obj: Any) -> None:
+    """Write a value as indented JSON atomically."""
     payload = (json.dumps(obj, sort_keys=True, indent=2, allow_nan=False) + "\n").encode()
     atomic_bytes(path, payload)
 
 
 def atomic_bytes(path: Path, payload: bytes) -> None:
+    """Write bytes through a temporary `.partial` file and rename it into place."""
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(path.name + ".partial")
     with temporary.open("wb") as stream:
@@ -83,6 +88,7 @@ def atomic_bytes(path: Path, payload: bytes) -> None:
 
 
 def atomic_csv(path: Path, rows: list[dict[str, Any]], fields: list[str]) -> None:
+    """Write rows as a CSV file atomically."""
     from io import StringIO
 
     buffer = StringIO(newline="")
@@ -93,6 +99,7 @@ def atomic_csv(path: Path, rows: list[dict[str, Any]], fields: list[str]) -> Non
 
 
 def json_sha(path: Path) -> dict[str, Any]:
+    """Load a JSON file that must contain an object."""
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
         raise RuntimeError(f"expected_json_object:{path}")
@@ -100,6 +107,7 @@ def json_sha(path: Path) -> dict[str, Any]:
 
 
 def check_authority() -> dict[str, Any]:
+    """Check the authorization file against the hashes of the parent and completion protocols and the pinned inputs."""
     auth = json_sha(AUTH)
     expected = {
         "parent_protocol_sha256": sha_file(PARENT),
@@ -118,6 +126,11 @@ def check_authority() -> dict[str, Any]:
 def load_panel() -> tuple[
     list[dict[str, str]], dict[str, dict[str, str]], dict[str, dict[str, str]], dict[str, dict[str, str]]
 ]:
+    """Load the strict Ma-Li panel of 340 observations with its features, representations and splits.
+
+    Checks the identities, the five outer folds and the 1,360 inner assignments. Returns the
+    panel, the features by ID, the outer assignments and the inner assignments by fold.
+    """
     check_authority()
     panel = read_csv(PANEL / "logical_features.csv")
     features = read_csv(FEATURES)
@@ -197,6 +210,11 @@ def source_grids_and_models():
 
 
 def freeze_candidates() -> dict[str, Any]:
+    """Freeze the candidate set of each of the six families and return it.
+
+    The candidate counts are checked. The set is written to frozen_candidates.json; if that file
+    exists, the new set must equal it.
+    """
     check_authority()
     models, grids, source_blob = source_grids_and_models()
     if list(models) != FAMILIES:
@@ -250,6 +268,7 @@ def freeze_candidates() -> dict[str, Any]:
 
 
 def split_ids(panel, outer, inner_by_fold, fold):
+    """Return the train and test IDs of an outer fold."""
     all_ids = {r["canonical_observation_id"] for r in panel}
     test = sorted(i for i, r in outer.items() if int(r["outer_fold"]) == fold)
     train = all_ids - set(test)
@@ -263,6 +282,10 @@ def split_ids(panel, outer, inner_by_fold, fold):
 
 
 def fit_one_candidate(family, candidate, x, y, splits, model_templates):
+    """Fit one candidate on each inner split and return its inner R^2 scores, status and mean.
+
+    A non-finite prediction marks the candidate as a numeric failure.
+    """
     results = []
     for inner_fold, (fit_ids, valid_ids) in splits.items():
         fit_idx = np.asarray([x["id_to_index"][i] for i in fit_ids], dtype=int)
@@ -289,6 +312,13 @@ def fit_one_candidate(family, candidate, x, y, splits, model_templates):
 
 
 def fit_all(folds: list[int], workers: int = 4) -> dict[str, Any]:
+    """Run the selection and the fitting for the given outer folds.
+
+    Scores every candidate on the inner splits, keeps the scores in candidate_inner_scores.csv so
+    the run can resume, records each fold's selection in fold_selection.json, refits the selected
+    candidate on the outer-training rows and predicts the test rows, then aggregates. `workers`
+    is 1 to 4 and only fold 0 is allowed for now.
+    """
     from benchmark26.qonductor_models import base_models
 
     if workers < 1 or workers > 4:
@@ -386,6 +416,7 @@ def fit_all(folds: list[int], workers: int = 4) -> dict[str, Any]:
         )
 
         def submit(candidate_task):
+            """Fit one candidate task with `fit_one_candidate`."""
             return fit_one_candidate(candidate_task[0], candidate_task[1], x, y, splits, templates)
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
@@ -535,6 +566,10 @@ def fit_all(folds: list[int], workers: int = 4) -> dict[str, Any]:
 
 
 def metric_rows(predictions):
+    """Return the metrics of each method over its predicted rows, out of 340 assigned.
+
+    MAE, median error, RMSE, R^2, tail errors and the number of negative predictions.
+    """
     methods = sorted({row["method_id"] for row in predictions})
     out = []
     for method in methods:
@@ -564,6 +599,11 @@ def metric_rows(predictions):
 
 
 def aggregate(identity_signature=None):
+    """Aggregate the saved predictions into metrics and a paired bootstrap, and write the manifest.
+
+    Checks the 340 x 7 prediction rows, computes the metrics, and runs a paired logical-group
+    bootstrap (seed 42) for the six-family selector and each family. Returns the status and metrics.
+    """
     path = OUTPUT / "predictions.csv"
     if not path.exists():
         raise RuntimeError("qonductor_predictions_missing")
@@ -637,10 +677,12 @@ def aggregate(identity_signature=None):
 
 
 def read_csv_path(path):
+    """Read a CSV file into a list of dicts."""
     return read_csv(path)
 
 
 def main():
+    """Run one stage: `preflight`, `freeze`, `fit` or `aggregate`, and print its result as JSON."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stage", choices=("preflight", "freeze", "fit", "aggregate"), required=True)
     parser.add_argument("--folds", type=int, nargs="+", default=[0])

@@ -46,6 +46,7 @@ DEFAULT_VERSION = REGISTRY / "data_versions/archived_qpu_v1.json"
 
 
 def sha256(path: Path) -> str:
+    """Return the SHA-256 hex digest of a file, read in 1 MiB chunks."""
     h = hashlib.sha256()
     with path.open("rb") as f:
         for block in iter(lambda: f.read(1024 * 1024), b""):
@@ -54,6 +55,7 @@ def sha256(path: Path) -> str:
 
 
 def relative(path: Path) -> str:
+    """Return the recorded name of a path, or the path itself if it has none."""
     try:
         return record_name(path)
     except ValueError:
@@ -61,6 +63,7 @@ def relative(path: Path) -> str:
 
 
 def git_state() -> dict[str, Any]:
+    """Return the git revision and the working-tree status of the repository."""
     try:
         revision = subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True).strip()
         status = subprocess.check_output(["git", "-C", str(ROOT), "status", "--short"], text=True)
@@ -75,6 +78,7 @@ def git_state() -> dict[str, Any]:
 
 def base_models() -> dict[str, Any]:
     # Same model classes and seeds as upstream RegressionEstimator.
+    """Return the six model families with the same classes and seeds as the upstream estimator."""
     return {
         "Extra Trees": ExtraTreesRegressor(n_jobs=1, random_state=0),
         "Random Forest": RandomForestRegressor(n_jobs=1, random_state=0),
@@ -87,6 +91,7 @@ def base_models() -> dict[str, Any]:
 
 def source_grids() -> dict[str, dict[str, list[Any]]]:
     # Transcribed from Qonductor-SC25/src/execution_time/regression_estimator.py.
+    """Return the hyperparameter grid of each model family; the source modes search these grids."""
     return {
         "Extra Trees": {
             "n_estimators": [100, 300, 500, 700],
@@ -136,6 +141,10 @@ def source_grids() -> dict[str, dict[str, list[Any]]]:
 def canary_grids() -> dict[str, dict[str, list[Any]]]:
     # A predeclared, one-cell-per-family feasibility bank.  It is not used to
     # make an upstream-paper-exact claim.
+    """Return a predeclared one-cell-per-family grid for feasibility checks.
+
+    It is not used to make an upstream-paper-exact claim.
+    """
     return {
         "Extra Trees": {
             "n_estimators": [100],
@@ -179,6 +188,13 @@ def canary_grids() -> dict[str, dict[str, list[Any]]]:
 
 
 def select_model(x: np.ndarray, y: np.ndarray, groups: np.ndarray, mode: str) -> tuple[str, Any, dict[str, Any]]:
+    """Select a model family and parameters on the training rows and refit it on all of them.
+
+    Every candidate of the mode (`full_source_grid`, `source_poly_grid` or the canary grid) is
+    scored by the mean R^2 of a GroupKFold by exact-QASM hash with at most five splits. The best
+    candidate is refit on all training rows. Returns the family name, the fitted model and a
+    selection record.
+    """
     models = base_models()
     grids = (
         source_grids()
@@ -262,6 +278,12 @@ def frozen_outer_split(
 
 
 def main() -> None:
+    """Evaluate the Qonductor-style model selection on one frozen outer split.
+
+    Loads the data and the split, checks that every job has one circuit, takes the five features,
+    selects a model on the training groups with `select_model`, predicts the test rows (clipped
+    at zero seconds) and writes the predictions, a summary and an evaluation manifest.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=DEFAULT_DATA)
     parser.add_argument("--split", type=Path, default=DEFAULT_SPLIT)

@@ -9,6 +9,10 @@ from core import OUT, atomic_json, load_context, parts_for, sha
 
 
 def main():
+    """Recheck every locked fold of E1, E2 and E3 without reading any target value.
+
+    Writes a receipt of the checks.
+    """
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__)
