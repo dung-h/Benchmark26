@@ -6,7 +6,7 @@ Benchmark26 compares neural, classical-regression and analytical estimators that
 
 The runtimes of all 3,443 runs are published as one table, `runs.csv`, in the [benchmark26-data folder](https://drive.google.com/drive/folders/1lXiRepBX3S7rzdscwnVyqXfis1qcp8-K) on Google Drive. Each row is one run (for QPack, the mean over the timings of one workflow): source, circuit group, backend, shot count and runtime in seconds. The folder's `README.md` explains every column, and `SHA256SUMS` holds the checksum (`86ee98ff2408…`). [`scripts/export_dataset.py`](scripts/export_dataset.py) shows how the table was made from the study files.
 
-The same folder holds the study files needed to replay the study and retrain the models (51 MB), the weights of the 241 trained neural models (2.35 GB) and the finished graph-ablation run (94 MB), as three zip files. Its `README.md` says how to unzip them and set the paths; [Reproduction](docs/REPRODUCTION.md) lists the commands. Without the bundle you can still recompute the published latency and graph-ablation statistics. With it you can replay the study checks.
+The same folder holds the study files needed to replay the study and retrain the models (51 MB), the weights of the 241 trained neural models (2.35 GB), the finished graph-ablation run (94 MB) and the compiled circuits needed to rebuild features (376 MB), as four zip files. Its `README.md` says how to unzip them and set the paths; [Reproduction](docs/REPRODUCTION.md) lists the commands. Without the bundle you can still recompute the published latency and graph-ablation statistics. With it you can replay the study checks.
 
 ## Check the published numbers
 
