@@ -32,7 +32,7 @@ The Qonductor circuit archive (`circuits.zip`) is stored with Git LFS: a plain `
 
 ## 3. Study replay
 
-Level 3 needs the external study bundle. It is not published at present, so outside readers can carry out levels 1 and 2 and check `runs.csv`, but not this level.
+Level 3 needs the study files. Download `benchmark26-study-files.zip` and `benchmark26-checkpoints.zip` from the [benchmark26-data folder](https://drive.google.com/drive/folders/1lXiRepBX3S7rzdscwnVyqXfis1qcp8-K), check them with `sha256sum -c SHA256SUMS`, and unzip both into one folder; the folder's `README.md` gives the paths to set. The replay check of the graph ablation also needs `benchmark26-graph-ablation-run.zip`. On 4 November 2026 every command below was run from a fresh clone with only these files and a public clone of the Ma–Li repository, and none read any other study data.
 
 ### Configure paths
 
