@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from qiskit import qasm3  # noqa: F401 - used by the feature workers as engine.qasm3
 from threadpoolctl import threadpool_limits
 
 from benchmark26.paths import ARTIFACTS, PROTOCOLS, QONDUCTOR_ARCHIVE, QONDUCTOR_SOURCE, WORK, record_name, recorded
@@ -45,6 +46,7 @@ from benchmark26.qonductor_feature_tasks import (
     plan_feature_tasks,
 )
 from benchmark26.qonductor_features import load_pinned_qonductor_methods
+from benchmark26.qasm3_wires import restore_saved_qasm3_hardware_wires  # noqa: F401 - used by the feature workers
 
 
 def sha256_bytes(data: bytes) -> str:

@@ -28,7 +28,7 @@ FATAL_PREFIXES = (
 
 def initialize_feature_worker(config: dict[str, Any]) -> None:
     """Load the exact source methods once per process without fitting models."""
-    engine = importlib.import_module("materialize_qonductor_native_features")
+    engine = importlib.import_module("benchmark26.qonductor_inputs")
     for name, pin in config["implementation_pins"].items():
         engine.require_hash(Path(pin["path"]), pin["sha256"], name)
     limit = int(config["native_threads"])
@@ -89,7 +89,7 @@ def plan_feature_tasks(
     Only input identities/settings enter worker payloads. Runtime labels and
     source-specific outcomes are never used for grouping or scheduling.
     """
-    engine = importlib.import_module("materialize_qonductor_native_features")
+    engine = importlib.import_module("benchmark26.qonductor_inputs")
     groups: dict[tuple[str, ...], dict[str, Any]] = {}
     verified: dict[tuple[str, str], int] = {}
     with zipfile.ZipFile(archive_path) as archive:

@@ -8,6 +8,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 - Internal names were replaced by plain ones. Files: `experiments/qpu/prepare_cohort.py` → `prepare_dataset.py`, `verify_dataset_lineage.py` → `verify_dataset_from_sources.py`, `benchmark26/logical_panel.py` → `logical_inputs.py`, `mali_materialize.py` → `mali_inputs.py`, `qonductor_materialize.py` → `qonductor_inputs.py`. The environment variable `B26_COHORT_PLAN` is now `B26_DATASET_INPUTS`, with default `inputs/dataset_inputs/`; update existing environment files. Python names such as `panel`, `cohort` and `materializer` became `run_rows`, `runs_by_id`, `feature_builder` and similar. Column names and paths inside the study files are unchanged, because the code reads existing data.
 - The graph-ablation code check undoes these renames before comparing each pinned file with the executed run (`renamed_after_run` in `results/graph_ablation/manifest.json`). `benchmark26/paths.py` also gained one mapping from the original script name `prepare_cohort.py` to its new name, so its signature is pinned anew.
 
+### Fixed
+- The Qonductor feature build (`python -m benchmark26.qonductor_inputs`) failed in its worker processes. `qonductor_feature_tasks.py` imported the builder by its original-study module name, and two imports that the workers use (`qiskit.qasm3`, `restore_saved_qasm3_hardware_wires`) had been removed as unused. Rebuilt rows equal the saved features.
+
 ### Added
 - `scripts/export_dataset.py` writes the public runtime dataset as one table, `runs.csv`, with one row per run and plain column names.
 - Graph ablation, a separate experiment on the E1/E2 splits. It has four arms with shots: MLP, Graph+MLP, Graph+MLP without edges, and Graph+MLP with node features permuted relative to the edges; 3 seeds and 120 cells. The experiment adds:

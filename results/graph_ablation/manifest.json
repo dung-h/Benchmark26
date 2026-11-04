@@ -26,9 +26,9 @@
       "benchmark26/mali_training.py": "71d79cb2c8558371ea18c2c094ecd8193a4cb5bcba17a40875ca7d899f8bf111",
       "benchmark26/paths.py": "450ea9262e5c9f13dcf69c4a2d2d9e363cc4defd2fcb6b2c338db8c1126db947",
       "benchmark26/qasm3_wires.py": "3f9d4ce045603bb26535f1c5af81f55837a9f6bee1536db6109d12a8389f2b85",
-      "benchmark26/qonductor_feature_tasks.py": "7be3ce54cb19d9c2aff0d5842473bc0b8e844562b2869d735f75bc4635118a16",
+      "benchmark26/qonductor_feature_tasks.py": "05b1743f009dcb050dc6f5f3ca7bee01522c8d864139f046c2b9c31c7ab341cb",
       "benchmark26/qonductor_features.py": "b6be8042b78a4a8d3a2f8189e3cbd4c5e7cc2e41c23aae2b032bbb320ff1de09",
-      "benchmark26/qonductor_materialize.py": "261e7809291017c1b08b6926f0a8ff1f05919645bcdaaccb3442267962efd5e9",
+      "benchmark26/qonductor_materialize.py": "9df248263028b1c3940a334bd8cbb514c9c0008d6252f1d81cbe24f6da1806c6",
       "benchmark26/qonductor_models.py": "b1f7872ec65531b41bf170738a074a17ad0ef17b0f3e8a43597818b5fb4c6e22",
       "benchmark26/qonductor_regression.py": "e54d0f23a9dfc85bd3c4b1be7a88eb06281a474788f388f452b454a351aeb980",
       "benchmark26/shots.py": "8e48ace2453ff983663b419777ab82b564ba66eef4d28c8b25a2a448cc09e60f",
@@ -257,6 +257,14 @@
         "benchmark26/paths.py": {
           "previous_python_signature_sha256": "c33dd15ddeabe0457d6ff8e7920af183fdf8f5404dc135b04508937bee2da2e8",
           "reason": "Added RENAMED_QPU_SCRIPTS so that the original lock's path research/postfreeze_qpu_workflow_mean_expansion_v1/prepare_cohort.py resolves to experiments/qpu/prepare_dataset.py. The checkpoint replay after this change reproduced the saved predictions."
+        },
+        "benchmark26/qonductor_materialize.py": {
+          "previous_python_signature_sha256": "261e7809291017c1b08b6926f0a8ff1f05919645bcdaaccb3442267962efd5e9",
+          "reason": "Repair after the run: commit c5a74de removed two imports of benchmark26/qonductor_materialize.py (now qonductor_inputs.py), `from qiskit import qasm3` and `restore_saved_qasm3_hardware_wires`, which the Qonductor feature workers reach as engine.*; and qonductor_feature_tasks.py imported the engine by its original-study module name, which does not exist in this repository. Neither file is on the graph-ablation code path. After the repair the Qonductor feature build runs, and 9 rebuilt rows equal the saved features."
+        },
+        "benchmark26/qonductor_feature_tasks.py": {
+          "previous_python_signature_sha256": "7be3ce54cb19d9c2aff0d5842473bc0b8e844562b2869d735f75bc4635118a16",
+          "reason": "Repair after the run: commit c5a74de removed two imports of benchmark26/qonductor_materialize.py (now qonductor_inputs.py), `from qiskit import qasm3` and `restore_saved_qasm3_hardware_wires`, which the Qonductor feature workers reach as engine.*; and qonductor_feature_tasks.py imported the engine by its original-study module name, which does not exist in this repository. Neither file is on the graph-ablation code path. After the repair the Qonductor feature build runs, and 9 rebuilt rows equal the saved features."
         }
       }
     }
