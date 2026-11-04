@@ -5,7 +5,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 ## [0.4.0] - 2026-11-04
 
 ### Changed
-- `experiments/qpu/verify_dataset_lineage.py` is now `verify_dataset_from_sources.py`. Public documents say "dataset" where they said "cohort", and `docs/GLOSSARY.md` explains the names that stay because frozen files or pinned code refer to them.
+- Internal names were replaced by plain ones. Files: `experiments/qpu/prepare_cohort.py` → `prepare_dataset.py`, `verify_dataset_lineage.py` → `verify_dataset_from_sources.py`, `benchmark26/logical_panel.py` → `logical_inputs.py`, `mali_materialize.py` → `mali_inputs.py`, `qonductor_materialize.py` → `qonductor_inputs.py`. The environment variable `B26_COHORT_PLAN` is now `B26_DATASET_INPUTS`, with default `inputs/dataset_inputs/`; update existing environment files. Python names such as `panel`, `cohort` and `materializer` became `run_rows`, `runs_by_id`, `feature_builder` and similar. Column names and paths inside the study files are unchanged, because the code reads existing data.
+- The graph-ablation code check undoes these renames before comparing each pinned file with the executed run (`renamed_after_run` in `results/graph_ablation/manifest.json`). `benchmark26/paths.py` also gained one mapping from the original script name `prepare_cohort.py` to its new name, so its signature is pinned anew.
 
 ### Added
 - `scripts/export_dataset.py` writes the public runtime dataset as one table, `runs.csv`, with one row per run and plain column names.

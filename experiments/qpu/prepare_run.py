@@ -12,7 +12,7 @@ lock such as ``benchmark26/paths.py``. ``train_neural.py`` and
 ``run_classical.py`` then accept exactly this code and write under
 ``$B26_RUN_DIR``. The original lock and outputs are not modified.
 
-The run inherits every scientific setting of the original lock (cohort, splits,
+The run inherits every scientific setting of the original lock (dataset, splits,
 seeds, epochs, candidate sets). Its results are a new experiment, not a check
 of the saved one.
 """

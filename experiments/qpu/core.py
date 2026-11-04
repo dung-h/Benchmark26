@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read cohort features and labels separately, and construct evaluation partitions."""
+"""Read dataset features and labels separately, and construct evaluation partitions."""
 
 from __future__ import annotations
 import sys
@@ -12,7 +12,7 @@ import csv, hashlib, json, math
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
-# Inputs of the study: cohort, splits, protocol and execution lock.
+# Inputs of the study: dataset, splits, protocol and execution lock.
 OUT = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
 SPLITS = OUT / "splits"
 PROTOCOL = OUT / "PROTOCOL.md"
@@ -106,7 +106,7 @@ def atomic_csv(path, values, fieldnames=None):
 
 
 def load_context(evaluation: str, include_targets: bool = True):
-    """Load the cohort and splits of an evaluation (E1, E2 or E3) and verify them.
+    """Load the dataset and splits of an evaluation (E1, E2 or E3) and verify them.
 
     Checks the 3,443 observations and their feature ledger, the positive shot counts, and the outer and
     inner splits. Targets are read only if `include_targets` is true. Returns the context, the targets
@@ -114,12 +114,12 @@ def load_context(evaluation: str, include_targets: bool = True):
     """
     if evaluation not in {"E1", "E2", "E3"}:
         raise ValueError(f"unknown_evaluation:{evaluation}")
-    cohort = OUT / "cohort"
-    panel = rows(cohort / "panel.csv")
-    ledger_rows = rows(cohort / "feature_ledger.csv")
-    panel_by_id = {r["canonical_observation_id"]: r for r in panel}
+    dataset_dir = OUT / "cohort"
+    run_rows = rows(dataset_dir / "panel.csv")
+    ledger_rows = rows(dataset_dir / "feature_ledger.csv")
+    runs_by_id = {r["canonical_observation_id"]: r for r in run_rows}
     ledger = {}
-    for p, l in zip(panel, ledger_rows):
+    for p, l in zip(run_rows, ledger_rows):
         if p["canonical_observation_id"] != l["canonical_observation_id"]:
             raise RuntimeError("panel_ledger_order_or_identity_mismatch")
         cid = p["canonical_observation_id"]
@@ -134,29 +134,29 @@ def load_context(evaluation: str, include_targets: bool = True):
             "global_status": "available",
             **{f"global_{i:02d}": l[f"global_{i:02d}"] for i in range(51)},
         }
-    if len(panel) != 3443 or len(ledger) != 3443 or len(panel_by_id) != 3443:
+    if len(run_rows) != 3443 or len(ledger) != 3443 or len(runs_by_id) != 3443:
         raise RuntimeError("expanded_panel_identity_mismatch")
     targets = None
     if include_targets:
         # Kept only for offline full-target validation/reporting. Training paths use
-        # load_targets(outer_train_ids) and never materialize held-out values.
+        # load_targets(outer_train_ids) and never load held-out values.
         targets = load_targets(set(ledger))
-    if any(float(r["shots"]) <= 0 for r in panel):
+    if any(float(r["shots"]) <= 0 for r in run_rows):
         raise RuntimeError("invalid_shots")
-    panel_ids = sorted(ledger)
+    run_ids = sorted(ledger)
     base = {
-        "panel": panel,
-        "panel_by_id": panel_by_id,
+        "run_rows": run_rows,
+        "runs_by_id": runs_by_id,
         "ledger": ledger,
         "feature_root": ROOT,
-        "all_ids": set(panel_ids),
+        "all_ids": set(run_ids),
         "evaluation": evaluation,
         "pins": {
-            "panel_sha256": sha(cohort / "panel.csv"),
-            "target_sha256": sha(cohort / "targets.csv"),
-            "feature_ledger_sha256": sha(cohort / "feature_ledger.csv"),
-            "native_features_sha256": sha(cohort / "native_baseline_features.csv"),
-            "feature_receipt_sha256": sha(cohort / "feature_preflight_receipt.json"),
+            "panel_sha256": sha(dataset_dir / "panel.csv"),
+            "target_sha256": sha(dataset_dir / "targets.csv"),
+            "feature_ledger_sha256": sha(dataset_dir / "feature_ledger.csv"),
+            "native_features_sha256": sha(dataset_dir / "native_baseline_features.csv"),
+            "feature_receipt_sha256": sha(dataset_dir / "feature_preflight_receipt.json"),
             "split_receipt_sha256": sha(SPLITS / "split_receipt.json"),
         },
     }
@@ -201,7 +201,7 @@ def parts_for(context, fold):
     """
     ev = context["evaluation"]
     all_ids = context["all_ids"]
-    group = {r["canonical_observation_id"]: r["group_id"] for r in context["panel"]}
+    group = {r["canonical_observation_id"]: r["group_id"] for r in context["run_rows"]}
     if ev in {"E1", "E2"}:
         outer = context["outer"]
         test = sorted(cid for cid, r in outer.items() if int(r["outer_fold"]) == fold)

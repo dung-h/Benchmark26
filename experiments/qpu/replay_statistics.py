@@ -102,7 +102,7 @@ def main():
     saved = rows(DEST / "reduced_predictions.csv")
     seedrows = rows(DEST / "per_seed_predictions.csv")
     assert len(saved) == 61974 and len(seedrows) == 123948
-    panel = {r["canonical_observation_id"]: r for r in rows(OUT / "cohort/panel.csv")}
+    runs_by_id = {r["canonical_observation_id"]: r for r in rows(OUT / "cohort/panel.csv")}
     targets = {r["canonical_observation_id"]: float(r["target_seconds"]) for r in rows(OUT / "cohort/targets.csv")}
     groups = collections.defaultdict(list)
     lookup = {}
@@ -113,7 +113,7 @@ def main():
         cid = r["canonical_observation_id"]
         assert float(r["target_seconds"]) == targets[cid]
         for k in ("group_id", "source_id", "backend", "shots"):
-            assert r[k] == panel[cid][k]
+            assert r[k] == runs_by_id[cid][k]
         for field, expected in [
             ("signed_error_seconds", float(r["predicted_seconds"]) - targets[cid]),
             ("absolute_error_seconds", abs(float(r["predicted_seconds"]) - targets[cid])),

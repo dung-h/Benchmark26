@@ -28,8 +28,8 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 CODE = Path(__file__).resolve().parent
 OUT = ARTIFACTS / "postfreeze_notads_hyperq_track_a_v1"
-PANEL = ARTIFACTS / "real_qpu/qualified_logical_panel/panel.csv"
-SPLITS = PANEL.parent / "outer_splits.csv"
+LOGICAL_INPUT_TABLE = ARTIFACTS / "real_qpu/qualified_logical_panel/panel.csv"
+SPLITS = LOGICAL_INPUT_TABLE.parent / "outer_splits.csv"
 REP = ARTIFACTS / "benchmark_v3/real_qpu/compiled_unified"
 REG = ARTIFACTS / "benchmark_v3/recovery_real_qpu_20260929_v3/c133_snapshot_registry_v3.csv"
 TIMING = ARTIFACTS / "postfreeze_track_a_transpiled_representation_v1/features/timing_features.csv"
@@ -103,13 +103,13 @@ def tables():
 
     Checks the observation, group and fold counts, joins the representation rows,
     compares shot counts with the Qonductor database and writes the 82 shot
-    discrepancies found. Returns the panel, the split and the representation rows.
+    discrepancies found. Returns the logical-input table, the split and the representation rows.
     """
-    panel = read(PANEL)
-    ids = [r["canonical_observation_id"] for r in panel]
-    assert len(panel) == len(set(ids)) == 4515
-    assert len({r["group_id"] for r in panel}) == 165
-    assert Counter(r["source_id"] for r in panel) == {
+    logical_inputs = read(LOGICAL_INPUT_TABLE)
+    ids = [r["canonical_observation_id"] for r in logical_inputs]
+    assert len(logical_inputs) == len(set(ids)) == 4515
+    assert len({r["group_id"] for r in logical_inputs}) == 165
+    assert Counter(r["source_id"] for r in logical_inputs) == {
         "mali_real_qpu": 340,
         "qonductor_single_circuit_ibm": 230,
         "qpack_mcp": 3945,
@@ -118,7 +118,7 @@ def tables():
     split = {r["canonical_observation_id"]: r for r in splits}
     assert len(split) == len(splits) == 4515 and set(split) == set(ids)
     groups = defaultdict(set)
-    for r in panel:
+    for r in logical_inputs:
         s = split[r["canonical_observation_id"]]
         assert s["group_id"] == r["group_id"]
         groups[r["group_id"]].add(int(s["outer_fold"]))
@@ -131,7 +131,7 @@ def tables():
     native = {r["canonical_row_id"]: r for r in read(NATIVE) if r["canonical_row_id"] in set(ids)}
     mismatches = []
     db = sqlite3.connect(f"file:{DB}?mode=ro&immutable=1", uri=True)
-    for r in panel:
+    for r in logical_inputs:
         rid = r["canonical_observation_id"]
         rep = reps[rid]
         c = canon[rid]
@@ -166,7 +166,7 @@ def tables():
     db.close()
     assert len(mismatches) == 82 and all(x["database_shots"] != "not_applicable" for x in mismatches)
     write("representation_shots_discrepancies.csv", mismatches)
-    return panel, split, reps
+    return logical_inputs, split, reps
 
 
 def kernel():
@@ -344,10 +344,10 @@ def extract():
     reference; the smallest graphs are also checked against Qiskit depths. Target
     values are removed from the rows before the structural calculation.
     """
-    panel, split, reps = tables()
+    logical_inputs, split, reps = tables()
     # Target values deliberately removed before structural calculation.
-    safe = [{k: v for k, v in r.items() if k != "target_seconds"} for r in panel]
-    del panel
+    safe = [{k: v for k, v in r.items() if k != "target_seconds"} for r in logical_inputs]
+    del logical_inputs
     objects, snapshot_pins = backends()
     call = kernel()
     hashes = json.loads((REP / "graph_file_hashes.json").read_text())
@@ -427,7 +427,7 @@ def extract():
         )
     write("features.csv", rows)
     inputpaths = [
-        PANEL,
+        LOGICAL_INPUT_TABLE,
         SPLITS,
         TIMING,
         REG,
@@ -511,17 +511,17 @@ def score():
     (10,000 whole-group bootstrap draws, seed 42), calibration fits, leakage receipts
     and a completion receipt are written.
     """
-    panel, split, _reps = tables()
+    logical_inputs, split, _reps = tables()
     receipt = json.loads((OUT / "feature_receipt.json").read_text())
     assert receipt["status"] == "PASS" and sha(OUT / "features.csv") == receipt["feature_sha256"]
     for p, h in receipt["inputs_sha256"].items():
         assert sha(recorded(p)) == h, p
     feature = {r["canonical_observation_id"]: r for r in read(OUT / "features.csv")}
-    assert set(feature) == {r["canonical_observation_id"] for r in panel}
-    ids = [r["canonical_observation_id"] for r in panel]
+    assert set(feature) == {r["canonical_observation_id"] for r in logical_inputs}
+    ids = [r["canonical_observation_id"] for r in logical_inputs]
     folds = np.array([int(split[i]["outer_fold"]) for i in ids])
-    y = np.array([float(r["target_seconds"]) for r in panel])
-    shots = np.array([int(float(r["shots"])) for r in panel])
+    y = np.array([float(r["target_seconds"]) for r in logical_inputs])
+    shots = np.array([int(float(r["shots"])) for r in logical_inputs])
     assert np.all(np.isfinite(y)) and np.all(y > 0) and np.all(shots > 0)
     predictions = {}
     fits = []
@@ -540,8 +540,8 @@ def score():
             for fold in range(5):
                 train = np.flatnonzero(folds != fold)
                 test = np.flatnonzero(folds == fold)
-                tg = {panel[j]["group_id"] for j in train}
-                vg = {panel[j]["group_id"] for j in test}
+                tg = {logical_inputs[j]["group_id"] for j in train}
+                vg = {logical_inputs[j]["group_id"] for j in test}
                 assert not tg & vg
                 matrix = np.column_stack([np.ones(len(train)), x[train]])
                 coef, _, rank, _ = np.linalg.lstsq(matrix, y[train], rcond=None)
@@ -575,7 +575,7 @@ def score():
     )
     allrows = []
     metricrows = []
-    groups = sorted({r["group_id"] for r in panel})
+    groups = sorted({r["group_id"] for r in logical_inputs})
     draws = np.random.default_rng(42).integers(0, len(groups), size=(10000, len(groups)))
     group_errors = {}
     for method, pred in predictions.items():
@@ -590,7 +590,7 @@ def score():
                 "prediction_seconds": float(pred[j]),
                 "status": "predicted",
             }
-            for j, r in enumerate(panel)
+            for j, r in enumerate(logical_inputs)
         ]
         allrows.extend(rows)
         metricrows.append(metric(rows, method, "all"))
@@ -599,7 +599,7 @@ def score():
         for fold in range(5):
             metricrows.append(metric([r for r in rows if r["outer_fold"] == fold], method, f"fold_{fold}"))
         group_errors[method] = np.array(
-            [np.mean([abs(pred[j] - y[j]) for j, r in enumerate(panel) if r["group_id"] == g]) for g in groups]
+            [np.mean([abs(pred[j] - y[j]) for j, r in enumerate(logical_inputs) if r["group_id"] == g]) for g in groups]
         )
     paired = []
     for a, b in [

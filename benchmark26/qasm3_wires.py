@@ -180,7 +180,7 @@ def restore_saved_qasm3_hardware_wires(qasm_text: str, register_width: int) -> t
 
 
 def _feed_ast_hash(hasher: Any, node: Any) -> None:
-    """Hash AST incrementally without materializing a huge nested JSON object."""
+    """Hash AST incrementally without building a huge nested JSON object."""
     if isinstance(node, list):
         hasher.update(b"list[")
         hasher.update(str(len(node)).encode("ascii"))

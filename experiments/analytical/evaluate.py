@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Score frozen analytical routes on the unified cohort and frozen splits."""
+"""Score frozen analytical routes on the unified dataset and frozen splits."""
 
 from __future__ import annotations
 
@@ -113,9 +113,9 @@ def corr(x, y):
 
 
 def main():
-    """Score the frozen analytical routes on the 3,443-observation cohort with the frozen splits.
+    """Score the frozen analytical routes on the 3,443-run dataset with the frozen splits.
 
-    Checks the cohort and lineage, then for E1, E2 and each E3 held-out backend computes
+    Checks the dataset and lineage, then for E1, E2 and each E3 held-out backend computes
     metrics, source, backend and provenance slices, fold metrics, correlations and
     coverage. The Qonductor selector predictions and the outer-training medians are
     combined without refitting. Unitless NoTaDS rows are correlation-only. Paired
@@ -124,12 +124,12 @@ def main():
     sliced, fold, correlation, paired-comparison and coverage tables and a receipt
     with the input hashes.
     """
-    cohort = read(STUDY / "cohort/panel.csv")
+    run_rows = read(STUDY / "cohort/panel.csv")
     targets = {r["canonical_observation_id"]: float(r["target_seconds"]) for r in read(STUDY / "cohort/targets.csv")}
-    ids = sorted(r["canonical_observation_id"] for r in cohort)
+    ids = sorted(r["canonical_observation_id"] for r in run_rows)
     if len(ids) != 3443 or len(set(ids)) != 3443 or set(ids) != set(targets):
         raise RuntimeError("cohort_identity")
-    panel = {r["canonical_observation_id"]: r for r in cohort}
+    runs_by_id = {r["canonical_observation_id"]: r for r in run_rows}
     lin = {r["canonical_observation_id"]: r for r in read(NS / "lineage.csv")}
     if set(lin) != set(ids):
         raise RuntimeError("lineage_identity")
@@ -144,10 +144,10 @@ def main():
         if key in idx:
             raise RuntimeError("duplicate_analytical_prediction:" + str(key))
         cid = r["canonical_observation_id"]
-        if cid not in panel or float(r["target_seconds"]) != targets[cid]:
+        if cid not in runs_by_id or float(r["target_seconds"]) != targets[cid]:
             raise RuntimeError("target_mismatch:" + cid)
         for k in ("group_id", "source_id", "backend", "shots"):
-            if r[k] != panel[cid][k] and not (k == "shots" and float(r[k]) == float(panel[cid][k])):
+            if r[k] != runs_by_id[cid][k] and not (k == "shots" and float(r[k]) == float(runs_by_id[cid][k])):
                 raise RuntimeError("metadata_mismatch:" + cid + ":" + k)
         idx[key] = r
     reduced = read(AN / "reduced_predictions.csv")
@@ -252,7 +252,7 @@ def main():
         if ev == "E3" and case == "ALL":
             continue
         for m in candidate_methods:
-            rs = [panel[i] for i in caseids]
+            rs = [runs_by_id[i] for i in caseids]
             yy = [targets[i] for i in caseids]
             pp = [getpred(ev, case, i, m) for i in caseids]
             mm = metric(yy, pp, [x["group_id"] for x in rs], [x["source_id"] for x in rs])
@@ -272,7 +272,7 @@ def main():
             if ev in ("E1", "E2"):
                 for fold in sorted({foldmap[ev][i] for i in caseids}):
                     foldids = [i for i in caseids if foldmap[ev][i] == fold]
-                    fr = [panel[i] for i in foldids]
+                    fr = [runs_by_id[i] for i in foldids]
                     fm = metric(
                         [targets[i] for i in foldids],
                         [getpred(ev, case, i, m) for i in foldids],
@@ -295,7 +295,7 @@ def main():
                     else sorted(
                         {
                             (
-                                panel[i][
+                                runs_by_id[i][
                                     {
                                         "source": "source_id",
                                         "backend": "backend",
@@ -316,16 +316,16 @@ def main():
                         for i in caseids
                         if scope == "overall"
                         or (
-                            panel[i]["source_id"] == v
+                            runs_by_id[i]["source_id"] == v
                             if scope == "source"
-                            else panel[i]["backend"] == v
+                            else runs_by_id[i]["backend"] == v
                             if scope == "backend"
                             else prov[i][scope] == v
                         )
                     ]
                     if not subset:
                         continue
-                    subrows = [panel[i] for i in subset]
+                    subrows = [runs_by_id[i] for i in subset]
                     sy = [targets[i] for i in subset]
                     sp = [getpred(ev, case, i, m) for i in subset]
                     z = metric(sy, sp, [x["group_id"] for x in subrows], [x["source_id"] for x in subrows])
@@ -359,8 +359,8 @@ def main():
                     }
                 )
                 if ev in ("E1", "E2"):
-                    for source in sorted({panel[i]["source_id"] for i in caseids}):
-                        subset = [i for i in caseids if panel[i]["source_id"] == source]
+                    for source in sorted({runs_by_id[i]["source_id"] for i in caseids}):
+                        subset = [i for i in caseids if runs_by_id[i]["source_id"] == source]
                         pr, sr = corr([getpred(ev, case, i, m) for i in subset], [targets[i] for i in subset])
                         corr_rows.append(
                             {
@@ -387,15 +387,15 @@ def main():
                     "case": case,
                     "method_id": m,
                     "rows": len(caseids),
-                    "groups": len({panel[i]["group_id"] for i in caseids}),
-                    "sources": len({panel[i]["source_id"] for i in caseids}),
+                    "groups": len({runs_by_id[i]["group_id"] for i in caseids}),
+                    "sources": len({runs_by_id[i]["source_id"] for i in caseids}),
                     "status": "FULL_COMMON_COVERAGE_SCORE_ONLY_UNITLESS",
                 }
             )
             for scope in ("overall", "source"):
-                values = ["ALL"] if scope == "overall" else sorted({panel[i]["source_id"] for i in caseids})
+                values = ["ALL"] if scope == "overall" else sorted({runs_by_id[i]["source_id"] for i in caseids})
                 for v in values:
-                    subset = [i for i in caseids if scope == "overall" or panel[i]["source_id"] == v]
+                    subset = [i for i in caseids if scope == "overall" or runs_by_id[i]["source_id"] == v]
                     rr = [getrow(ev, case, i, m) for i in subset]
                     xx = [float(r["raw_input_value"]) for r in rr]
                     yy = [targets[i] for i in subset]
@@ -449,12 +449,12 @@ def main():
         with np.load(bootpath, allow_pickle=False) as z:
             draws = z["draws"]
             bgroups = list(z["groups"].astype(str))
-        group_order = sorted({panel[i]["group_id"] for i in caseids})
+        group_order = sorted({runs_by_id[i]["group_id"] for i in caseids})
         if bgroups != group_order:
             raise RuntimeError(f"bootstrap_group_alignment:{ev}:{case}:{len(bgroups)}:{len(group_order)}")
         group_rows = defaultdict(list)
         for i in caseids:
-            group_rows[panel[i]["group_id"]].append(i)
+            group_rows[runs_by_id[i]["group_id"]].append(i)
         for a, b in compare_pairs:
             per_group = []
             for g in group_order:
@@ -488,7 +488,7 @@ def main():
     for i in ids:
         l = lin[i]
         x = rawfeat[(l["graph_file"], l["snapshot_id"])]
-        sh = float(panel[i]["shots"])
+        sh = float(runs_by_id[i]["shots"])
         for route, field in [
             ("QISKIT_SINGLE", "hyperq_full_seconds"),
             ("HYPERQ_PATH_SINGLE", "hyperq_full_seconds"),
@@ -538,12 +538,12 @@ def main():
     )
     # Checksums are for comparators before writing this analysis.
     baseline_sha = sha(AN / "reduced_predictions.csv")
-    panel_sha = sha(STUDY / "cohort/panel.csv")
+    run_table_sha = sha(STUDY / "cohort/panel.csv")
     target_sha = sha(STUDY / "cohort/targets.csv")
     receipt = {
         "status": "PASS_ANALYTICAL_SCORING",
         "rows": len(ids),
-        "groups": len({r["group_id"] for r in cohort}),
+        "groups": len({r["group_id"] for r in run_rows}),
         "sources": 3,
         "evaluations": ["E1", "E2", "E3"],
         "method_ids": methods,
@@ -565,7 +565,7 @@ def main():
         "Qiskit_and_HyperQ_full_path_raw_inputs_exactly_equal": True,
         "shot_scaling_applied_once": True,
         "saved_reduced_predictions_sha256_before_analysis": baseline_sha,
-        "panel_sha256": panel_sha,
+        "panel_sha256": run_table_sha,
         "targets_sha256": target_sha,
         "metrics_sha256": sha(NS / "metrics.csv"),
         "sliced_metrics_sha256": sha(NS / "sliced_metrics.csv"),

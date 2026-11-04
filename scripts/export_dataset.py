@@ -2,7 +2,7 @@
 """Write the public runtime dataset: one table with one row per QPU run.
 
 The table is built from two files of the study: the observation list
-(`$B26_COHORT_PLAN/proposed_observations.csv`) and the prepared table with its
+(`$B26_DATASET_INPUTS/proposed_observations.csv`) and the prepared table with its
 labels (`$B26_ARTIFACTS/postfreeze_qpu_workflow_mean_expansion_v1/cohort/`
 `panel.csv` and `targets.csv`). Values are copied unchanged, except that source
 names are shortened and shot counts are written as integers. Columns that only
@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repository root
-from benchmark26.paths import ARTIFACTS, COHORT_PLAN
+from benchmark26.paths import ARTIFACTS, DATASET_INPUTS
 
 SOURCE_NAMES = {"mali_real_qpu": "ma_li", "qonductor_single_circuit_ibm": "qonductor", "qpack_mcp": "qpack"}
 COLUMNS = [
@@ -43,7 +43,7 @@ def read(path: Path) -> list[dict[str, str]]:
 
 
 def build() -> list[dict[str, str]]:
-    listed = read(COHORT_PLAN / "proposed_observations.csv")
+    listed = read(DATASET_INPUTS / "proposed_observations.csv")
     prepared = read(PREPARED / "panel.csv")
     labels = {row["canonical_observation_id"]: row["target_seconds"] for row in read(PREPARED / "targets.csv")}
     if len(listed) != len(prepared) or len(labels) != len(listed):

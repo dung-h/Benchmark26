@@ -29,7 +29,7 @@ from benchmark26.tables import read_csv as rows
 
 ROOT = Path(__file__).resolve().parents[2]
 NS = ARTIFACTS / "postfreeze_unified_analytical_completion_v1"
-PANEL = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
+DATASET_STUDY_DIR = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
 REP = ARTIFACTS / "benchmark_v3/real_qpu/compiled_unified"
 FEATURE = ARTIFACTS / "postfreeze_notads_hyperq_track_a_v1/features.csv"
 ATTEMPTS = ARTIFACTS / "benchmark_v3/real_qpu/archived_analytical_wave_v3_20260930/attempts.csv"
@@ -85,12 +85,12 @@ def main():
     out = NS
     if a.full and (out / "raw_features.csv").exists():
         raise RuntimeError("refuse_overwrite_raw_features")
-    # Check the cohort identity and the pinned inputs.
-    source = rows(PANEL / "cohort/panel.csv")
+    # Check the dataset identity and the pinned inputs.
+    source = rows(DATASET_STUDY_DIR / "cohort/panel.csv")
     # This step does not read target labels.
-    qmap = {r["workflow_mean_id"]: r for r in rows(PANEL / "cohort/qpack_feature_source_map.csv")}
+    qmap = {r["workflow_mean_id"]: r for r in rows(DATASET_STUDY_DIR / "cohort/qpack_feature_source_map.csv")}
     reps = {r["canonical_row_id"]: r for r in rows(REP / "representation_rows.csv")}
-    splitfiles = [PANEL / "splits" / f"{e}_outer.csv" for e in ("E1", "E2", "E3")]
+    splitfiles = [DATASET_STUDY_DIR / "splits" / f"{e}_outer.csv" for e in ("E1", "E2", "E3")]
     ids = [r["canonical_observation_id"] for r in source]
     if len(source) != 3443 or len(set(ids)) != 3443:
         raise RuntimeError("cohort_identity_mismatch")
@@ -103,11 +103,11 @@ def main():
         raise RuntimeError("missing_frozen_split")
     hashes = {}
     pinpaths = [
-        PANEL / "PROTOCOL.md",
-        PANEL / "cohort/panel.csv",
-        PANEL / "cohort/targets.csv",
-        PANEL / "cohort/feature_ledger.csv",
-        PANEL / "cohort/qpack_feature_source_map.csv",
+        DATASET_STUDY_DIR / "PROTOCOL.md",
+        DATASET_STUDY_DIR / "cohort/panel.csv",
+        DATASET_STUDY_DIR / "cohort/targets.csv",
+        DATASET_STUDY_DIR / "cohort/feature_ledger.csv",
+        DATASET_STUDY_DIR / "cohort/qpack_feature_source_map.csv",
         REP / "representation_rows.csv",
         REP / "graph_file_hashes.json",
         ARTIFACTS / "benchmark_v3/recovery_real_qpu_20260929_v3/c133_snapshot_registry_v3.csv",

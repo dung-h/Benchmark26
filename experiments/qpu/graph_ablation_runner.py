@@ -127,7 +127,7 @@ class ExampleCache:
             self.verified,
         )
         if spec["shots"]:
-            raw = float(self.context["panel_by_id"][cid]["shots"])
+            raw = float(self.context["runs_by_id"][cid]["shots"])
             value = append_shots(value, transform_shots(raw, self.transform["shots"]))
         if spec["graph"]:
             arm = {"G1e": "G1e", "G1p": "G1p"}.get(self.treatment, "G1r")
@@ -241,7 +241,7 @@ def fit_transform(context, parts, fold):
     global_transform = base.fit_transform_global(raw_global, parts["fit"])
     graph_paths = [recorded(context["ledger"][cid]["graph_artifact"]) for cid in parts["fit"]]
     node_transform = base.fit_node_transform(graph_paths, parts["fit"])
-    shot_fit = [float(context["panel_by_id"][cid]["shots"]) for cid in parts["fit"]]
+    shot_fit = [float(context["runs_by_id"][cid]["shots"]) for cid in parts["fit"]]
     return {
         "global": global_transform,
         "node": node_transform,
@@ -295,7 +295,7 @@ def initialization_gate(context, parts, transform, treatment, seed, torch):
     """
     spec = METHODS[treatment]
     cache = ExampleCache(context, transform, treatment, 256 * 1024**2)
-    fit_sorted = sorted(parts["fit"], key=lambda cid: float(context["panel_by_id"][cid]["shots"]))
+    fit_sorted = sorted(parts["fit"], key=lambda cid: float(context["runs_by_id"][cid]["shots"]))
     fixture_ids = list(dict.fromkeys([fit_sorted[0], fit_sorted[len(fit_sorted) // 2], fit_sorted[-1]]))
     old_treatment = {"M1": "M0", "G1": "G0"}.get(treatment)
     if old_treatment:
@@ -348,7 +348,7 @@ def initialization_gate(context, parts, transform, treatment, seed, torch):
                 cache.verified,
             )
             examples.append(
-                append_shots(old_ex, transform_shots(float(context["panel_by_id"][cid]["shots"]), transform["shots"]))
+                append_shots(old_ex, transform_shots(float(context["runs_by_id"][cid]["shots"]), transform["shots"]))
             )
         batch = base._batch_to_device(examples, "cuda:0", spec["graph"])
         new.train()
@@ -711,7 +711,7 @@ def baseline_sanity(context):
             raise RuntimeError("sanity_seed_coverage_mismatch")
         groups = collections.defaultdict(list)
         for cid, values in by_id.items():
-            groups[context["panel_by_id"][cid]["group_id"]].append(abs(float(np.median(values)) - labels[cid]))
+            groups[context["runs_by_id"][cid]["group_id"]].append(abs(float(np.median(values)) - labels[cid]))
         observed = float(np.mean([np.mean(v) for v in groups.values()]))
         reference = [
             float(r["mae_seconds"]) for r in history if r["evaluation"] == "E1" and r["treatment"] == treatment

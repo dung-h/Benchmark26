@@ -24,7 +24,7 @@
       "benchmark26/mali_batching.py": "3baf1a678c18d187189587cbafbef5aac74529b669ece77d52892d2a49cf99d5",
       "benchmark26/mali_features.py": "73851ccc2c59173511b8a295037f00a714b236ee4d2b047a09005cadf0fec218",
       "benchmark26/mali_training.py": "71d79cb2c8558371ea18c2c094ecd8193a4cb5bcba17a40875ca7d899f8bf111",
-      "benchmark26/paths.py": "c33dd15ddeabe0457d6ff8e7920af183fdf8f5404dc135b04508937bee2da2e8",
+      "benchmark26/paths.py": "450ea9262e5c9f13dcf69c4a2d2d9e363cc4defd2fcb6b2c338db8c1126db947",
       "benchmark26/qasm3_wires.py": "3f9d4ce045603bb26535f1c5af81f55837a9f6bee1536db6109d12a8389f2b85",
       "benchmark26/qonductor_feature_tasks.py": "7be3ce54cb19d9c2aff0d5842473bc0b8e844562b2869d735f75bc4635118a16",
       "benchmark26/qonductor_features.py": "b6be8042b78a4a8d3a2f8189e3cbd4c5e7cc2e41c23aae2b032bbb320ff1de09",
@@ -193,6 +193,71 @@
           "experiments/qpu/audit_classical_inputs.py"
         ],
         "reason": "Internal process steps of the original study (execution lock, batch profile, first-cell QA, classical-input audit). The executed run pinned them; they are not published. prepare_run.py records files named in the original lock but not distributed as `code_not_distributed`."
+      }
+    },
+    "renamed_after_run": {
+      "note": "Plain names replaced internal ones after the run. For each pinned file, the check moves to the new path, maps the new names and whole string literals back to the old ones, and then compares the signature with the recorded one.",
+      "files": {
+        "experiments/qpu/prepare_cohort.py": "experiments/qpu/prepare_dataset.py",
+        "benchmark26/qonductor_materialize.py": "benchmark26/qonductor_inputs.py"
+      },
+      "names": {
+        "benchmark26/circuit_representation.py": {
+          "build_features": "materialize_features"
+        },
+        "benchmark26/paths.py": {
+          "DATASET_INPUTS": "COHORT_PLAN"
+        },
+        "benchmark26/qonductor_feature_tasks.py": {
+          "import_feature_builder": "import_materializer"
+        },
+        "benchmark26/qonductor_materialize.py": {
+          "feature_builder": "materializer",
+          "feature_builder_path": "materializer_path",
+          "import_feature_builder": "import_materializer"
+        },
+        "benchmark26/qonductor_regression.py": {
+          "STRICT_LOGICAL_INPUTS_DIR": "PANEL"
+        },
+        "experiments/qpu/core.py": {
+          "dataset_dir": "cohort",
+          "run_ids": "panel_ids",
+          "run_rows": "panel",
+          "runs_by_id": "panel_by_id"
+        },
+        "experiments/qpu/prepare_cohort.py": {
+          "DATASET_INPUTS": "COHORT_PLAN",
+          "OBSERVATION_LIST": "PANEL_IN",
+          "observation_list": "proposed",
+          "run_fields": "panel_fields",
+          "run_rows": "panel"
+        },
+        "experiments/qpu/prepare_splits.py": {
+          "DATASET_DIR": "COHORT",
+          "run_rows": "panel",
+          "run_table_sha256": "panelsha"
+        }
+      },
+      "strings": {
+        "B26_DATASET_INPUTS": "B26_COHORT_PLAN",
+        "inputs/dataset_inputs": "inputs/cohort_plan",
+        "runs_by_id": "panel_by_id",
+        "benchmark26/logical_inputs.py": "benchmark26/logical_panel.py",
+        "benchmark26/mali_inputs.py": "benchmark26/mali_materialize.py",
+        "logical_inputs": "logical_panel",
+        "mali_inputs": "mali_materialize",
+        "qonductor_inputs": "qonductor_materialize",
+        "Dataset identity mismatch": "Cohort identity mismatch",
+        "Qualified row absent from final dataset: ": "Qualified row absent from final cohort: ",
+        "Selection ledger coverage differs from locked dataset": "Selection ledger coverage differs from locked cohort",
+        "Refuse existing output": "Refuse existing lineage output",
+        "run_rows": "panel"
+      },
+      "repinned": {
+        "benchmark26/paths.py": {
+          "previous_python_signature_sha256": "c33dd15ddeabe0457d6ff8e7920af183fdf8f5404dc135b04508937bee2da2e8",
+          "reason": "Added RENAMED_QPU_SCRIPTS so that the original lock's path research/postfreeze_qpu_workflow_mean_expansion_v1/prepare_cohort.py resolves to experiments/qpu/prepare_dataset.py. The checkpoint replay after this change reproduced the saved predictions."
+        }
       }
     }
   }

@@ -90,7 +90,7 @@ def canonical_instruction_digest(circuit, *, include_parameters=True) -> str:
 
 
 def main():
-    """Run one stage of the logical-input panel for the 8,767 canonical observations.
+    """Run one stage of the logical-input table for the 8,767 canonical observations.
 
     Every stage first reads the canonical, representation and recovery tables and
     builds an eligibility record for each observation (eligibility.csv for the
@@ -190,7 +190,7 @@ def main():
         return
 
     if args.stage == "groups":
-        materialize_model_input_groups(out, canonical, representation, rec_by_id)
+        build_model_input_groups(out, canonical, representation, rec_by_id)
         return
 
     if args.stage == "validate":
@@ -304,7 +304,7 @@ def main():
                 "reason": "",
             }
             rec.update({f"g{i:02d}": v for i, v in enumerate(features)})
-        except Exception as exc:  # noqa: BLE001 - one unusable row must not stop the panel; the reason is recorded
+        except Exception as exc:  # noqa: BLE001 - one unusable row must not stop the table; the reason is recorded
             rec = {
                 "canonical_observation_id": rid,
                 "source_id": source,
@@ -339,7 +339,7 @@ def main():
     (out / "feature_manifest.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n")
     if args.stage != "all":
         return
-    materialize_model_input_groups(out, canonical, representation, rec_by_id)
+    build_model_input_groups(out, canonical, representation, rec_by_id)
     group_by_id = {x["canonical_observation_id"]: x for x in read(out / "model_input_groups.csv")}
     for r in attempts:
         r["model_input_group_digest"] = group_by_id[r["canonical_observation_id"]]["model_input_group_digest"]
@@ -480,7 +480,7 @@ def build_splits(out, canonical, eligibility, attempts):
     print(json.dumps(manifest, indent=2))
 
 
-def materialize_model_input_groups(out, canonical, representation, rec_by_id):
+def build_model_input_groups(out, canonical, representation, rec_by_id):
     """Write model_input_groups.csv with the digest of the model-visible input of each observation.
 
     Observations without an available input get an empty digest.
@@ -540,7 +540,7 @@ def materialize_model_input_groups(out, canonical, representation, rec_by_id):
 
 
 def validate_outputs(out, canonical):
-    """Check every output of the panel before release.
+    """Check every output of the logical-input table before release.
 
     Verifies that the feature attempts cover all 8,767 observations with the expected
     status counts, that outer folds are group-disjoint with every source present in

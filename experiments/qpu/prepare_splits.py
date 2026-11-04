@@ -16,7 +16,7 @@ from sklearn.model_selection import StratifiedKFold
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
 OUT = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
-COHORT = OUT / "cohort"
+DATASET_DIR = OUT / "cohort"
 SPLITS = OUT / "splits"
 SEED = 42
 
@@ -109,13 +109,13 @@ def main():
     """
     if (SPLITS / "E1_outer.csv").exists():
         raise RuntimeError("refuse_overwrite_locked_splits")
-    panel = rows(COHORT / "panel.csv")
-    ids = [r["canonical_observation_id"] for r in panel]
+    run_rows = rows(DATASET_DIR / "panel.csv")
+    ids = [r["canonical_observation_id"] for r in run_rows]
     if len(ids) != 3443 or len(set(ids)) != 3443:
         raise RuntimeError("cohort_id_count_mismatch")
-    group = {r["canonical_observation_id"]: r["group_id"] for r in panel}
-    source = {r["canonical_observation_id"]: r["source_id"] for r in panel}
-    backend = {r["canonical_observation_id"]: r["backend"] for r in panel}
+    group = {r["canonical_observation_id"]: r["group_id"] for r in run_rows}
+    source = {r["canonical_observation_id"]: r["source_id"] for r in run_rows}
+    backend = {r["canonical_observation_id"]: r["backend"] for r in run_rows}
     source_counts = Counter(source.values())
     groups = defaultdict(list)
     for cid, gid in group.items():
@@ -344,8 +344,8 @@ def main():
         len(ids) - len([c for c in ids if backend[c] == b]) for b in set(backend.values())
     ):
         raise RuntimeError("E3_assignment_row_count_mismatch")
-    panelsha = sha(COHORT / "panel.csv")
-    feature_sha = sha(COHORT / "feature_ledger.csv")
+    run_table_sha256 = sha(DATASET_DIR / "panel.csv")
+    feature_sha = sha(DATASET_DIR / "feature_ledger.csv")
     receipt = {
         "status": "PASS_TARGET_BLIND_SPLITS_PREPARED",
         "rows": len(ids),
@@ -357,7 +357,7 @@ def main():
         "group_definition_source": "target-blind audited cohort panel; logical signature/retained group/physical hash union plus no cross-group full feature collisions",
         "split_seed": 42,
         "studies": out_receipts,
-        "input_sha256": {"panel.csv": panelsha, "feature_ledger.csv": feature_sha},
+        "input_sha256": {"panel.csv": run_table_sha256, "feature_ledger.csv": feature_sha},
         "outputs_sha256": {record_name(p): sha(p) for p in all_outputs},
         "code_sha256": sha(Path(__file__)),
         "python": platform.python_version(),

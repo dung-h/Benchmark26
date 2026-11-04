@@ -17,8 +17,8 @@ N = ARTIFACTS / "postfreeze_unified_analytical_completion_v1"
 S = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
 
 
-panel = read(S / "cohort/panel.csv")
-p = {r["canonical_observation_id"]: r for r in panel}
+run_rows = read(S / "cohort/panel.csv")
+p = {r["canonical_observation_id"]: r for r in run_rows}
 ids = set(p)
 rows = read(N / "coverage.csv")
 keys = [(r["evaluation"], r["case"], r["method_id"]) for r in rows]
@@ -27,7 +27,7 @@ pred = read(N / "predictions.csv")
 methods = {r["method_id"] for r in pred}
 assert len(methods) == 22
 cases = {("E1", "ALL"): sorted(ids), ("E2", "ALL"): sorted(ids)}
-for b in sorted({r["backend"] for r in panel}):
+for b in sorted({r["backend"] for r in run_rows}):
     t = sorted(i for i in ids if p[i]["backend"] == b)
     if any(r["evaluation"] == "E3" and r["case"] == b for r in read(N / "metrics.csv")):
         cases[("E3", b)] = t

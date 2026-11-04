@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Independent source-table → cohort/mean/group replay; no circuit execution."""
+"""Independent source-table → dataset/mean/group replay; no circuit execution."""
 
 import sys
 from pathlib import Path
@@ -14,11 +14,11 @@ from pathlib import Path
 
 from core import OUT, atomic_csv, atomic_json, rows, sha
 
-from benchmark26.paths import COHORT_PLAN, recorded
+from benchmark26.paths import DATASET_INPUTS, recorded
 
 
 def main():
-    """Rebuild the cohort from the retained source tables and compare it with the saved cohort.
+    """Rebuild the dataset from the retained source tables and compare it with the saved dataset.
 
     The 3,443 rows are 570 earlier non-QPack rows, 2,828 further qualified Qonductor
     rows and 45 QPack workflow means (over 3,854 constituent timings). Replays their
@@ -38,12 +38,12 @@ def main():
     )
     dest = parser.parse_args().output
     if dest.exists():
-        raise RuntimeError("Refuse existing lineage output")
-    # The saved cohort and its targets.
-    panel = {r["canonical_observation_id"]: r for r in rows(OUT / "cohort/panel.csv")}
+        raise RuntimeError("Refuse existing output")
+    # The saved dataset and its targets.
+    runs_by_id = {r["canonical_observation_id"]: r for r in rows(OUT / "cohort/panel.csv")}
     targets = {r["canonical_observation_id"]: float(r["target_seconds"]) for r in rows(OUT / "cohort/targets.csv")}
     # The retained source tables and qualification evidence.
-    proposed = rows(COHORT_PLAN / "proposed_observations.csv")
+    observation_list = rows(DATASET_INPUTS / "proposed_observations.csv")
     paths = [
         "artifacts/real_qpu/qualified_logical_panel/panel.csv",
         "artifacts/benchmark_v1/canonical_corpus_8767_20260926/qonductor_single_circuit_ibm.csv",
@@ -73,8 +73,8 @@ def main():
         assert origin["target_native_unit"] == "seconds"
         assert float(origin["target_seconds"]) == float(origin["target_native"])
         expected[c] = float(origin["target_seconds"])
-        assert float(panel[c]["shots"]) == float(origin["shots"])
-        assert panel[c]["backend"] == origin["backend"].replace("ibmq_", "ibm_")
+        assert float(runs_by_id[c]["shots"]) == float(origin["shots"])
+        assert runs_by_id[c]["backend"] == origin["backend"].replace("ibmq_", "ibm_")
     # QPack: group the constituent timings into the 45 workflow means.
     buckets = collections.defaultdict(list)
     for r in qp:
@@ -88,7 +88,7 @@ def main():
         cid = "qpack_workflow_mean|" + w
         assert len({(r["backend"], r["shots"]) for r in rr}) == 1
         expected[cid] = statistics.mean(float(r["target_seconds"]) for r in rr)
-        assert int(panel[cid]["constituent_count"]) == len(rr)
+        assert int(runs_by_id[cid]["constituent_count"]) == len(rr)
         for r in rr:
             assert r["target_native_unit"] == "milliseconds"
             assert math.isclose(
@@ -106,12 +106,12 @@ def main():
                 }
             )
     # Every replayed target must equal the saved target exactly.
-    assert len(constituents) == 3854 and len(expected) == 3443 and set(expected) == set(targets) == set(panel)
+    assert len(constituents) == 3854 and len(expected) == 3443 and set(expected) == set(targets) == set(runs_by_id)
     assert all(expected[c] == targets[c] for c in expected)
     # Build connected components with key expansion, independent of the producer union-find.
     bykey = collections.defaultdict(set)
     keys = {}
-    for r in proposed:
+    for r in observation_list:
         c = r["observation_id"]
         assert float(r["target_seconds"]) == targets[c]
         keys[c] = [
@@ -125,8 +125,8 @@ def main():
         ]
         for k in keys[c]:
             bykey[k].add(c)
-    assert set(keys) == set(panel)
-    pending = set(panel)
+    assert set(keys) == set(runs_by_id)
+    pending = set(runs_by_id)
     components = []
     while pending:
         todo = [min(pending)]
@@ -143,7 +143,7 @@ def main():
                     todo.extend(bykey[k] - members)
         pending -= members
         digest = hashlib.sha256(json.dumps(sorted(members), separators=(",", ":")).encode()).hexdigest()
-        assert all(panel[c]["group_id"] == digest for c in members)
+        assert all(runs_by_id[c]["group_id"] == digest for c in members)
         components.append(members)
     assert len(components) == 203
     # Write the QPack constituents and the receipt.

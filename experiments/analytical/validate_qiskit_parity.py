@@ -25,7 +25,7 @@ old = {
     for x in read(ARTIFACTS / "postfreeze_notads_hyperq_track_a_v1/features.csv")
 }
 lin = read(N / "lineage.csv")
-panel = {
+runs_by_id = {
     x["canonical_observation_id"]: x
     for x in read(ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1/cohort/panel.csv")
 }
@@ -44,7 +44,7 @@ for l in lin:
     out.append(
         {
             "canonical_observation_id": l["canonical_observation_id"],
-            "source_id": panel[l["canonical_observation_id"]]["source_id"],
+            "source_id": runs_by_id[l["canonical_observation_id"]]["source_id"],
             "representation_observation_id": l["representation_observation_id"],
             "graph_file_sha256": l["graph_file_sha256"],
             "snapshot_id": l["snapshot_id"],

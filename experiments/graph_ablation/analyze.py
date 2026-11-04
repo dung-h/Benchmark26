@@ -105,15 +105,15 @@ def analyze(run: Path) -> dict:
     ):
         raise RuntimeError("analysis_lock_mismatch")
 
-    panel = {r["canonical_observation_id"]: r for r in read(STUDY / "cohort/panel.csv")}
+    runs_by_id = {r["canonical_observation_id"]: r for r in read(STUDY / "cohort/panel.csv")}
     truth = {r["canonical_observation_id"]: float(r["target_seconds"]) for r in read(STUDY / "cohort/targets.csv")}
-    if set(panel) != set(truth) or len(panel) != 3443:
+    if set(runs_by_id) != set(truth) or len(runs_by_id) != 3443:
         raise RuntimeError("cohort_mismatch")
 
     metrics, contrasts, group_rows = [], [], []
     for evaluation in EVALUATIONS:
         groups, source = collections.defaultdict(list), {}
-        for cid, row in panel.items():
+        for cid, row in runs_by_id.items():
             group = row["group_id"]
             groups[group].append(cid)
             if source.setdefault(group, row["source_id"]) != row["source_id"]:
@@ -132,7 +132,7 @@ def analyze(run: Path) -> dict:
                         if seed in predictions[cid] or int(row["outer_fold"]) != fold:
                             raise RuntimeError(f"duplicate_or_misplaced_prediction:{evaluation}:{arm}:{cid}")
                         predictions[cid][seed] = float(row["predicted_seconds"])
-            if set(predictions) != set(panel) or any(set(v) != set(SEEDS) for v in predictions.values()):
+            if set(predictions) != set(runs_by_id) or any(set(v) != set(SEEDS) for v in predictions.values()):
                 raise RuntimeError(f"prediction_coverage:{evaluation}:{arm}")
             errors[arm], per_seed = group_errors(predictions, truth, groups)
             for scope in ["all"] + sorted(set(source.values())):

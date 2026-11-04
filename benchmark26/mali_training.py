@@ -47,7 +47,7 @@ REQUIRED_C4_CHECKS = {
     "heldout_labels_not_used_for_fit_or_transform",
 }
 FEATURE_IMPLEMENTATION_PATHS = {
-    "materializer": ROOT / "benchmark26/mali_materialize.py",
+    "materializer": ROOT / "benchmark26/mali_inputs.py",
     "feature_library": ROOT / "benchmark26/mali_features.py",
     "qasm3_hardware_wire_adapter": ROOT / "benchmark26/qasm3_wires.py",
 }
@@ -171,9 +171,9 @@ def validate_feature_root_binding(receipt: dict[str, Any], feature_root: Path, r
 
 
 def validate_neural_environment(input_manifest: dict[str, Any], feature_root: Path) -> dict[str, Any]:
-    """Check that the current Python and installed packages are the ones pinned at materialization.
+    """Check that the current Python and installed packages are the ones pinned at feature build.
 
-    Uses the environment of the input manifest or, for older materializations that omitted
+    Uses the environment of the input manifest or, for older feature builds that omitted
     it, the separately pinned C1-C3 receipt. Compares the interpreter path, the dependency
     lock file and the SHA-256 of the current package list. Returns the interpreter and lock
     identity.
@@ -182,9 +182,9 @@ def validate_neural_environment(input_manifest: dict[str, Any], feature_root: Pa
 
     environment = input_manifest.get("environment", {})
     if not environment:
-        # Completed historical materializers retained lock files but omitted
+        # Completed historical feature builders retained lock files but omitted
         # environment in their final manifest. Use the coordinator's separately
-        # pinned receipt; never rewrite the completed materialization artifact.
+        # pinned receipt; never rewrite the completed feature-build output.
         if not C1_C3_RECEIPT_PATH.is_file():
             raise RuntimeError("materialization_environment_missing_and_c1_c3_receipt_missing")
         receipt = json.loads(C1_C3_RECEIPT_PATH.read_text(encoding="utf-8"))
@@ -462,7 +462,7 @@ def validate_checkpoint_identity(checkpoint: dict[str, Any], expected: dict[str,
 
 
 def validate_feature_implementation_pins(input_manifest: dict[str, Any]) -> str:
-    """Bind training/checkpoints to the exact materializer and feature helpers."""
+    """Bind training/checkpoints to the exact feature builder and feature helpers."""
     pins = input_manifest.get("implementation_hashes")
     if not isinstance(pins, dict) or set(pins) != set(FEATURE_IMPLEMENTATION_PATHS):
         raise RuntimeError("feature_implementation_hash_set_missing_or_unexpected")

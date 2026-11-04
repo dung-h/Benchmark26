@@ -50,17 +50,26 @@ def pinned_code_problems() -> list[str]:
     """The files pinned by the executed run must still have the same code.
 
     A Python file is compared by the signature of its syntax tree, so docstrings,
-    comments and layout may change. Other files must be byte-identical.
+    comments and layout may change. Names and files renamed after the run are listed
+    in `renamed_after_run`; the old names are put back before the signature is taken.
+    Other files must be byte-identical.
     """
     manifest = json.loads((RESULTS / "manifest.json").read_text())["pinned_code"]
+    renamed = manifest.get("renamed_after_run", {})
+    moved = renamed.get("files", {})
     root = RESULTS.parents[1]
     problems = []
     for name, expected in manifest["python_signature_sha256"].items():
-        path = root / name
-        if not path.is_file() or code_signature(path.read_text(encoding="utf-8")) != expected:
+        path = root / moved.get(name, name)
+        renames = {"names": renamed.get("names", {}).get(name, {}), "strings": renamed.get("strings", {})}
+        try:
+            same = path.is_file() and code_signature(path.read_text(encoding="utf-8"), renames) == expected
+        except ValueError as error:
+            same, name = False, f"{name} ({error})"
+        if not same:
             problems.append(f"code differs from the executed run: {name}")
     for name, expected in manifest["byte_sha256"].items():
-        path = root / name
+        path = root / moved.get(name, name)
         if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
             problems.append(f"file differs from the executed run: {name}")
     return problems

@@ -33,9 +33,9 @@ def test_status_checks_configured_external_root(tmp_path, monkeypatch):
     import sys
 
     artifacts = tmp_path / "external"
-    panel = artifacts / "postfreeze_qpu_workflow_mean_expansion_v1/cohort/panel.csv"
-    panel.parent.mkdir(parents=True)
-    panel.write_text("header\n")
+    run_table_path = artifacts / "postfreeze_qpu_workflow_mean_expansion_v1/cohort/panel.csv"
+    run_table_path.parent.mkdir(parents=True)
+    run_table_path.write_text("header\n")
     monkeypatch.setenv("B26_ARTIFACTS", str(artifacts))
     result = subprocess.run(
         [sys.executable, str(ROOT / "scripts/run_benchmark_pipeline.py"), "--status"],

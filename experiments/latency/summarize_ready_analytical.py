@@ -12,7 +12,7 @@ Inputs (outside the repository):
   nanoseconds for four components: Qiskit ``estimate_duration``, the
   Qiskit-to-BQSKit conversion, the QCRE estimator, and conversion + estimator
   timed as one interval.
-- The study bundle (``B26_ARTIFACTS``): the cohort panel and the representation
+- The study bundle (``B26_ARTIFACTS``): the run table and the representation
   rows that map each observation to its task.
 
 The timed boundary starts from a parsed physical circuit in memory and a
@@ -51,7 +51,7 @@ from benchmark26.integrity import sha256_file as sha
 from benchmark26.paths import ARTIFACTS
 from benchmark26.tables import read_csv as read
 
-PANEL = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1/cohort/panel.csv"
+RUN_TABLE = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1/cohort/panel.csv"
 REPRESENTATIONS = ARTIFACTS / "benchmark_v3/real_qpu/compiled_unified/representation_rows.csv"
 COMPONENTS = ("qiskit", "qcre_conversion", "qcre_estimator", "qcre_total")
 EXPECTED = {"observations": 3443, "groups": 203, "tasks": 1452, "workers": 8}
@@ -108,7 +108,7 @@ def load(gate: Path, timing: Path) -> tuple[dict, list[str]]:
 
     representation = {r["canonical_row_id"]: r for r in read(REPRESENTATIONS)}
     observations = []
-    for row in read(PANEL):
+    for row in read(RUN_TABLE):
         rep = representation[row["feature_source_observation_id"]]
         key = hashlib.sha256(
             (rep["compiled_or_submitted_digest"] + "|" + rep["target_snapshot_id"]).encode()

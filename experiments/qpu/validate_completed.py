@@ -95,13 +95,13 @@ def main():
         for ev in ("E1", "E2", "E3"):
             context, labels, split = load_context(ev, include_targets=False)
             assert labels is None and split["target_values_read"] is False
-            panel = context["panel_by_id"]
+            runs_by_id = context["runs_by_id"]
             all_ids = set(context["all_ids"])
             tested = []
             for fold in range(context["case_count"]):
                 parts = parts_for(context, fold)
                 tested.extend(parts["test"])
-                groups = {r["canonical_observation_id"]: r["group_id"] for r in context["panel"]}
+                groups = {r["canonical_observation_id"]: r["group_id"] for r in context["run_rows"]}
                 assert not set(parts["fit"]) & set(parts["validation"])
                 assert not set(parts["train"]) & set(parts["test"])
                 if ev == "E1":
@@ -110,8 +110,8 @@ def main():
                     assert not {groups[c] for c in parts["fit"]} & {groups[c] for c in parts["validation"]}
                 if ev == "E3":
                     backend = context["cases"][fold]
-                    assert all(panel[c]["backend"] == backend for c in parts["test"])
-                    assert all(panel[c]["backend"] != backend for c in parts["train"])
+                    assert all(runs_by_id[c]["backend"] == backend for c in parts["test"])
+                    assert all(runs_by_id[c]["backend"] != backend for c in parts["train"])
                 transform_path = RUN / "training" / ev / f"fold_{fold}" / "transform.json"
                 transform = json.loads(transform_path.read_text())
                 # Recompute from fit IDs, using no label reader. Independent direct global/shot moment checks below.
@@ -125,7 +125,7 @@ def main():
                 assert retained.tolist() == transform["global"]["retained_indices"]
                 assert np.array_equal(raw[:, retained].mean(axis=0), np.asarray(transform["global"]["mean"]))
                 assert np.array_equal(raw[:, retained].std(axis=0, ddof=1), np.asarray(transform["global"]["std"]))
-                shots = np.asarray([float(panel[c]["shots"]) for c in parts["fit"]], dtype=np.float64)
+                shots = np.asarray([float(runs_by_id[c]["shots"]) for c in parts["fit"]], dtype=np.float64)
                 assert float(shots.mean()) == transform["shots"]["mean"]
                 assert float(shots.std(ddof=1)) == transform["shots"]["std_ddof1"]
                 cases.append(

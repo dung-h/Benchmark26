@@ -37,7 +37,7 @@ def main():
     """Aggregate the saved predictions into final metrics, comparisons and tables.
 
     Requires a PASS validation receipt (240 neural cells, 123,948 replayed
-    predictions) and checks the cohort (3,443 observations, 203 groups, sources of
+    predictions) and checks the dataset (3,443 observations, 203 groups, sources of
     45, 340 and 3,058 observations). For E1, E2 and E3 it computes pooled and sliced
     metrics, per-seed and seed-reduced results, the 48 paired comparisons, fold
     deltas, tail errors and provenance tables, and writes them with a summary under
@@ -54,20 +54,20 @@ def main():
     assert receipt["prediction_replay_rows"] == 123948
     dest = args.output
     dest.mkdir(parents=True)
-    # Load the cohort and check its counts before reading any prediction.
-    panel = rows(OUT / "cohort/panel.csv")
-    ids = sorted(r["canonical_observation_id"] for r in panel)
-    panelmap = {r["canonical_observation_id"]: r for r in panel}
+    # Load the dataset and check its counts before reading any prediction.
+    run_rows = rows(OUT / "cohort/panel.csv")
+    ids = sorted(r["canonical_observation_id"] for r in run_rows)
+    runs_by_id = {r["canonical_observation_id"]: r for r in run_rows}
     targets = {r["canonical_observation_id"]: float(r["target_seconds"]) for r in rows(OUT / "cohort/targets.csv")}
-    assert len(panelmap) == len(ids) == len(targets) == 3443 and set(ids) == set(targets)
-    assert len({r["group_id"] for r in panel}) == 203
-    source_counts = dict(collections.Counter(r["source_id"] for r in panel))
+    assert len(runs_by_id) == len(ids) == len(targets) == 3443 and set(ids) == set(targets)
+    assert len({r["group_id"] for r in run_rows}) == 203
+    source_counts = dict(collections.Counter(r["source_id"] for r in run_rows))
     assert sorted(source_counts.values()) == [45, 340, 3058]
     assert all(np.isfinite(v) and v > 0 for v in targets.values())
     y = np.array([targets[c] for c in ids])
-    groups = np.array([panelmap[c]["group_id"] for c in ids])
-    sources = np.array([panelmap[c]["source_id"] for c in ids])
-    backends = np.array([panelmap[c]["backend"] for c in ids])
+    groups = np.array([runs_by_id[c]["group_id"] for c in ids])
+    sources = np.array([runs_by_id[c]["source_id"] for c in ids])
+    backends = np.array([runs_by_id[c]["backend"] for c in ids])
     pooled = []
     sliced = []
     seed_metrics = []
@@ -99,8 +99,8 @@ def main():
                         {
                             **r,
                             "evaluation": ev,
-                            "source_id": panelmap[r["canonical_observation_id"]]["source_id"],
-                            "group_id": panelmap[r["canonical_observation_id"]]["group_id"],
+                            "source_id": runs_by_id[r["canonical_observation_id"]]["source_id"],
+                            "group_id": runs_by_id[r["canonical_observation_id"]]["group_id"],
                             "target_seconds": targets[r["canonical_observation_id"]],
                         }
                         for r in current
@@ -138,10 +138,10 @@ def main():
                         "treatment": m,
                         "canonical_observation_id": c,
                         "outer_fold": foldbyid[c],
-                        "source_id": panelmap[c]["source_id"],
-                        "group_id": panelmap[c]["group_id"],
-                        "backend": panelmap[c]["backend"],
-                        "shots": panelmap[c]["shots"],
+                        "source_id": runs_by_id[c]["source_id"],
+                        "group_id": runs_by_id[c]["group_id"],
+                        "backend": runs_by_id[c]["backend"],
+                        "shots": runs_by_id[c]["shots"],
                         "target_seconds": targets[c],
                         "predicted_seconds": float(r["predicted_seconds"]),
                         "signed_error_seconds": float(r["predicted_seconds"]) - targets[c],

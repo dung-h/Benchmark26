@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Materialize pinned 51-global and 178-node Ma--Li inputs for the common panel."""
+"""Build pinned 51-global and 178-node Ma--Li inputs for the common table."""
 
 from __future__ import annotations
 
@@ -66,7 +66,7 @@ def atomic_json(path: Path, value: Any) -> None:
 
 
 def implementation_hashes() -> dict[str, str]:
-    """Pin each local code file that can change materialized feature values."""
+    """Pin each local code file that can change computed feature values."""
     paths = {
         "materializer": Path(__file__).resolve(),
         "feature_library": Path(_mali_features.__file__).resolve(),
@@ -294,7 +294,7 @@ def make_row_attempt(
     code_sha256: str = "",
     implementation_hashes_by_name: dict[str, str] | None = None,
 ) -> dict[str, Any]:
-    """Materialize the features of one canonical observation and return its ledger row.
+    """Compute the features of one canonical observation and return its ledger row.
 
     Reads the circuit bytes, verifies the saved graph, and extracts the global and
     graph features with the pinned extractor. Results are cached by (QASM hash,
@@ -690,7 +690,7 @@ def write_ledger(path: Path, rows: list[dict[str, Any]], fields: list[str]) -> N
 
 
 def main() -> None:
-    """Materialize the features of the canonical observations and write the status ledger.
+    """Compute the features of the canonical observations and write the status ledger.
 
     Checks the pinned inputs and records the environment, then processes each row
     with `make_row_attempt` and writes feature_status_ledger.csv under the output
@@ -760,7 +760,7 @@ def main() -> None:
     graph_hashes = json.loads(HASH_MANIFEST.read_text(encoding="utf-8"))
     verified_graph_files: set[str] = set()
     cache: dict[tuple[str, int, str], dict[str, Any]] = {}
-    # Materialize each row that is not already in the ledger.
+    # Build the features of each row that is not already in the ledger.
     with zipfile.ZipFile(QONDUCTOR_ZIP) as qond_zip:
         for number, row in enumerate(chosen, start=1):
             canonical_id = row["canonical_row_id"]

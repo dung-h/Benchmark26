@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Execute the frozen six-family Qonductor-style adaptation on the strict panel.
+"""Execute the frozen six-family Qonductor-style adaptation on the strict logical-input table.
 
 The input is the 340 Ma-Li observations only. Existing Qonductor feature rows
 are reused only after exact logical/compiled-QASM, backend, shot and identity
-joins against the frozen strict panel. No labels enter feature construction.
+joins against the frozen strict logical-input table. No labels enter feature construction.
 """
 
 from __future__ import annotations
@@ -23,14 +23,14 @@ from threadpoolctl import threadpool_limits
 from benchmark26.paths import ARTIFACTS, PROTOCOLS, QONDUCTOR_SOURCE
 
 ROOT = Path(__file__).resolve().parents[1]
-PANEL = ARTIFACTS / "real_qpu/strict_logical_panel"
+STRICT_LOGICAL_INPUTS_DIR = ARTIFACTS / "real_qpu/strict_logical_panel"
 CONTRACT = PROTOCOLS / "strict_method_completion.json"
 PARENT = PROTOCOLS / "strict_logical_benchmark.json"
-AUTH = PANEL / "execution_authorization.json"
+AUTH = STRICT_LOGICAL_INPUTS_DIR / "execution_authorization.json"
 FEATURES = ARTIFACTS / "real_qpu/qonductor_native_features/feature_rows.csv"
 REPRESENTATIONS = ARTIFACTS / "benchmark_v3/real_qpu/compiled_unified/representation_rows.csv"
 SOURCE_ROOT = QONDUCTOR_SOURCE
-OUTPUT = PANEL / "qonductor"
+OUTPUT = STRICT_LOGICAL_INPUTS_DIR / "qonductor"
 SOURCE_REVISION = "5d1ac8a90cd574a23e7544e1044681641354ff67"
 SOURCE_FILE = "src/execution_time/regression_estimator.py"
 SOURCE_SHA256 = "d44ab196a56fba444f5cebfe9dee8737ad3b6ab6f39081336a41d5811fdb828a"

@@ -39,7 +39,7 @@ All machine-specific locations are read from environment variables in `benchmark
 | Variable | Default | Contents |
 | --- | --- | --- |
 | `B26_ARTIFACTS` | `artifacts/` | Study bundle: dataset table, labels, splits, graphs, predictions, receipts |
-| `B26_COHORT_PLAN` | `inputs/cohort_plan/` | Input tables of the dataset (the list of observations and inventories) |
+| `B26_DATASET_INPUTS` | `inputs/dataset_inputs/` | Input tables of the dataset: the list of runs assembled from the sources (`proposed_observations.csv`, the original study's name) and its inventories |
 | `B26_MALI_SOURCE` | `inputs/mali/` | Ma–Li Git checkout at the pinned revision |
 | `B26_MALI_QASM` | `$B26_MALI_SOURCE/data/quantum_circuits/` | Ma–Li circuits |
 | `B26_QONDUCTOR_SOURCE` | `inputs/qonductor/` | Qonductor Git checkout at the pinned revision |
@@ -88,11 +88,11 @@ python3 experiments/qpu/prepare_run.py       # checks locked inputs and graphs, 
 python3 experiments/qpu/train_neural.py --stage preflight --require-ready
 ```
 
-`prepare_run.py` writes `run_manifest.json` with two inventories: `code_hashes`, the current version of every code file named in the original lock (compared with the lock to list the adapted files), and `code_dependency_hashes`, every repository file the fitting code can execute. The second is the static-import closure of the run entry points and the locked files (`core.code_dependency_inventory`), so it includes files added after the lock, such as `benchmark26/paths.py`. Fitting recomputes both and stops if any file changed, was added or was removed; use a new directory after changing code. Validating saved outputs (`validate_completed.py`) checks data identity only and is unaffected. All settings (cohort, splits, seeds, epochs, candidate sets) come from the original lock. The fitted models and predictions are a new experiment, not a check of the saved one.
+`prepare_run.py` writes `run_manifest.json` with two inventories: `code_hashes`, the current version of every code file named in the original lock (compared with the lock to list the adapted files), and `code_dependency_hashes`, every repository file the fitting code can execute. The second is the static-import closure of the run entry points and the locked files (`core.code_dependency_inventory`), so it includes files added after the lock, such as `benchmark26/paths.py`. Fitting recomputes both and stops if any file changed, was added or was removed; use a new directory after changing code. Validating saved outputs (`validate_completed.py`) checks data identity only and is unaffected. All settings (dataset, splits, seeds, epochs, candidate sets) come from the original lock. The fitted models and predictions are a new experiment, not a check of the saved one.
 
 | Step | Command |
 | --- | --- |
-| Dataset table | `python3 experiments/qpu/prepare_cohort.py` |
+| Dataset table | `python3 experiments/qpu/prepare_dataset.py` |
 | Splits | `python3 experiments/qpu/prepare_splits.py`, then `validate_splits.py` |
 | Neural models | `python3 experiments/qpu/train_neural.py --stage train --evaluation E1` (also E2, E3) |
 | Regression selector | `python3 experiments/qpu/run_classical.py --stage train --evaluation E1` (also E2, E3) |
@@ -102,7 +102,7 @@ python3 experiments/qpu/train_neural.py --stage preflight --require-ready
 
 With `B26_RUN_DIR` set, fitting, completion check and aggregation read and write `training/`, `classical/`, `validation/` and `analysis_v1/` under that directory; inputs are still read from the bundle. Without it they address the saved study, where fitting is refused and validation checks the saved outputs. Neural training needs a CUDA GPU with at least 12 GiB and the Ma–Li Git checkout (`B26_MALI_SOURCE`), from which the pinned model source is loaded.
 
-Shared modules can also be run directly, for example `python3 -m benchmark26.mali_materialize --help`.
+Shared modules can also be run directly, for example `python3 -m benchmark26.mali_inputs --help`.
 
 ## Code identity
 
@@ -113,9 +113,9 @@ Frozen protocols and execution locks record SHA-256 hashes of the code that prod
 | Set | Files | What may change |
 | --- | --- | --- |
 | `protocols/` | All frozen contracts, registries and reference programs | Nothing. Frozen files pin each other by SHA-256 |
-| Graph-ablation run | 25 files: `benchmark26/` (all modules except `integrity.py`, `logical_panel.py`, `mali_materialize.py`, `path_estimators.py`, `tables.py`, `codesig.py`), `experiments/graph_ablation/transforms.py`, and in `experiments/qpu/`: `core.py`, `prepare_run.py`, `prepare_cohort.py`, `prepare_splits.py`, `train_neural.py`, `run_classical.py`, `graph_ablation_runner.py`, `validate_splits.py` | Docstrings, comments and layout of the Python files. The code itself and `path_kernel.cpp` must stay identical |
+| Graph-ablation run | 25 files: `benchmark26/` (all modules except `integrity.py`, `logical_inputs.py`, `mali_inputs.py`, `path_estimators.py`, `tables.py`, `codesig.py`), `experiments/graph_ablation/transforms.py`, and in `experiments/qpu/`: `core.py`, `prepare_run.py`, `prepare_dataset.py`, `prepare_splits.py`, `train_neural.py`, `run_classical.py`, `graph_ablation_runner.py`, `validate_splits.py` | Docstrings, comments and layout of the Python files. The code itself and `path_kernel.cpp` must stay identical |
 
-For the 25 files, `make check` compares a signature of each Python file's syntax tree (docstrings removed) with `results/graph_ablation/manifest.json`, so adding a docstring or a comment passes and any change to the code fails. The signature gives the same result on Python 3.10 to 3.14. The manifest records the signatures and byte hashes at the time of the run, and lists the 48 functions of earlier studies that were removed afterwards because no live code reaches them (`removed_after_run`).
+For the 25 files, `make check` compares a signature of each Python file's syntax tree (docstrings removed) with `results/graph_ablation/manifest.json`, so adding a docstring or a comment passes and any other change to the code fails. Names renamed after the run are listed under `renamed_after_run` and mapped back before the comparison; the old names must no longer occur in the file. One file, `benchmark26/paths.py`, gained a mapping from an old script name and is pinned anew, with its run-time signature kept beside the new one. The signature gives the same result on Python 3.10 to 3.14. The manifest records the signatures and byte hashes at the time of the run, and lists the 48 functions of earlier studies that were removed afterwards because no live code reaches them (`removed_after_run`).
 
 All other Python files can be changed freely. A change to the code of a pinned file means the published ablation no longer matches the code. Make such a change only together with a new run.
 

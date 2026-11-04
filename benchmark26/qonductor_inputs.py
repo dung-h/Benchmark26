@@ -77,9 +77,9 @@ def require_hash(path: Path, expected: str, label: str) -> str:
     return observed
 
 
-def import_materializer(path: Path):
-    # The pinned reference materializer imports this module by its original name.
-    """Import the pinned reference materializer under the module names it expects."""
+def import_feature_builder(path: Path):
+    # The pinned reference feature builder imports this module by its original name.
+    """Import the pinned reference feature builder under the module names it expects."""
     from benchmark26 import circuit_representation
 
     sys.modules.setdefault("run_recovery_c133_c135_v3", circuit_representation)
@@ -188,7 +188,7 @@ def graph_digest_only(circuit, graph_format: str, skip_names: set[str]) -> str:
     """Compute the representation digest without building graph arrays.
 
     This mirrors the exact byte stream used by the pinned representation
-    materializer. It does not define a new digest; callers must prove byte-for-
+    feature builder. It does not define a new digest; callers must prove byte-for-
     byte parity against graph_record on canaries and fixtures.
     """
     digest = hashlib.sha256()
@@ -942,8 +942,8 @@ def main() -> int:
     extractor, archive_loader, parse_qasm_string, source_metadata = load_pinned_qonductor_methods(
         args.source_root, contract["source_pin"]
     )
-    materializer_path = recorded(contract["input_pins"]["materializer_reference"]["path"])
-    materializer = import_materializer(materializer_path)
+    feature_builder_path = recorded(contract["input_pins"]["materializer_reference"]["path"])
+    feature_builder = import_feature_builder(feature_builder_path)
 
     canonical = read_csv(recorded(contract["input_pins"]["canonical"]["path"]))
     outer = read_csv(recorded(contract["input_pins"]["outer"]["path"]))
@@ -1317,7 +1317,7 @@ def main() -> int:
         "native_feature_materializer": Path(__file__),
         "pinned_source_adapter": PACKAGE / "qonductor_features.py",
         "hardware_wire_adapter": PACKAGE / "qasm3_wires.py",
-        "graph_materializer_reference": materializer_path,
+        "graph_materializer_reference": feature_builder_path,
         "feature_tasks": PACKAGE / "qonductor_feature_tasks.py",
         "bounded_feature_pool": PACKAGE / "feature_pool.py",
     }
@@ -1326,7 +1326,7 @@ def main() -> int:
         "source_pin": contract["source_pin"],
         "archive": str(args.archive),
         "native_threads": args.native_threads,
-        "materializer_reference": str(materializer_path),
+        "materializer_reference": str(feature_builder_path),
         "implementation_pins": {
             name: {"path": str(path), "sha256": implementation_hashes[name]}
             for name, path in implementation_paths.items()

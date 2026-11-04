@@ -46,18 +46,18 @@ def main():
     observation and fits an intercept and slope on the training observations. Writes
     calibration_receipts.csv, predictions.csv and a receipt.
     """
-    # Load the raw features, lineage, targets and panel, and check the cohort.
+    # Load the raw features, lineage, targets and table, and check the dataset.
     raw = read(NS / "raw_features.csv")
     lin = read(NS / "lineage.csv")
     target_rows = read(P / "cohort/targets.csv")
-    panel = read(P / "cohort/panel.csv")
-    ids = {r["canonical_observation_id"] for r in panel}
+    run_rows = read(P / "cohort/panel.csv")
+    ids = {r["canonical_observation_id"] for r in run_rows}
     targets = {r["canonical_observation_id"]: float(r["target_seconds"]) for r in target_rows}
     if len(ids) != 3443 or set(ids) != set(targets) or len(lin) != 3443:
         raise RuntimeError("cohort_or_target_alignment")
     feat = {(r["graph_file"], r["snapshot_id"]): r for r in raw}
     line = {r["canonical_observation_id"]: r for r in lin}
-    meta = {r["canonical_observation_id"]: r for r in panel}
+    meta = {r["canonical_observation_id"]: r for r in run_rows}
     if len(feat) != len(raw):
         raise RuntimeError("duplicate_raw_graph_snapshot")
     inputs = {
@@ -253,7 +253,7 @@ def main():
     rec = {
         "status": "PASS_OUTER_TRAIN_CALIBRATION",
         "observations": len(ids),
-        "groups": len({r["group_id"] for r in panel}),
+        "groups": len({r["group_id"] for r in run_rows}),
         "cases": len(cases),
         "calibration_fits": len(calreceipts),
         "prediction_rows": len(predictions),

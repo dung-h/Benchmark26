@@ -38,7 +38,7 @@ def initialize_feature_worker(config: dict[str, Any]) -> None:
         Path(config["source_root"]),
         config["source_pin"],
     )
-    reference = engine.import_materializer(Path(config["materializer_reference"]))
+    reference = engine.import_feature_builder(Path(config["materializer_reference"]))
     if "archive" in _STATE:
         _STATE["archive"].close()
     if "thread_limit" in _STATE:

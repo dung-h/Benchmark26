@@ -78,7 +78,7 @@ class ExampleCache:
 
 
 def load_context(feature_root):
-    """Load and verify everything the batch tools need from a materialized feature root.
+    """Load and verify everything the batch tools need from a feature directory built earlier.
 
     Checks the input manifest against the protocol hash and the feature ledger hash
     (8,767 canonical identities), the feature and environment pins, the technical gate

@@ -24,10 +24,10 @@ def _env_path(name: str, default: Path) -> Path:
     return Path(value).expanduser() if value else default
 
 
-# Prepared study bundle (cohort tables, splits, features, predictions, receipts).
+# Prepared study bundle (dataset tables, splits, features, predictions, receipts).
 ARTIFACTS = _env_path("B26_ARTIFACTS", ROOT / "artifacts")
-# Cohort plan tables (proposed observations and inventories) used to build the cohort.
-COHORT_PLAN = _env_path("B26_COHORT_PLAN", ROOT / "inputs/cohort_plan")
+# Input tables of the dataset: the list of runs assembled from the sources, and its inventories.
+DATASET_INPUTS = _env_path("B26_DATASET_INPUTS", ROOT / "inputs/dataset_inputs")
 # Scratch area for new outputs.
 WORK = _env_path("B26_WORK", ROOT / "work")
 # Output directory of a new fitting run with this code (see experiments/qpu/prepare_run.py).
@@ -50,19 +50,22 @@ ORIGINAL_MODULES = {
     "bounded_feature_pool": "feature_pool",
     "gpu_lease": "gpu_lease",
     "mali_full_features": "mali_features",
-    "materialize_mali_full_features": "mali_materialize",
+    "materialize_mali_full_features": "mali_inputs",
     "run_mali_full_features": "mali_training",
     "run_mali_batched": "mali_batching",
     "qasm3_hardware_wire_adapter": "qasm3_wires",
     "qonductor_native_adapter": "qonductor_features",
     "qonductor_feature_tasks": "qonductor_feature_tasks",
-    "materialize_qonductor_native_features": "qonductor_materialize",
+    "materialize_qonductor_native_features": "qonductor_inputs",
     "run_qonductor_grouped_reproduction": "qonductor_models",
     "run_strict_logical_qonductor": "qonductor_regression",
     "run_recovery_c133_c135_v3": "circuit_representation",
-    "prepare_logical_benchmark": "logical_panel",
+    "prepare_logical_benchmark": "logical_inputs",
     "shots_core": "shots",
 }
+
+# Scripts of the original study that this repository renamed (original name -> current name).
+RENAMED_QPU_SCRIPTS = {"prepare_cohort.py": "prepare_dataset.py"}
 
 
 def recorded(path: str | Path) -> Path:
@@ -85,9 +88,10 @@ def recorded(path: str | Path) -> Path:
             return ROOT / "benchmark26" / f"{ORIGINAL_MODULES[name]}.py"
         return REFERENCE_CODE / Path(text).name
     if text.startswith("docs/final_completion/qpu_workflow_mean_expansion_v1/"):
-        return COHORT_PLAN / Path(text).name
+        return DATASET_INPUTS / Path(text).name
     if text.startswith("research/postfreeze_qpu_workflow_mean_expansion_v1/"):
-        return ROOT / "experiments/qpu" / Path(text).name
+        name = Path(text).name
+        return ROOT / "experiments/qpu" / RENAMED_QPU_SCRIPTS.get(name, name)
     if text == "research/postfreeze_mali_shots_ablation_v1/shots_core.py":
         return ROOT / "benchmark26/shots.py"
     if text.startswith("benchmark_v1/path_estimators/"):
@@ -102,7 +106,7 @@ def record_name(path: str | Path) -> str:
     bases = (
         (ARTIFACTS, "artifacts"),
         (WORK, "work"),
-        (COHORT_PLAN, "docs/final_completion/qpu_workflow_mean_expansion_v1"),
+        (DATASET_INPUTS, "docs/final_completion/qpu_workflow_mean_expansion_v1"),
         (REGISTRY, "benchmark_v1/registry"),
         (REFERENCE_CODE, "benchmark_v1/scripts"),
         (PROTOCOLS, "benchmark_v1/protocol"),

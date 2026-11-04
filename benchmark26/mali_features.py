@@ -1,4 +1,4 @@
-"""Pinned Ma--Li full-feature input materialization helpers.
+"""Helpers that build the pinned Ma--Li full-feature inputs.
 
 The public entry points deliberately avoid importing the upstream ``helper``
 module: that module constructs an IBM provider at import time.  Instead, the
@@ -501,11 +501,11 @@ def compact_graph_record(
 
 
 def saved_s71_graph_signature(record: dict[str, Any]) -> tuple[str, Counter[str], int]:
-    """Recompute the compiled-panel graph digest from its pinned S71 pickle.
+    """Recompute the compiled-circuit graph digest from its pinned S71 pickle.
 
     This is the same byte protocol used by ``materialize_compiled_unified_qpu_v1``:
     operation order, gate name, ordered global qargs, and parameter-presence bit.
-    It lets the fast materializer verify the pickle against the representation row
+    It lets the fast feature builder verify the pickle against the representation row
     without parsing QASM. S71 stores at most four qargs; larger arity is rejected.
     """
     required = {

@@ -118,5 +118,12 @@ Write equivalent files before you read any test label in a new run.
 
 The original run is private and is not distributed.
 
-- The runner (`experiments/qpu/graph_ablation_runner.py`), the graph controls (`transforms.py`), `core.py` and the other 22 pinned Python files have the same code as the executed versions on every path the run uses: their syntax trees match, and only docstrings and comments may differ. After the run, the unused trainers of earlier studies were removed from seven modules (listed in `results/graph_ablation/manifest.json`); a replay of 8 saved checkpoints with the reduced code reproduced the saved predictions (largest difference 1.9e-6 s). `path_kernel.cpp` is byte-identical. `make check` verifies this. `PROTOCOL.md` is identical to the locked protocol.
+- The runner (`experiments/qpu/graph_ablation_runner.py`), the graph controls (`transforms.py`), `core.py` and the other 22 pinned Python files have the same code as the executed versions on every path the run uses: their syntax trees match, and only docstrings and comments may differ. After the run, the unused trainers of earlier studies were removed from seven modules (listed in `results/graph_ablation/manifest.json`); a replay of 8 saved checkpoints with the reduced code reproduced the saved predictions (largest difference 1.9e-6 s). Later, internal names were replaced by plain ones (for example `prepare_cohort.py` became `prepare_dataset.py`). `results/graph_ablation/manifest.json` lists every renamed file, name and string under `renamed_after_run`, and the check maps them back before comparing. `benchmark26/paths.py` also gained one mapping from the old script name to the new one, so its signature is pinned anew. After the renames, the same 8 checkpoints again reproduced the saved predictions (largest difference 2.9e-6 s; repeated replays of the same code vary by about 1e-6 s on the GPU). `path_kernel.cpp` is byte-identical. `make check` verifies all of this except the replay, which needs the private run directory:
+
+```bash
+export B26_RUN_DIR=/path/to/finished/graph_ablation_run
+python experiments/graph_ablation/replay_checkpoints.py --output /tmp/replay.json
+```
+
+The script writes nothing into the run directory. `PROTOCOL.md` is identical to the locked protocol.
 - `analyze.py` is a port of the locked analysis script (SHA-256 `8d48c0a4…`). The locked script read the bundle from a fixed local path. The port reads it through `B26_ARTIFACTS` and gives a summary identical to the saved one, field for field. Check this with `analyze.py --check <saved summary>`.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Routine C133--C135 materialization and target preflight for RQPU V3.
+"""Routine C133--C135 feature build and target preflight for RQPU V3.
 
 This worker only parses archived circuits, inventories pinned FakeBackends and
 runs deterministic target/feature preflight samples.  It never reads an
@@ -358,7 +358,7 @@ def load_circuits(
     return qasm_cache, raw_bytes, errors
 
 
-def materialize_features(
+def build_features(
     out: Path,
     canonical: list[dict[str, str]],
     qpack_rows: dict[str, dict[str, str]],
@@ -799,7 +799,7 @@ def main() -> int:
     """Run the routine batch (Wave 0 and C133 to C135).
 
     Refuses an existing output directory and checks that the input files exist, records
-    the environment, then builds the snapshot registry, parses the circuits, materializes
+    the environment, then builds the snapshot registry, parses the circuits, builds
     the features, runs the preflight and writes the manifests. Returns 0.
     """
     parser = argparse.ArgumentParser(description=__doc__)
@@ -818,7 +818,7 @@ def main() -> int:
     qpack_rows = {row["source_row_index"]: row for row in read_csv(QPACK_STRUCT)}
     registry_rows, c133 = snapshot_registry(out, env)
     qasm_cache, _, parse_errors = load_circuits(canonical)
-    features, c134 = materialize_features(out, canonical, qpack_rows, qasm_cache, parse_errors)
+    features, c134 = build_features(out, canonical, qpack_rows, qasm_cache, parse_errors)
     c135 = run_preflight(out, features, qpack_rows, qasm_cache)
     manifests = {"C133": c133, "C134": c134, "C135": c135}
     write_json(
