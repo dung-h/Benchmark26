@@ -12,6 +12,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
   - `docs/GRAPH_ABLATION.md`.
 
   The runner and protocol are byte-identical to the executed run. `analyze.py` is a portable port of the locked analysis script and reproduces the saved summary exactly.
+- Timing of the Qiskit and QCRE duration estimators from a ready physical circuit (1,452 tasks, 3,443 observations): aggregates in `results/ready_analytical_latency/`, `experiments/latency/summarize_ready_analytical.py` and `verify_ready_analytical.py`, and a section in `docs/PREDICTION_LATENCY.md`. `make check` verifies the means and the file hashes.
 - `make check` recomputes the shared graph-ablation statistics from anonymous per-group errors and checks the files against the hashes in `results/graph_ablation/manifest.json`.
 - `docs/PITFALLS.md`: error messages and misreadings, each with cause and fix.
 - Tests for the graph controls, the median-of-seeds estimand, the stratified paired bootstrap and the shared results.

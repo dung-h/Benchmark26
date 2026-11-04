@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "problems": [],
+  "problem_count": 0,
+  "protocol_sha256": "3f1028716606a30aa77cfaf30dd2d060b44777415cc8197b6d750c86e15023cf",
+  "gate_receipt_sha256": "949dbef4e31ea8c94e9b0addd472770b356650a48fb541b5420853abbb5fb9a3",
+  "tasks_timed": 1452,
+  "tasks_by_source": {
+    "qonductor_single_circuit_ibm": 1127,
+    "mali_real_qpu": 300,
+    "qpack_mcp": 25
+  },
+  "observations_mapped": 3443,
+  "gate_tasks_with_identical_full_ir": 1127,
+  "boundary": "warm physical-input components with eight concurrent workers; no parsing or transpilation in timed boundary",
+  "worker_count": 8,
+  "warmups": 1,
+  "samples_per_task": 3,
+  "task_value": "median of the task's samples; each observation takes its task's value",
+  "group_balanced_mean": "mean over groups of the group mean of observation values"
+}
