@@ -1,6 +1,6 @@
 # Graph ablation
 
-This experiment asks whether the dependency edges of a circuit help the Graph+MLP estimator predict QPU runtime. We found no sign that they do. When test and training circuits can share a group (E2), the graph model's lead over the MLP is still there after the edges are removed. When the test groups are unseen (E1), none of the comparisons separates the models.
+This experiment asks whether the dependency edges of a circuit help the Graph+MLP estimator predict QPU runtime. In this data and architecture we did not detect a benefit from the edges. When test and training circuits can share a group (E2), the graph model's lead over the MLP remains after the edges are removed. When the test groups are unseen (E1), none of the comparisons separates the models, which does not show that the models are equivalent.
 
 The experiment is separate from the main benchmark. Its design was written down in [`experiments/graph_ablation/PROTOCOL.md`](../experiments/graph_ablation/PROTOCOL.md) before any model was trained. It uses the same 3,443 observations and 203 circuit groups as the main benchmark.
 
@@ -63,7 +63,7 @@ Each row below gives the difference in GB-MAE (first model minus second) and its
 What the table shows:
 
 1. **Unseen groups (E1).** No comparison separates the models.
-2. **Shared groups (E2).** The graph model without edges has lower error than the MLP. So the gain over the MLP does not need the edges.
+2. **Shared groups (E2).** The graph model without edges has lower error than the MLP. So, for this architecture and data, the gain over the MLP does not need the edges. The per-operation features and the different effective capacity (see above) may account for it; this experiment does not separate them.
 3. **Edges (E2).** Removing the edges changes the error by an amount the data cannot separate from zero. The point estimate even favors removing them.
 4. **Shuffled nodes (E2).** Shuffling the node features raises the error, mostly on the Qonductor-source groups (1.0736 s, against 0.5565 s for the Graph model). This experiment does not test why.
 
