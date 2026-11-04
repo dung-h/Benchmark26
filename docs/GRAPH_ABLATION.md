@@ -22,13 +22,7 @@ Points to keep in mind when reading the arms:
 - **G1e has the same parameter count but not the same effective capacity.** All graph arms have 842,057 parameters. Without edges, though, each `TransformerConv` layer reduces to its skip projection, and the attention projections receive zero gradient. G1e is therefore effectively a per-node network followed by mean pooling.
 - **G1p is not a relabelling of the graph.** The permutation is deterministic for each observation (SHA-256 of the observation ID plus `graph-ablation-v1`). It moves feature rows relative to fixed edges.
 
-Training is the same for every arm:
-
-- from scratch, with Adam (learning rate 0.0005, weight decay 0.0001) and effective batch 32;
-- at most 500 epochs, stopping after 50 epochs without a strict improvement in validation MSE;
-- the first minimum-validation checkpoint is kept.
-
-The historical benchmark trained every cell for the full 500 epochs (no patience) with activation checkpointing for graph models. This run disables activation checkpointing in all graph arms. `M1` and `G1` are therefore rerun here, and every contrast is computed within this run. Do not compare the arms with the historical models in the paper tables.
+All arms are trained from scratch in the same way: Adam (learning rate 0.0005, weight decay 0.0001), effective batch 32, at most 500 epochs, keeping the minimum-validation checkpoint (details in `PROTOCOL.md`). `M1` and `G1` are rerun so that every contrast is computed within this run. Do not mix these numbers with the paper tables.
 
 ## Estimand and statistics
 
@@ -62,7 +56,7 @@ What the results support:
 - **E1.** None of the three contrasts is distinguished from zero. This is not evidence that the arms are equivalent.
 - **E2, node set.** The edgeless node model has lower error than the MLP.
 - **E2, edges.** Removing the edges is not distinguished from keeping them; the point estimate favours removing them.
-- **E2, permuted features.** Message passing over misaligned features has higher error than over the original alignment. Most of this difference comes from the Qonductor-source groups (Qonductor-source GB-MAE 1.0736 for G1p against 0.5565 for G1). The permuted arm also stopped earlier (median 70 epochs, against 126 for G1).
+- **E2, permuted features.** Message passing over misaligned features has higher error than over the original alignment. Most of this difference comes from the Qonductor-source groups (Qonductor-source GB-MAE 1.0736 for G1p against 0.5565 for G1).
 - **Taken together.** In E2, the measured advantage of the graph pipeline over the MLP is attributable to node-level information. A positive contribution of the dependency edges themselves is not detected.
 
 Per-source values are in `results/graph_ablation/summary.json`. QPack has 6 groups, so its values are descriptive only.
