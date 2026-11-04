@@ -32,6 +32,7 @@ Next steps:
 | Know what the latency numbers include and exclude | [Prediction latency](docs/PREDICTION_LATENCY.md) |
 | See whether graph edges help, and how that was tested | [Graph ablation](docs/GRAPH_ABLATION.md) |
 | Fix an error message you ran into | [Pitfalls](docs/PITFALLS.md) |
+| Change the code, data or documents | [Contributing](CONTRIBUTING.md) |
 
 ## Layout
 
