@@ -17,7 +17,7 @@ make test
 make smoke
 ```
 
-`make check` parses every Python and protocol file, verifies the SHA-256 chain between the frozen files in `protocols/`, and recomputes the exported statistics in `results/prediction_latency/` and `results/graph_ablation/` (the latter also against the file hashes in its manifest). It succeeds without the study bundle and lists which bundle files it found. If a command fails with an error message, look it up in [Pitfalls](PITFALLS.md). `make check-study-inputs` fails instead when they are missing.
+`make check` parses every Python and protocol file, verifies the SHA-256 chain between the frozen files in `protocols/`, and recomputes the exported statistics in `results/prediction_latency/` and `results/graph_ablation/` (the latter also against the file hashes in its manifest). It succeeds without the study bundle and lists which bundle files it found. `make test` reports one skipped test (the graph-transform test) when PyTorch is not installed; install `.[research]` to run it. If a command fails with an error message, look it up in [Pitfalls](PITFALLS.md). `make check-study-inputs` fails instead when they are missing.
 
 ## 2. Upstream sources
 
