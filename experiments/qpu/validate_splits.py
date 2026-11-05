@@ -9,6 +9,10 @@ from core import OUT, atomic_json, load_context, parts_for, sha
 
 
 def main():
+    """Recheck every locked fold of E1, E2 and E3 without reading any target value.
+
+    Writes a receipt of the checks.
+    """
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__)
@@ -24,9 +28,9 @@ def main():
         ctx, _targets, _ = load_context(ev, include_targets=False)
         all_test = []
         cases = []
-        group = {r["canonical_observation_id"]: r["group_id"] for r in ctx["panel"]}
-        source = {r["canonical_observation_id"]: r["source_id"] for r in ctx["panel"]}
-        backend = {r["canonical_observation_id"]: r["backend"] for r in ctx["panel"]}
+        group = {r["canonical_observation_id"]: r["group_id"] for r in ctx["run_rows"]}
+        source = {r["canonical_observation_id"]: r["source_id"] for r in ctx["run_rows"]}
+        backend = {r["canonical_observation_id"]: r["backend"] for r in ctx["run_rows"]}
         for fold in range(ctx["case_count"]):
             p = parts_for(ctx, fold)
             all_test.extend(p["test"])

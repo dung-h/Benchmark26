@@ -15,8 +15,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repository root
-from benchmark26.integrity import check_frozen_pins  # noqa: E402
-from benchmark26.paths import ARTIFACTS, PROTOCOLS, ROOT, recorded  # noqa: E402
+from benchmark26.integrity import check_frozen_pins
+from benchmark26.paths import ARTIFACTS, PROTOCOLS, ROOT, recorded
 
 OPTIONAL_PACKAGES = ("numpy", "scipy", "sklearn", "pandas", "qiskit", "qiskit_ibm_runtime", "torch", "torch_geometric")
 STUDY_INPUTS = (
@@ -28,6 +28,12 @@ STUDY_INPUTS = (
 
 
 def main() -> int:
+    """Check the code release and report which external study inputs are available.
+
+    Parses every Python and protocol file, verifies the frozen protocol hash chain
+    (exit 1 if it is broken), lists optional packages and study-bundle files, and exits
+    with 2 when `--require-study-inputs` is set and an input is missing.
+    """
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument(
         "--require-study-inputs", action="store_true", help="exit with status 2 if a study input is missing"

@@ -1,22 +1,35 @@
 """Bounded scalar analytical applications; no transpilation or circuit execution."""
 
 from __future__ import annotations
-from benchmark26.paths import ARTIFACTS, QONDUCTOR_DATABASE, record_name, recorded
+
 import os
+
+from benchmark26.paths import ARTIFACTS, QONDUCTOR_DATABASE, record_name, recorded
 
 for key in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
     os.environ[key] = "1"
-import argparse, csv, ctypes, hashlib, importlib.metadata, json, math, pickle
-import platform, resource, subprocess, sys, sqlite3
-from collections import Counter, defaultdict, deque
+import argparse
+import csv
+import ctypes
+import hashlib
+import importlib.metadata
+import json
+import math
+import pickle
+import platform
+import resource
+import sqlite3
+import subprocess
+from collections import Counter, defaultdict
 from pathlib import Path
+
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 CODE = Path(__file__).resolve().parent
 OUT = ARTIFACTS / "postfreeze_notads_hyperq_track_a_v1"
-PANEL = ARTIFACTS / "real_qpu/qualified_logical_panel/panel.csv"
-SPLITS = PANEL.parent / "outer_splits.csv"
+LOGICAL_INPUT_TABLE = ARTIFACTS / "real_qpu/qualified_logical_panel/panel.csv"
+SPLITS = LOGICAL_INPUT_TABLE.parent / "outer_splits.csv"
 REP = ARTIFACTS / "benchmark_v3/real_qpu/compiled_unified"
 REG = ARTIFACTS / "benchmark_v3/recovery_real_qpu_20260929_v3/c133_snapshot_registry_v3.csv"
 TIMING = ARTIFACTS / "postfreeze_track_a_transpiled_representation_v1/features/timing_features.csv"
@@ -38,12 +51,14 @@ FIELDS = [
 
 
 def read(path):
+    """Read a CSV file into a list of dicts, with the csv field-size limit raised."""
     csv.field_size_limit(100_000_000)
     with Path(path).open(newline="") as f:
         return list(csv.DictReader(f))
 
 
 def sha(path):
+    """Return the SHA-256 hex digest of a file, read in 1 MiB chunks."""
     h = hashlib.sha256()
     with Path(path).open("rb") as f:
         for chunk in iter(lambda: f.read(1 << 20), b""):
@@ -52,10 +67,12 @@ def sha(path):
 
 
 def idsha(ids):
+    """Return the SHA-256 of the sorted observation IDs joined by newlines."""
     return hashlib.sha256("\n".join(sorted(ids)).encode()).hexdigest()
 
 
 def dump(name, obj):
+    """Write an object as indented JSON under OUT, through a temporary file."""
     p = OUT / name
     p.parent.mkdir(parents=True, exist_ok=True)
     tmp = p.with_suffix(p.suffix + ".tmp")
@@ -64,6 +81,7 @@ def dump(name, obj):
 
 
 def write(name, rows):
+    """Write a list of dict rows as a CSV file under OUT."""
     p = OUT / name
     p.parent.mkdir(parents=True, exist_ok=True)
     with p.open("w", newline="") as f:
@@ -73,6 +91,7 @@ def write(name, rows):
 
 
 def guard():
+    """Return the peak memory use in bytes; raise if it exceeds 8 GiB."""
     rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024
     if rss > 8 * 1024**3:
         raise RuntimeError("RSS_above_8GiB")
@@ -80,11 +99,17 @@ def guard():
 
 
 def tables():
-    panel = read(PANEL)
-    ids = [r["canonical_observation_id"] for r in panel]
-    assert len(panel) == len(set(ids)) == 4515
-    assert len({r["group_id"] for r in panel}) == 165
-    assert Counter(r["source_id"] for r in panel) == {
+    """Load the tables of the 4,515-observation study and cross-check them.
+
+    Checks the observation, group and fold counts, joins the representation rows,
+    compares shot counts with the Qonductor database and writes the 82 shot
+    discrepancies found. Returns the logical-input table, the split and the representation rows.
+    """
+    logical_inputs = read(LOGICAL_INPUT_TABLE)
+    ids = [r["canonical_observation_id"] for r in logical_inputs]
+    assert len(logical_inputs) == len(set(ids)) == 4515
+    assert len({r["group_id"] for r in logical_inputs}) == 165
+    assert Counter(r["source_id"] for r in logical_inputs) == {
         "mali_real_qpu": 340,
         "qonductor_single_circuit_ibm": 230,
         "qpack_mcp": 3945,
@@ -93,7 +118,7 @@ def tables():
     split = {r["canonical_observation_id"]: r for r in splits}
     assert len(split) == len(splits) == 4515 and set(split) == set(ids)
     groups = defaultdict(set)
-    for r in panel:
+    for r in logical_inputs:
         s = split[r["canonical_observation_id"]]
         assert s["group_id"] == r["group_id"]
         groups[r["group_id"]].add(int(s["outer_fold"]))
@@ -106,7 +131,7 @@ def tables():
     native = {r["canonical_row_id"]: r for r in read(NATIVE) if r["canonical_row_id"] in set(ids)}
     mismatches = []
     db = sqlite3.connect(f"file:{DB}?mode=ro&immutable=1", uri=True)
-    for r in panel:
+    for r in logical_inputs:
         rid = r["canonical_observation_id"]
         rep = reps[rid]
         c = canon[rid]
@@ -141,10 +166,14 @@ def tables():
     db.close()
     assert len(mismatches) == 82 and all(x["database_shots"] != "not_applicable" for x in mismatches)
     write("representation_shots_discrepancies.csv", mismatches)
-    return panel, split, reps
+    return logical_inputs, split, reps
 
 
 def kernel():
+    """Compile the C++ path kernel if needed, load it, and return `call(graph, durations)`.
+
+    `call` returns the ten path features of one saved operation DAG.
+    """
     so = OUT / "path_kernel.so"
     if not so.exists():
         subprocess.run(
@@ -166,6 +195,7 @@ def kernel():
     fn.restype = ctypes.c_int
 
     def call(g, durations):
+        """Return the ten path features of one saved graph for the given operation durations."""
         n = int(g["operation_count"])
         arity = np.frombuffer(g["arity"], dtype=np.uint8)
         q0 = np.frombuffer(g["q0"], dtype=np.int32)
@@ -184,6 +214,10 @@ def kernel():
 
 def reference(g, durations):
     # Independent explicit graph recurrence, not a last-use resource simulation.
+    """Compute the same ten path features in Python from an explicit graph recurrence.
+
+    Used to cross-check the C++ kernel; it is not a last-use resource simulation.
+    """
     n = g["operation_count"]
     arity = np.frombuffer(g["arity"], dtype=np.uint8)
     measure = np.array([x == "measure" for x in g["names"]])
@@ -230,6 +264,11 @@ def reference(g, durations):
 
 
 def backends():
+    """Load the pinned fake backends after checking the SHA-256 of their files.
+
+    Requires Qiskit 2.5.2 and Qiskit IBM Runtime 0.49.0. Returns the backend objects
+    by snapshot ID and the pinned file hashes.
+    """
     from qiskit_ibm_runtime import fake_provider
 
     assert importlib.metadata.version("qiskit") == "2.5.2"
@@ -251,6 +290,10 @@ def backends():
 
 
 def duration_values(g, backend):
+    """Return the duration in seconds of every operation of a graph on a backend's target.
+
+    Only rz, sx, x, cx, ecr and measure are allowed.
+    """
     n = g["operation_count"]
     q0 = np.frombuffer(g["q0"], dtype=np.int32)
     q1 = np.frombuffer(g["q1"], dtype=np.int32)
@@ -274,6 +317,10 @@ def duration_values(g, backend):
 
 
 def check_qiskit_depths(g, features):
+    """Rebuild the circuit shape in Qiskit and assert its depths equal the kernel's.
+
+    Compares the unitary, one-qubit and two-qubit depths.
+    """
     from qiskit import QuantumCircuit
 
     qc = QuantumCircuit(g["num_qubits"])
@@ -290,10 +337,17 @@ def check_qiskit_depths(g, features):
 
 
 def extract():
-    panel, split, reps = tables()
+    """Compute the path features of every saved graph and write features.csv with a receipt.
+
+    The C++ kernel computes the features. For the smallest graph of each snapshot
+    and the largest graph overall, the result is checked against the Python
+    reference; the smallest graphs are also checked against Qiskit depths. Target
+    values are removed from the rows before the structural calculation.
+    """
+    logical_inputs, split, reps = tables()
     # Target values deliberately removed before structural calculation.
-    safe = [{k: v for k, v in r.items() if k != "target_seconds"} for r in panel]
-    del panel
+    safe = [{k: v for k, v in r.items() if k != "target_seconds"} for r in logical_inputs]
+    del logical_inputs
     objects, snapshot_pins = backends()
     call = kernel()
     hashes = json.loads((REP / "graph_file_hashes.json").read_text())
@@ -373,7 +427,7 @@ def extract():
         )
     write("features.csv", rows)
     inputpaths = [
-        PANEL,
+        LOGICAL_INPUT_TABLE,
         SPLITS,
         TIMING,
         REG,
@@ -415,6 +469,11 @@ def extract():
 
 
 def metric(rows, method, scope):
+    """Return the error metrics of one method on a set of rows.
+
+    MAE, group-balanced and source-balanced MAE, RMSE, raw R^2, bias, and the
+    median, 90th and 99th percentile and maximum absolute error, in seconds.
+    """
     y = np.array([float(r["target_seconds"]) for r in rows])
     pred = np.array([float(r["prediction_seconds"]) for r in rows])
     errors = pred - y
@@ -444,17 +503,25 @@ def metric(rows, method, scope):
 
 
 def score():
-    panel, split, reps = tables()
+    """Build the predictions of every method, score them and write the result tables.
+
+    Checks the feature receipt and input hashes. The NoTaDS and HyperQ scores are
+    fitted with a two-coefficient affine map on outer-training folds only; the saved
+    Qiskit duration times shots is kept as a reference. Metrics, paired comparisons
+    (10,000 whole-group bootstrap draws, seed 42), calibration fits, leakage receipts
+    and a completion receipt are written.
+    """
+    logical_inputs, split, _reps = tables()
     receipt = json.loads((OUT / "feature_receipt.json").read_text())
     assert receipt["status"] == "PASS" and sha(OUT / "features.csv") == receipt["feature_sha256"]
     for p, h in receipt["inputs_sha256"].items():
         assert sha(recorded(p)) == h, p
     feature = {r["canonical_observation_id"]: r for r in read(OUT / "features.csv")}
-    assert set(feature) == {r["canonical_observation_id"] for r in panel}
-    ids = [r["canonical_observation_id"] for r in panel]
+    assert set(feature) == {r["canonical_observation_id"] for r in logical_inputs}
+    ids = [r["canonical_observation_id"] for r in logical_inputs]
     folds = np.array([int(split[i]["outer_fold"]) for i in ids])
-    y = np.array([float(r["target_seconds"]) for r in panel])
-    shots = np.array([int(float(r["shots"])) for r in panel])
+    y = np.array([float(r["target_seconds"]) for r in logical_inputs])
+    shots = np.array([int(float(r["shots"])) for r in logical_inputs])
     assert np.all(np.isfinite(y)) and np.all(y > 0) and np.all(shots > 0)
     predictions = {}
     fits = []
@@ -473,8 +540,8 @@ def score():
             for fold in range(5):
                 train = np.flatnonzero(folds != fold)
                 test = np.flatnonzero(folds == fold)
-                tg = {panel[j]["group_id"] for j in train}
-                vg = {panel[j]["group_id"] for j in test}
+                tg = {logical_inputs[j]["group_id"] for j in train}
+                vg = {logical_inputs[j]["group_id"] for j in test}
                 assert not tg & vg
                 matrix = np.column_stack([np.ones(len(train)), x[train]])
                 coef, _, rank, _ = np.linalg.lstsq(matrix, y[train], rcond=None)
@@ -508,7 +575,7 @@ def score():
     )
     allrows = []
     metricrows = []
-    groups = sorted({r["group_id"] for r in panel})
+    groups = sorted({r["group_id"] for r in logical_inputs})
     draws = np.random.default_rng(42).integers(0, len(groups), size=(10000, len(groups)))
     group_errors = {}
     for method, pred in predictions.items():
@@ -523,7 +590,7 @@ def score():
                 "prediction_seconds": float(pred[j]),
                 "status": "predicted",
             }
-            for j, r in enumerate(panel)
+            for j, r in enumerate(logical_inputs)
         ]
         allrows.extend(rows)
         metricrows.append(metric(rows, method, "all"))
@@ -532,7 +599,7 @@ def score():
         for fold in range(5):
             metricrows.append(metric([r for r in rows if r["outer_fold"] == fold], method, f"fold_{fold}"))
         group_errors[method] = np.array(
-            [np.mean([abs(pred[j] - y[j]) for j, r in enumerate(panel) if r["group_id"] == g]) for g in groups]
+            [np.mean([abs(pred[j] - y[j]) for j, r in enumerate(logical_inputs) if r["group_id"] == g]) for g in groups]
         )
     paired = []
     for a, b in [

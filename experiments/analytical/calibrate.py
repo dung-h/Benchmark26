@@ -2,26 +2,29 @@
 """Apply frozen scalar methods and fit outer-train-only affine adaptations."""
 
 from __future__ import annotations
+
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-from benchmark26.paths import ARTIFACTS
+import csv
+import hashlib
+import json
+import math
 from pathlib import Path
-import csv, hashlib, json, math
+
 import numpy as np
+
+from benchmark26.paths import ARTIFACTS
+from benchmark26.tables import read_csv as read
 
 ROOT = Path(__file__).resolve().parents[2]
 NS = ARTIFACTS / "postfreeze_unified_analytical_completion_v1"
 P = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
 
 
-def read(p):
-    with open(p, newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
-
-
 def write(p, rs):
+    """Write rows as a CSV file; raise if there are none."""
     if not rs:
         raise RuntimeError("empty_output")
     with p.open("w", newline="", encoding="utf-8") as f:
@@ -31,21 +34,30 @@ def write(p, rs):
 
 
 def sha(p):
+    """Return the SHA-256 hex digest of a file."""
     return hashlib.sha256(p.read_bytes()).hexdigest()
 
 
 def main():
+    """Apply the frozen scalar methods and fit the affine adaptations on outer-training data only.
+
+    For each evaluation case (E1 and E2 folds, E3 held-out backends) with disjoint
+    train and test identities, applies each frozen route (raw and shot-scaled) to every
+    observation and fits an intercept and slope on the training observations. Writes
+    calibration_receipts.csv, predictions.csv and a receipt.
+    """
+    # Load the raw features, lineage, targets and table, and check the dataset.
     raw = read(NS / "raw_features.csv")
     lin = read(NS / "lineage.csv")
     target_rows = read(P / "cohort/targets.csv")
-    panel = read(P / "cohort/panel.csv")
-    ids = {r["canonical_observation_id"] for r in panel}
+    run_rows = read(P / "cohort/panel.csv")
+    ids = {r["canonical_observation_id"] for r in run_rows}
     targets = {r["canonical_observation_id"]: float(r["target_seconds"]) for r in target_rows}
     if len(ids) != 3443 or set(ids) != set(targets) or len(lin) != 3443:
         raise RuntimeError("cohort_or_target_alignment")
     feat = {(r["graph_file"], r["snapshot_id"]): r for r in raw}
     line = {r["canonical_observation_id"]: r for r in lin}
-    meta = {r["canonical_observation_id"]: r for r in panel}
+    meta = {r["canonical_observation_id"]: r for r in run_rows}
     if len(feat) != len(raw):
         raise RuntimeError("duplicate_raw_graph_snapshot")
     inputs = {
@@ -121,6 +133,7 @@ def main():
     bases = [name for route in raw_base_ids.values() for name in (route, route + "_SHOT_SCALED")]
     predictions = []
     calreceipts = []
+    # Per case: apply each frozen route and fit the calibration on the training observations only.
     for evaluation, case, train, test in cases:
         yfit = np.array([targets[i] for i in sorted(train)], dtype=float)
         for base in bases:
@@ -234,12 +247,13 @@ def main():
                     "fit_ids_sha256": "",
                 }
             )
+    # Write the tables and the receipt.
     write(NS / "calibration_receipts.csv", calreceipts)
     write(NS / "predictions.csv", predictions)
     rec = {
         "status": "PASS_OUTER_TRAIN_CALIBRATION",
         "observations": len(ids),
-        "groups": len(set(r["group_id"] for r in panel)),
+        "groups": len({r["group_id"] for r in run_rows}),
         "cases": len(cases),
         "calibration_fits": len(calreceipts),
         "prediction_rows": len(predictions),

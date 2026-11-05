@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Build a target-separated, hash-pinned model-input table for the expanded QPU study.
 
-This is an amendment-local reader/materializer. Frozen source tables and feature
-archives are read-only. The five GraphState-q3 rows are materialized from the
+This is an amendment-local reader and table builder. Frozen source tables and feature
+archives are read-only. The five GraphState-q3 rows are built from the
 already functionally-qualified MQT 1.0.3 logical recipe and their pinned backend
 snapshot; no runtime value is passed to feature extraction.
 """
@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-from benchmark26.paths import ARTIFACTS, COHORT_PLAN, record_name, recorded
+from benchmark26.paths import ARTIFACTS, DATASET_INPUTS, record_name, recorded
 from pathlib import Path
 
 import csv, hashlib, json, math, os, sys
@@ -21,8 +21,8 @@ from collections import Counter, defaultdict
 ROOT = Path(__file__).resolve().parents[2]
 RESEARCH = ROOT / "experiments/qpu"
 OUT = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
-PLAN_DIR = COHORT_PLAN
-PANEL_IN = PLAN_DIR / "proposed_observations.csv"
+PLAN_DIR = DATASET_INPUTS
+OBSERVATION_LIST = PLAN_DIR / "proposed_observations.csv"
 FEATURES_IN = ARTIFACTS / "real_qpu/logical_inputs/feature_attempts.csv"
 NATIVE_IN = ARTIFACTS / "real_qpu/qonductor_native_features/feature_rows.csv"
 GROUPS_IN = ARTIFACTS / "real_qpu/logical_inputs/model_input_groups.csv"
@@ -33,10 +33,12 @@ GRAPHSTATE_QASM = ARTIFACTS / "postfreeze_qonductor_generator_version_semantics_
 
 
 def sha_bytes(b: bytes) -> str:
+    """Return the SHA-256 hex digest of bytes."""
     return hashlib.sha256(b).hexdigest()
 
 
 def sha(path: Path) -> str:
+    """Return the SHA-256 hex digest of a file, read in 1 MiB chunks."""
     h = hashlib.sha256()
     with path.open("rb") as f:
         for b in iter(lambda: f.read(1 << 20), b""):
@@ -45,11 +47,13 @@ def sha(path: Path) -> str:
 
 
 def read(path: Path) -> list[dict[str, str]]:
+    """Read a UTF-8 CSV file into a list of dicts."""
     with path.open(newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
 def write_csv(path: Path, rows: list[dict], fields=None):
+    """Write rows as a CSV file through a temporary file; raise if there are none."""
     if not rows:
         raise RuntimeError(f"refuse_empty_output:{path}")
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -64,6 +68,7 @@ def write_csv(path: Path, rows: list[dict], fields=None):
 
 
 def write_json(path: Path, obj):
+    """Write a value as JSON through a temporary file."""
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".partial")
     tmp.write_text(json.dumps(obj, sort_keys=True, indent=2, allow_nan=False) + "\n", encoding="utf-8")
@@ -73,6 +78,13 @@ def write_json(path: Path, obj):
 
 
 def main():
+    """Build the target-separated, hash-pinned model-input tables of the 3,443-run dataset.
+
+    Joins the proposed observations with their features, native-feature rows, groups and representation
+    rows. Picks a target-blind representative for each QPack workflow mean, extracts any missing graph
+    representation, and writes the run table, the targets and the feature ledger separately. Checks the
+    counts (340, 3,058 and 45 observations; 203 groups) and audits feature collisions.
+    """
     if (OUT / "cohort/feature_ledger.csv").exists():
         raise RuntimeError("refuse_overwrite_existing_cohort; use a new amendment attempt directory")
     import numpy as np
@@ -81,6 +93,10 @@ def main():
 
     def canonical_instruction_digest(circuit, *, include_parameters=True):
         # Use the same ordered operation/operand signature as logical-input grouping.
+        """Return a hash of the ordered operations and operands of a circuit, optionally without parameters.
+
+        The same signature is used for logical-input grouping.
+        """
         body = {"qubits": circuit.num_qubits, "clbits": circuit.num_clbits, "instructions": []}
         for inst in circuit.data:
             op = inst.operation
@@ -101,7 +117,7 @@ def main():
             body["instructions"].append(item)
         return sha_bytes(json.dumps(body, sort_keys=True, separators=(",", ":")).encode())
 
-    proposed = read(PANEL_IN)
+    observation_list = read(OBSERVATION_LIST)
     attempts = {r["canonical_observation_id"]: r for r in read(FEATURES_IN)}
     native = {r["canonical_row_id"]: r for r in read(NATIVE_IN)}
     group_rows = {r["canonical_observation_id"]: r for r in read(GROUPS_IN)}
@@ -116,7 +132,7 @@ def main():
 
     # Deterministic, target-blind representative for each declared workflow mean.
     qpack_representative = {}
-    for row in proposed:
+    for row in observation_list:
         if row["source"] != "qpack_mcp":
             continue
         wid = row["observation_id"].split("|", 1)[1]
@@ -145,7 +161,7 @@ def main():
     # Extract the GraphState representation missing from the feature table.
     missing = [
         r
-        for r in proposed
+        for r in observation_list
         if r["source"] == "qonductor_single_circuit_ibm"
         and attempts.get(r["observation_id"], {}).get("status") != "available"
     ]
@@ -217,11 +233,11 @@ def main():
         }
 
     repair_by_id = {r["canonical_observation_id"]: r for r in repair_rows}
-    panel = []
+    run_rows = []
     targets = []
     ledger = []
     native_rows_out = []
-    for r in proposed:
+    for r in observation_list:
         cid = r["observation_id"]
         source = r["source"]
         if source == "qpack_mcp":
@@ -271,7 +287,7 @@ def main():
         nrow = native.get(source_row)
         if nrow is None or nrow["availability_status"] != "available":
             raise RuntimeError(f"native_baseline_input_missing:{cid}:{source_row}")
-        panel.append(
+        run_rows.append(
             {
                 "canonical_observation_id": cid,
                 "source_id": source,
@@ -308,19 +324,19 @@ def main():
             }
         )
 
-    if len(panel) != 3443 or len({r["canonical_observation_id"] for r in panel}) != 3443:
+    if len(run_rows) != 3443 or len({r["canonical_observation_id"] for r in run_rows}) != 3443:
         raise RuntimeError("candidate_observation_identity_mismatch")
-    sources = Counter(r["source_id"] for r in panel)
-    groups = Counter((r["source_id"], r["group_id"]) for r in panel)
+    sources = Counter(r["source_id"] for r in run_rows)
+    groups = Counter((r["source_id"], r["group_id"]) for r in run_rows)
     if sources != {"mali_real_qpu": 340, "qonductor_single_circuit_ibm": 3058, "qpack_mcp": 45}:
         raise RuntimeError(f"candidate_source_counts_mismatch:{sources}")
-    if len({r["group_id"] for r in panel}) != 203:
+    if len({r["group_id"] for r in run_rows}) != 203:
         raise RuntimeError("candidate_declared_group_count_mismatch")
 
     # Feature-collision audit. Full-input identity uses every raw global value
     # and every sparse DAG array; global-only collisions are reported separately.
     graph_payload_cache = {}
-    group_ids = {r["canonical_observation_id"]: r["group_id"] for r in panel}
+    group_ids = {r["canonical_observation_id"]: r["group_id"] for r in run_rows}
     global_keys = defaultdict(set)
     full_keys = defaultdict(set)
     feature_by_id = {r["canonical_observation_id"]: r for r in ledger}
@@ -357,10 +373,10 @@ def main():
             f"complete_feature_identity_crosses_declared_groups:{len(exact_aliases)}; inspect before splits"
         )
 
-    panel_fields = list(panel[0])
+    run_fields = list(run_rows[0])
     ledger_fields = list(ledger[0])
     native_fields = list(native_rows_out[0])
-    write_csv(OUT / "cohort/panel.csv", panel, panel_fields)
+    write_csv(OUT / "cohort/panel.csv", run_rows, run_fields)
     write_csv(OUT / "cohort/targets.csv", targets)
     write_csv(OUT / "cohort/feature_ledger.csv", ledger, ledger_fields)
     write_csv(OUT / "cohort/native_baseline_features.csv", native_rows_out, native_fields)
@@ -379,12 +395,12 @@ def main():
                 "shots": r["shots"],
                 "mapping_rule": "minimum canonical observation ID among same QPack workflow; feature constancy audited across all constituents",
             }
-            for r in panel
+            for r in run_rows
             if r["source_id"] == "qpack_mcp"
         ],
     )
     inputs = [
-        PANEL_IN,
+        OBSERVATION_LIST,
         FEATURES_IN,
         NATIVE_IN,
         GROUPS_IN,
@@ -396,22 +412,22 @@ def main():
         ARTIFACTS
         / "postfreeze_qonductor_generator_version_semantics_v1/semantics_v2_legacy_parser/observation_semantic_results.csv",
         ROOT / "benchmark26/mali_features.py",
-        ROOT / "benchmark26/logical_panel.py",
+        ROOT / "benchmark26/logical_inputs.py",
     ]
     receipt = {
         "status": "PASS_TARGET_FREE_FEATURE_PREFLIGHT",
-        "observations": len(panel),
-        "groups": len({r["group_id"] for r in panel}),
+        "observations": len(run_rows),
+        "groups": len({r["group_id"] for r in run_rows}),
         "source_counts": dict(sources),
         "available_feature_rows": len(ledger),
         "feature_width": 51,
         "graph_node_width": 178,
-        "group_source_counts": {s: len({r["group_id"] for r in panel if r["source_id"] == s}) for s in sorted(sources)},
-        "backends": len({r["backend"] for r in panel}),
-        "shot_levels": len({r["shots"] for r in panel}),
+        "group_source_counts": {s: len({r["group_id"] for r in run_rows if r["source_id"] == s}) for s in sorted(sources)},
+        "backends": len({r["backend"] for r in run_rows}),
+        "shot_levels": len({r["shots"] for r in run_rows}),
         "graph_repair": repair_receipt,
         "qpack_workflow_means": len(qpack_representative),
-        "qpack_constituent_rows": sum(int(r["constituent_count"]) for r in panel if r["source_id"] == "qpack_mcp"),
+        "qpack_constituent_rows": sum(int(r["constituent_count"]) for r in run_rows if r["source_id"] == "qpack_mcp"),
         "qpack_within_workflow_feature_constancy": "PASS_45_OF_45_LOGICAL_GLOBAL_DAG_AND_CLASSICAL_DESCRIPTOR_VECTORS",
         "global_only_collision_groups": sum(r["identity_kind"] == "global51_only" for r in collision_rows),
         "complete_feature_cross_group_collisions": 0,

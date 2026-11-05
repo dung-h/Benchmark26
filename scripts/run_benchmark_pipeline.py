@@ -1,30 +1,33 @@
 #!/usr/bin/env python3
-"""Inspect study inputs or run the synthetic smoke pipeline and review checks."""
+"""Inspect study inputs or run the synthetic smoke pipeline."""
 
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repository root
-from benchmark26.paths import ARTIFACTS
 import argparse
 import json
-import os
-from pathlib import Path
-import subprocess
 import sys
+from pathlib import Path
+
+from benchmark26.paths import ARTIFACTS
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def main():
+    """Run one pipeline stage (`--stage`, default `status`).
+
+    - `status`: print which study inputs are present (presence only, not readiness).
+    - `smoke`: run the synthetic example; needs `--output`, and `--config` is accepted only here.
+
+    Returns the exit code of the stage.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--status", action="store_true", help="Inspect external input availability")
-    parser.add_argument(
-        "--stage", choices=["status", "smoke", "screen", "analytical", "latency", "acquire"], default="status"
-    )
+    parser.add_argument("--stage", choices=["status", "smoke"], default="status")
     parser.add_argument("--config", type=Path, help="JSON config consumed by --stage smoke")
     parser.add_argument("--output", type=Path, help="New output directory for --stage smoke")
-    parser.add_argument("--inputs", type=Path, help="Destination directory for upstream acquisition")
     args = parser.parse_args()
     if args.config and args.stage != "smoke":
         parser.error("--config is consumed only by --stage smoke")
@@ -53,23 +56,7 @@ def main():
 
         run(args.config or ROOT / "configs/smoke.json", args.output)
         return 0
-    if stage == "acquire":
-        if not args.inputs:
-            parser.error("--stage acquire requires --inputs DESTINATION")
-        command = [
-            sys.executable,
-            str(ROOT / "scripts/fetch_upstream_data.py"),
-            "--source",
-            "all",
-            "--destination",
-            str(args.inputs),
-        ]
-    elif stage == "latency":
-        command = [sys.executable, str(ROOT / "experiments/latency/verify_summary.py")]
-    else:
-        test = "test_qonductor_recipe_screen.py" if stage == "screen" else "test_analytical_path_kernel.py"
-        command = [sys.executable, "-m", "pytest", str(ROOT / "tests" / test)]
-    return subprocess.run(command, cwd=ROOT).returncode
+    return 1  # unreachable: argparse restricts the stage
 
 
 if __name__ == "__main__":

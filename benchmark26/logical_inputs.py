@@ -2,20 +2,19 @@
 """Build qualified logical-input tables and supplemental grouped splits; no fitting."""
 
 from __future__ import annotations
-from benchmark26.paths import ARTIFACTS, PROTOCOLS, record_name
-from pathlib import Path
 
 import argparse
 import csv
 import hashlib
 import json
-import os
-import sys
 from collections import Counter
+from pathlib import Path
+
+from benchmark26.paths import ARTIFACTS, PROTOCOLS, record_name
 
 ROOT = Path(__file__).resolve().parents[1]
-from benchmark26 import mali_features as mf
 from benchmark26 import circuit_representation as c135
+from benchmark26 import mali_features as mf
 
 CANON = ARTIFACTS / "benchmark_v1/canonical_corpus_8767_20260926/canonical_observations.csv"
 REP = ARTIFACTS / "benchmark_v3/real_qpu/compiled_unified/representation_rows.csv"
@@ -27,15 +26,21 @@ CONTRACT = PROTOCOLS / "logical_input_review.json"
 
 
 def digest(data: bytes) -> str:
+    """Return the SHA-256 hex digest of bytes."""
     return hashlib.sha256(data).hexdigest()
 
 
 def read(path: Path):
+    """Read a UTF-8 CSV file into a list of dicts."""
     with path.open(newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
 def read_canonical_without_target(path: Path):
+    """Read the canonical table, keeping only the seven columns used here.
+
+    Target labels are not among them.
+    """
     required = {
         "canonical_row_id",
         "source_id",
@@ -54,6 +59,7 @@ def read_canonical_without_target(path: Path):
 
 
 def write_csv(path: Path, rows, fields):
+    """Write rows as a UTF-8 CSV file with the given fields; extra keys are ignored."""
     with path.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
         w.writeheader()
@@ -84,6 +90,23 @@ def canonical_instruction_digest(circuit, *, include_parameters=True) -> str:
 
 
 def main():
+    """Run one stage of the logical-input table for the 8,767 canonical observations.
+
+    Every stage first reads the canonical, representation and recovery tables and
+    builds an eligibility record for each observation (eligibility.csv for the
+    sidecar, features and all stages). Then, by `--stage`:
+
+    - `sidecar`: stop there.
+    - `features`: extract the global circuit features of each observation into
+      feature_attempts.csv and a manifest.
+    - `groups`: write the model-input group digests.
+    - `splits`: build the group-disjoint outer and inner splits.
+    - `validate`: check all outputs.
+    - `all`: features, groups, splits and validate, in that order.
+
+    `--max-rows` limits the features stage to a canary that cannot produce a release
+    manifest.
+    """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--output", type=Path, default=ARTIFACTS / "real_qpu/logical_inputs")
     ap.add_argument("--stage", choices=["sidecar", "features", "groups", "splits", "validate", "all"], default="all")
@@ -93,7 +116,8 @@ def main():
     if out.exists() and any(out.iterdir()) and args.stage not in {"sidecar", "groups", "splits", "validate"}:
         raise SystemExit(f"output directory is nonempty; refusing overwrite: {out}")
     out.mkdir(parents=True, exist_ok=True)
-    contract = json.loads(CONTRACT.read_text())
+    json.loads(CONTRACT.read_text())  # fail early if the contract file is missing or malformed
+    # Load the canonical, representation and recovery tables and check their sizes.
     canonical, representation, recovery = read_canonical_without_target(CANON), read(REP), read(RECOVERY)
     rec_by_id = {r["canonical_observation_id"]: r for r in recovery}
     rep_by_id = {r["canonical_row_id"]: r for r in representation}
@@ -114,6 +138,7 @@ def main():
             raise ValueError(f"snapshot_capacity_mismatch:{r['snapshot_id']}")
         for alias in r["backend_observed_aliases"].split(";"):
             snapshots[alias] = {**r, "actual_capacity": str(config["n_qubits"])}
+    # Build the eligibility record of each canonical observation.
     recovery_side = []
     for c in canonical:
         rid = c["canonical_row_id"]
@@ -165,7 +190,7 @@ def main():
         return
 
     if args.stage == "groups":
-        materialize_model_input_groups(out, canonical, representation, rec_by_id)
+        build_model_input_groups(out, canonical, representation, rec_by_id)
         return
 
     if args.stage == "validate":
@@ -175,27 +200,26 @@ def main():
     if args.stage not in {"features", "all"}:
         return
 
-    import numpy as np
-    from qiskit import qasm2, qasm3
     from zipfile import ZipFile
 
+    from qiskit import qasm2, qasm3
+
+    # Features stage: extract the global circuit features of each observation.
     extractor, source_pins = mf.load_pinned_global_extractor()
     cand_manifest = json.loads(CANDIDATES.read_text())
     cand_path = CANDIDATES.parent
     cand_by_digest = {r["qasm_sha256"]: r for r in cand_manifest["records"]}
-    qpack_rows = {r["source_row_index"]: r for r in read(QPACK)}
-    qond_zip = ZipFile(c135.QONDUCTOR_ZIP)
+    read(QPACK)  # fail early if the QPack table is missing
+    ZipFile(c135.QONDUCTOR_ZIP).close()  # fail early if the Qonductor archive cannot be opened
     # Cache source circuit/global features. Node calibration is context-specific.
     input_cache, global_cache, graph_cache, properties_cache = {}, {}, {}, {}
-    attempts, global_rows = [], []
+    attempts = []
     mf.OUT_ROOT = out
-    qasm3_mod = qasm3
     source_iter = canonical[: args.max_rows] if args.max_rows else canonical
     for i, c in enumerate(source_iter):
         rid, source = c["canonical_row_id"], c["source_id"]
         rep, side = rep_by_id[rid], next(x for x in recovery_side if x["canonical_observation_id"] == rid)
         tier, qasm_bytes, circuit, inp_digest = side["logical_input_tier"], None, None, ""
-        reason = ""
         try:
             if tier == "unavailable":
                 raise ValueError("logical_recipe_not_qualified")
@@ -280,7 +304,7 @@ def main():
                 "reason": "",
             }
             rec.update({f"g{i:02d}": v for i, v in enumerate(features)})
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - one unusable row must not stop the table; the reason is recorded
             rec = {
                 "canonical_observation_id": rid,
                 "source_id": source,
@@ -315,7 +339,7 @@ def main():
     (out / "feature_manifest.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n")
     if args.stage != "all":
         return
-    materialize_model_input_groups(out, canonical, representation, rec_by_id)
+    build_model_input_groups(out, canonical, representation, rec_by_id)
     group_by_id = {x["canonical_observation_id"]: x for x in read(out / "model_input_groups.csv")}
     for r in attempts:
         r["model_input_group_digest"] = group_by_id[r["canonical_observation_id"]]["model_input_group_digest"]
@@ -324,16 +348,25 @@ def main():
 
 
 def build_splits(out, canonical, eligibility, attempts):
+    """Build the group-disjoint outer (5 folds) and inner (4 folds) splits.
+
+    Observations that share an exact circuit, a workflow group or a candidate are
+    merged into components with union-find. Whole components are assigned to outer
+    folds (seed 42), and each outer-training set is split again into inner folds.
+    Writes logical_outer_splits.csv, logical_inner_splits.csv and a manifest.
+    """
     parent = list(range(len(canonical)))
     index = {r["canonical_row_id"]: i for i, r in enumerate(canonical)}
 
     def find(a):
+        """Return the root of a's component, compressing the path."""
         while parent[a] != a:
             parent[a] = parent[parent[a]]
             a = parent[a]
         return a
 
     def union_group(rows):
+        """Merge the components of all given rows into one."""
         ids = [index[x] for x in rows]
         for x in ids[1:]:
             a, b = find(ids[0]), find(x)
@@ -447,7 +480,11 @@ def build_splits(out, canonical, eligibility, attempts):
     print(json.dumps(manifest, indent=2))
 
 
-def materialize_model_input_groups(out, canonical, representation, rec_by_id):
+def build_model_input_groups(out, canonical, representation, rec_by_id):
+    """Write model_input_groups.csv with the digest of the model-visible input of each observation.
+
+    Observations without an available input get an empty digest.
+    """
     from qiskit import qasm2
 
     attempts = {r["canonical_observation_id"]: r for r in read(out / "feature_attempts.csv")}
@@ -503,7 +540,16 @@ def materialize_model_input_groups(out, canonical, representation, rec_by_id):
 
 
 def validate_outputs(out, canonical):
+    """Check every output of the logical-input table before release.
+
+    Verifies that the feature attempts cover all 8,767 observations with the expected
+    status counts, that outer folds are group-disjoint with every source present in
+    every fold, that identical circuits fall in one fold, and that the inner folds
+    are consistent. Then writes the manifests with input hashes and the planned
+    training cells of the two Ma-Li methods.
+    """
     import math
+
     import numpy as np
 
     feat = read(out / "feature_attempts.csv")
@@ -538,7 +584,6 @@ def validate_outputs(out, canonical):
     groups_by_fold = {f: set() for f in range(5)}
     source_by_fold = {f: Counter() for f in range(5)}
     canonical_by_id = {r["canonical_row_id"]: r for r in canonical}
-    group_lookup = {r["canonical_observation_id"]: r["group_id"] for r in outer}
     for r in outer:
         f = int(r["outer_fold"])
         groups_by_fold[f].add(r["group_id"])
@@ -670,6 +715,7 @@ def validate_outputs(out, canonical):
     available_ids = {rid for rid, r in attempt_by_id.items() if r["status"] == "available"}
 
     def rowset_sha(row_ids):
+        """Return the SHA-256 of the sorted row IDs joined by newlines."""
         return digest("\n".join(sorted(row_ids)).encode())
 
     cells = []

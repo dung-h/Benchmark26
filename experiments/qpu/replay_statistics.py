@@ -2,23 +2,27 @@
 """Independent CSV-level arithmetic replay, without importing analysis_core."""
 
 from __future__ import annotations
+
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-from benchmark26.paths import recorded
 import collections
 import datetime
 import json
 import math
 from pathlib import Path
+
 import numpy as np
-from core import OUT, ROOT, rows, sha, atomic_json
+from core import OUT, atomic_json, rows, sha
+
+from benchmark26.paths import recorded
 
 DEST = OUT / "analysis_v1"
 
 
 def close(actual, expected):
+    """Assert that two numbers agree to 1e-11, or that a missing expected value is empty."""
     if expected is None:
         assert actual in ("", None)
     else:
@@ -26,6 +30,12 @@ def close(actual, expected):
 
 
 def independent(records):
+    """Recompute the metrics of a set of prediction records with plain NumPy.
+
+    Covers pooled, group-balanced and source-balanced MAE, median error, RMSE, raw
+    and log1p R^2, bias, tail errors, over- and under-prediction fractions and the
+    means and spread of target and prediction.
+    """
     y = np.array([float(r["target_seconds"]) for r in records])
     p = np.array([float(r["predicted_seconds"]) for r in records])
     ae = abs(p - y)
@@ -68,6 +78,14 @@ def independent(records):
 
 
 def main():
+    """Replay the saved statistics tables from the saved CSVs without importing analysis_core.
+
+    Checks the 61,974 reduced and 123,948 per-seed predictions, recomputes the pooled,
+    sliced, paired and per-seed metrics, and compares them with the saved tables. It
+    also checks that every locked input and graph is unchanged; the lock's code
+    hashes belong to the original study and are not expected to match this code.
+    Writes a receipt and refuses to overwrite an existing one.
+    """
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__)
@@ -84,7 +102,7 @@ def main():
     saved = rows(DEST / "reduced_predictions.csv")
     seedrows = rows(DEST / "per_seed_predictions.csv")
     assert len(saved) == 61974 and len(seedrows) == 123948
-    panel = {r["canonical_observation_id"]: r for r in rows(OUT / "cohort/panel.csv")}
+    runs_by_id = {r["canonical_observation_id"]: r for r in rows(OUT / "cohort/panel.csv")}
     targets = {r["canonical_observation_id"]: float(r["target_seconds"]) for r in rows(OUT / "cohort/targets.csv")}
     groups = collections.defaultdict(list)
     lookup = {}
@@ -95,7 +113,7 @@ def main():
         cid = r["canonical_observation_id"]
         assert float(r["target_seconds"]) == targets[cid]
         for k in ("group_id", "source_id", "backend", "shots"):
-            assert r[k] == panel[cid][k]
+            assert r[k] == runs_by_id[cid][k]
         for field, expected in [
             ("signed_error_seconds", float(r["predicted_seconds"]) - targets[cid]),
             ("absolute_error_seconds", abs(float(r["predicted_seconds"]) - targets[cid])),

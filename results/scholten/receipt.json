@@ -1,0 +1,16 @@
+{
+  "covered_runs": 2289,
+  "uncovered_runs_by_backend": {
+    "belem": 325,
+    "lima": 414,
+    "quito": 415
+  },
+  "clops_table_sha256": "d900b85fcadedde3729eee1b11c1355cdf4fe7cdf5d912ed1b72f1c70929c123",
+  "inputs_sha256": {
+    "compiled_features": "82a9e7ce02a91bae9a29fc8e55ca3bc7fa921a065a987278494fd0a7fbf8cada",
+    "run_to_circuit": "123bbc0595d99b5e36643c91fac1ed4aeaf14b2db8a86713d937db34740c4032",
+    "labels": "d83cbad8b2a0660fdd39fa3ef3cfd4d23dfcb7738d62b438a12700a9f8860b51",
+    "neural_predictions": "776f51bac79cef797db3a0decda52022b61b9581b1882485d768d99e64ba1838",
+    "analytical_predictions": "83f3ac99c261112df7003eeb8509ffc80eefb7d0a2a784222d8054ed3ec17af3"
+  }
+}

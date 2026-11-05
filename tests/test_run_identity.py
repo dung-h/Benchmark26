@@ -157,3 +157,23 @@ def test_run_dir_inside_original_study_is_rejected(tmp_path):
     result = prepare(env)
     assert result.returncode == 2
     assert "outside the original study directory" in result.stderr
+
+
+def test_locked_file_that_is_not_distributed_is_recorded_not_fatal(tmp_path):
+    artifacts = make_bundle(tmp_path)
+    lock_path = artifacts / STUDY / "execution_lock_v2.json"
+    lock = json.loads(lock_path.read_text())
+    lock["code_hashes"][f"research/{STUDY}/internal_step.py"] = "1" * 64  # named in the lock, not in the repository
+    lock_path.write_text(json.dumps(lock))
+    env = {"B26_ARTIFACTS": str(artifacts), "B26_RUN_DIR": str(tmp_path / "run")}
+    prepared = subprocess.run(
+        [sys.executable, str(QPU / "prepare_run.py")],
+        env={**os.environ, **env},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert prepared.returncode == 0, prepared.stderr
+    manifest = json.loads((tmp_path / "run/run_manifest.json").read_text())
+    assert manifest["code_not_distributed"] == [f"research/{STUDY}/internal_step.py"]
+    assert run(IDENTITY, env).returncode == 0

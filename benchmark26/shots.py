@@ -28,6 +28,7 @@ def fit_shot_transform(values: list[float] | tuple[float, ...]) -> dict[str, Any
 
 
 def transform_shots(value: float, transform: dict[str, Any]) -> float:
+    """Standardize a shot count with the fitted statistics; raise if it is not finite and positive."""
     import numpy as np
 
     x = float(value)
@@ -76,33 +77,3 @@ def append_shots(example, standardized_shots: float):
         (example.global_features, torch.tensor([[standardized_shots]], dtype=torch.float32)), dim=1
     )
     return out
-
-
-def initialized_outputs_equal(
-    old_model, new_model, old_batch, new_batch, torch, rtol: float = 1e-6, atol: float = 1e-6
-) -> float:
-    old_model.eval()
-    new_model.eval()
-    with torch.no_grad():
-        a = old_model(old_batch).reshape(-1)
-        b = new_model(new_batch).reshape(-1)
-        difference = float((a - b).abs().max().cpu()) if a.numel() else 0.0
-    if not torch.allclose(a, b, rtol=rtol, atol=atol):
-        raise RuntimeError(f"zero_shots_column_forward_parity_failed:max_abs={difference}")
-    return difference
-
-
-def verify_shots_gradient(model, batch, targets, torch) -> float:
-    """Require a finite, non-zero gradient on the new input column."""
-    model.train()
-    model.zero_grad(set_to_none=True)
-    prediction = model(batch).reshape(-1)
-    loss = torch.nn.functional.mse_loss(prediction, targets.reshape(-1))
-    loss.backward()
-    gradient = model.gf_linear1.weight.grad[:, -1]
-    if gradient is None or not torch.isfinite(gradient).all():
-        raise RuntimeError("shots_column_gradient_missing_or_nonfinite")
-    magnitude = float(gradient.abs().max().detach().cpu())
-    if magnitude <= 0:
-        raise RuntimeError("shots_column_gradient_is_zero")
-    return magnitude

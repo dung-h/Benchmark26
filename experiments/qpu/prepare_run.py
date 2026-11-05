@@ -12,7 +12,7 @@ lock such as ``benchmark26/paths.py``. ``train_neural.py`` and
 ``run_classical.py`` then accept exactly this code and write under
 ``$B26_RUN_DIR``. The original lock and outputs are not modified.
 
-The run inherits every scientific setting of the original lock (cohort, splits,
+The run inherits every scientific setting of the original lock (dataset, splits,
 seeds, epochs, candidate sets). Its results are a new experiment, not a check
 of the saved one.
 """
@@ -49,6 +49,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def git_revision() -> str | None:
+    """Return the git revision of the repository, with `-dirty` if the working tree has changes, or None."""
     try:
         out = subprocess.run(
             ["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture_output=True, text=True, check=True
@@ -62,6 +63,12 @@ def git_revision() -> str | None:
 
 
 def main() -> int:
+    """Prepare a directory for a new fitting run with the current code.
+
+    Checks that `B26_RUN_DIR` is set and outside the study, verifies the locked protocol, inputs and
+    graphs, and writes run_manifest.json with the hashes of the current code. An existing manifest must
+    match. Returns 0 on success.
+    """
     if not NEW_RUN:
         print("B26_RUN_DIR is not set. Set it to a new directory for the run's outputs.", file=sys.stderr)
         return 2
@@ -77,10 +84,8 @@ def main() -> int:
             print("  " + p, file=sys.stderr)
         return 1
     current = current_code_hashes(lock)
-    missing = sorted(k for k, v in current.items() if v is None)
-    if missing:
-        print("Code files named in the lock are missing: " + ", ".join(missing), file=sys.stderr)
-        return 1
+    # Some files named in the original lock are internal process steps and are not distributed.
+    not_distributed = sorted(k for k, v in current.items() if v is None)
     if RUN_MANIFEST.is_file():
         remaining = run_manifest_problems(lock, current)
         if remaining:
@@ -103,6 +108,7 @@ def main() -> int:
         "code_dependency_hashes": code_dependency_inventory(lock),
         "code_dependency_rule": DEPENDENCY_RULE,
         "code_identical_to_historical_lock": sorted(set(current) - set(differ)),
+        "code_not_distributed": not_distributed,
         "code_differing_from_historical_lock": differ,
         "inherited_settings": {k: lock[k] for k in ("neural", "classical", "evaluations") if k in lock},
         "repository_revision": git_revision(),

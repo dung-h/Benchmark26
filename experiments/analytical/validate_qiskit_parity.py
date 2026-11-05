@@ -5,22 +5,18 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-from benchmark26.paths import ARTIFACTS
-import csv, hashlib, json, math
+import csv
+import json
+import math
 from collections import Counter
 from pathlib import Path
 
+from benchmark26.integrity import sha256_file as sha
+from benchmark26.paths import ARTIFACTS
+from benchmark26.tables import read_csv as read
+
 R = Path(__file__).resolve().parents[2]
 N = ARTIFACTS / "postfreeze_unified_analytical_completion_v1"
-
-
-def read(p):
-    with open(p, newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
-
-
-def sha(p):
-    return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 
 
 raw = {(x["graph_file"], x["snapshot_id"]): x for x in read(N / "raw_features.csv")}
@@ -29,7 +25,7 @@ old = {
     for x in read(ARTIFACTS / "postfreeze_notads_hyperq_track_a_v1/features.csv")
 }
 lin = read(N / "lineage.csv")
-panel = {
+runs_by_id = {
     x["canonical_observation_id"]: x
     for x in read(ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1/cohort/panel.csv")
 }
@@ -48,7 +44,7 @@ for l in lin:
     out.append(
         {
             "canonical_observation_id": l["canonical_observation_id"],
-            "source_id": panel[l["canonical_observation_id"]]["source_id"],
+            "source_id": runs_by_id[l["canonical_observation_id"]]["source_id"],
             "representation_observation_id": l["representation_observation_id"],
             "graph_file_sha256": l["graph_file_sha256"],
             "snapshot_id": l["snapshot_id"],
@@ -67,7 +63,7 @@ with open(N / "qiskit_parity_rows.csv", "w", newline="", encoding="utf-8") as f:
 rec = {
     "status": "PASS_EXACT_QISKIT_ESTIMATE_PARITY_ON_SHARED_GRAPH_SNAPSHOT_INPUTS",
     "rows": len(out),
-    "unique_graph_snapshot_pairs": len(set((x["graph_file_sha256"], x["snapshot_id"]) for x in out)),
+    "unique_graph_snapshot_pairs": len({(x["graph_file_sha256"], x["snapshot_id"]) for x in out}),
     "source_rows": dict(Counter(x["source_id"] for x in out)),
     "max_absolute_difference_seconds": 0.0,
     "comparison": "saved Qiskit estimate_duration-derived nominal path vs current duration-weighted DAG path",

@@ -1,4 +1,4 @@
-"""Pinned Ma--Li full-feature input materialization helpers.
+"""Helpers that build the pinned Ma--Li full-feature inputs.
 
 The public entry points deliberately avoid importing the upstream ``helper``
 module: that module constructs an IBM provider at import time.  Instead, the
@@ -54,10 +54,12 @@ SOURCE_PINS = {
 
 
 def sha256_bytes(data: bytes) -> str:
+    """Return the SHA-256 hex digest of bytes."""
     return hashlib.sha256(data).hexdigest()
 
 
 def sha256_file(path: Path) -> str:
+    """Return the SHA-256 hex digest of a file, read in 1 MiB chunks."""
     h = hashlib.sha256()
     with path.open("rb") as handle:
         for block in iter(lambda: handle.read(1 << 20), b""):
@@ -66,16 +68,19 @@ def sha256_file(path: Path) -> str:
 
 
 def stable_hash(value: Any) -> str:
+    """Return the SHA-256 of the canonical JSON of a value."""
     body = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
     return sha256_bytes(body)
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
+    """Read a UTF-8 CSV file into a list of dicts."""
     with path.open(newline="", encoding="utf-8") as handle:
         return list(csv.DictReader(handle))
 
 
 def pinned_blob(relative: str) -> bytes:
+    """Return a file of the upstream Ma-Li repository at the pinned revision, after checking its SHA-256."""
     blob = subprocess.check_output(
         ["git", "-C", str(UPSTREAM_ROOT), "show", f"32c392a6ece276f1ff046d4e30052d0571ff6dc6:{relative}"]
     )
@@ -252,6 +257,7 @@ def extract_global_features(circuit: QuantumCircuit, extractor: dict[str, Any]) 
 
 
 def parse_qasm(data: bytes) -> tuple[QuantumCircuit, str]:
+    """Parse QASM bytes (OpenQASM 3 or 2) and return the circuit and the text."""
     text = data.decode("utf-8")
     if text.lstrip().startswith("OPENQASM 3"):
         return qasm3.loads(text), text
@@ -261,6 +267,12 @@ def parse_qasm(data: bytes) -> tuple[QuantumCircuit, str]:
 def snapshot_t1_t2(
     row: dict[str, str], registry: dict[str, dict[str, str]]
 ) -> tuple[dict[int, tuple[float, float]], dict[str, Any]]:
+    """Return the T1 and T2 times of each qubit from a pinned backend snapshot.
+
+    Checks the snapshot against the registry and the properties file against its hash, and
+    converts the units to microseconds. Qubits that lack either value are left out. Also
+    returns a provenance record.
+    """
     snapshot = registry.get(row["target_snapshot_id"])
     if snapshot is None:
         raise ValueError("unavailable_missing_backend_property:snapshot_id_not_in_registry")
@@ -489,11 +501,11 @@ def compact_graph_record(
 
 
 def saved_s71_graph_signature(record: dict[str, Any]) -> tuple[str, Counter[str], int]:
-    """Recompute the compiled-panel graph digest from its pinned S71 pickle.
+    """Recompute the compiled-circuit graph digest from its pinned S71 pickle.
 
     This is the same byte protocol used by ``materialize_compiled_unified_qpu_v1``:
     operation order, gate name, ordered global qargs, and parameter-presence bit.
-    It lets the fast materializer verify the pickle against the representation row
+    It lets the fast feature builder verify the pickle against the representation row
     without parsing QASM. S71 stores at most four qargs; larger arity is rejected.
     """
     required = {
@@ -845,10 +857,12 @@ def expand_dense_x(record: dict[str, np.ndarray]) -> np.ndarray:
 
 
 def load_snapshot_registry() -> dict[str, dict[str, str]]:
+    """Return the backend snapshot registry as a dict keyed by snapshot ID."""
     return {row["snapshot_id"]: row for row in read_csv(SNAPSHOT_REGISTRY)}
 
 
 def load_input_rows() -> tuple[list[dict[str, str]], dict[str, dict[str, str]], dict[str, dict[str, str]]]:
+    """Load the canonical and representation tables and return them with the representations keyed by canonical row ID."""
     canonical = read_csv(CANONICAL)
     representations = read_csv(REPRESENTATION)
     by_representation = {row["canonical_row_id"]: row for row in representations}
@@ -861,6 +875,11 @@ def load_input_rows() -> tuple[list[dict[str, str]], dict[str, dict[str, str]], 
 def qasm_bytes_for(
     row: dict[str, str], representation: dict[str, str], qonductor_zip: zipfile.ZipFile
 ) -> tuple[bytes, str, dict[str, Any]]:
+    """Return the QASM bytes of a row, their pinned hash and a source reference.
+
+    Ma-Li and QPack rows read the compiled OpenQASM 3 file of their representation; Qonductor
+    rows read the member of the Qonductor archive. A hash mismatch raises an error.
+    """
     source = row["source_id"]
     if source in {"mali_real_qpu", "qpack_mcp"}:
         relative = representation["compiled_qasm3_file"]
@@ -883,6 +902,7 @@ def qasm_bytes_for(
 
 
 def save_sparse_graph(record: dict[str, np.ndarray], graph_key: str) -> tuple[str, str]:
+    """Save a sparse graph as a compressed `.npz` file under `graphs/` unless it already exists."""
     OUT_ROOT.joinpath("graphs").mkdir(parents=True, exist_ok=True)
     path = OUT_ROOT / "graphs" / f"{graph_key}.npz"
     if not path.exists():

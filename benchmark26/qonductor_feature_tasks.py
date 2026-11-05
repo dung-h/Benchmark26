@@ -28,7 +28,7 @@ FATAL_PREFIXES = (
 
 def initialize_feature_worker(config: dict[str, Any]) -> None:
     """Load the exact source methods once per process without fitting models."""
-    engine = importlib.import_module("materialize_qonductor_native_features")
+    engine = importlib.import_module("benchmark26.qonductor_inputs")
     for name, pin in config["implementation_pins"].items():
         engine.require_hash(Path(pin["path"]), pin["sha256"], name)
     limit = int(config["native_threads"])
@@ -38,7 +38,7 @@ def initialize_feature_worker(config: dict[str, Any]) -> None:
         Path(config["source_root"]),
         config["source_pin"],
     )
-    reference = engine.import_materializer(Path(config["materializer_reference"]))
+    reference = engine.import_feature_builder(Path(config["materializer_reference"]))
     if "archive" in _STATE:
         _STATE["archive"].close()
     if "thread_limit" in _STATE:
@@ -56,6 +56,7 @@ def initialize_feature_worker(config: dict[str, Any]) -> None:
 
 def extraction_key(source_id: str, qasm_hash: str, width: str, shots: str) -> tuple[str, str, str, str]:
     # Shots are part of the returned vector, including for saved compiled QASM.
+    """Return the key that identifies an extraction task: source, QASM hash, register width and shots."""
     return source_id, qasm_hash, width, str(int(shots))
 
 
@@ -88,7 +89,7 @@ def plan_feature_tasks(
     Only input identities/settings enter worker payloads. Runtime labels and
     source-specific outcomes are never used for grouping or scheduling.
     """
-    engine = importlib.import_module("materialize_qonductor_native_features")
+    engine = importlib.import_module("benchmark26.qonductor_inputs")
     groups: dict[tuple[str, ...], dict[str, Any]] = {}
     verified: dict[tuple[str, str], int] = {}
     with zipfile.ZipFile(archive_path) as archive:

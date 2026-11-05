@@ -3,19 +3,26 @@
 
 import collections
 import json
+
 import numpy as np
-from scipy.stats import pearsonr, spearmanr
-from core import OUT, ROOT, rows, atomic_csv, atomic_json, sha, load_context, parts_for
 from analysis_core import metrics
+from core import OUT, atomic_csv, atomic_json, load_context, parts_for, rows, sha
+from scipy.stats import pearsonr, spearmanr
 
 
 def main():
+    """Compute post-score support and error diagnostics for E1, E2 and E3 from existing outputs.
+
+    Reads the reduced predictions and the run table and writes the diagnostics directory
+    (case input support, training-curve summaries, correlations and breakdowns). It
+    refuses to run if the directory exists.
+    """
     dest = OUT / "analysis_v1/diagnostics"
     if dest.exists():
         raise RuntimeError("Refuse diagnostics overwrite")
     dest.mkdir(parents=True)
     pred = rows(OUT / "analysis_v1/reduced_predictions.csv")
-    panel = {r["canonical_observation_id"]: r for r in rows(OUT / "cohort/panel.csv")}
+    runs_by_id = {r["canonical_observation_id"]: r for r in rows(OUT / "cohort/panel.csv")}
     support = {}
     case_rows = []
     history = []
@@ -25,8 +32,8 @@ def main():
         context, _, _ = load_context(ev, include_targets=False)
         for fold in range(context["case_count"]):
             parts = parts_for(context, fold)
-            fit = [panel[c] for c in parts["fit"]]
-            train = [panel[c] for c in parts["train"]]
+            fit = [runs_by_id[c] for c in parts["fit"]]
+            train = [runs_by_id[c] for c in parts["train"]]
             fg = {r["group_id"] for r in fit}
             tg = {r["group_id"] for r in train}
             fb = {(r["group_id"], r["backend"]) for r in fit}
@@ -37,7 +44,7 @@ def main():
             full_fit = {(raw[c], context["ledger"][c]["graph_artifact_sha256"]) for c in parts["fit"]}
             sc = collections.Counter()
             for c in parts["test"]:
-                r = panel[c]
+                r = runs_by_id[c]
                 flag = {
                     "fit_same_group": r["group_id"] in fg,
                     "outer_train_same_group": r["group_id"] in tg,

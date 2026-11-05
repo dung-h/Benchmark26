@@ -1,7 +1,8 @@
 """Tests for benchmark metric aggregation functions."""
 
-import numpy as np
 from collections import defaultdict
+
+import numpy as np
 
 
 def compute_benchmark_metrics(records):

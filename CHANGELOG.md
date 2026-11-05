@@ -2,6 +2,42 @@
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow the package version in `pyproject.toml`.
 
+## [0.4.0] - 2026-11-04
+
+### Changed
+- Internal names were replaced by plain ones. Files: `experiments/qpu/prepare_cohort.py` → `prepare_dataset.py`, `verify_dataset_lineage.py` → `verify_dataset_from_sources.py`, `benchmark26/logical_panel.py` → `logical_inputs.py`, `mali_materialize.py` → `mali_inputs.py`, `qonductor_materialize.py` → `qonductor_inputs.py`. The environment variable `B26_COHORT_PLAN` is now `B26_DATASET_INPUTS`, with default `inputs/dataset_inputs/`; update existing environment files. Python names such as `panel`, `cohort` and `materializer` became `run_rows`, `runs_by_id`, `feature_builder` and similar. Column names and paths inside the study files are unchanged, because the code reads existing data.
+- The graph-ablation code check undoes these renames before comparing each pinned file with the executed run (`renamed_after_run` in `results/graph_ablation/manifest.json`). `benchmark26/paths.py` also gained one mapping from the original script name `prepare_cohort.py` to its new name, so its signature is pinned anew.
+
+### Fixed
+- The Qonductor feature build (`python -m benchmark26.qonductor_inputs`) failed in its worker processes. `qonductor_feature_tasks.py` imported the builder by its original-study module name, and two imports that the workers use (`qiskit.qasm3`, `restore_saved_qasm3_hardware_wires`) had been removed as unused. Rebuilt rows equal the saved features.
+
+### Added
+- Scholten-style throughput estimate (shots × compiled depth / CLOPS) on the 2,289 runs whose processor reports CLOPS: `experiments/scholten/`, aggregate scores in `results/scholten/`, `docs/SCHOLTEN.md`, and a check in `make check`. The scores equal those used in the workshop paper.
+- `scripts/export_dataset.py` writes the public runtime dataset as one table, `runs.csv`, with one row per run and plain column names.
+- Graph ablation, a separate experiment on the E1/E2 splits. It has four arms with shots: MLP, Graph+MLP, Graph+MLP without edges, and Graph+MLP with node features permuted relative to the edges; 3 seeds and 120 cells. The experiment adds:
+  - `experiments/graph_ablation/` (locked protocol, graph controls, analysis, verifier);
+  - `experiments/qpu/graph_ablation_runner.py`;
+  - aggregate results in `results/graph_ablation/`;
+  - `docs/GRAPH_ABLATION.md`.
+
+  The runner and protocol are byte-identical to the executed run. `analyze.py` is a portable port of the locked analysis script and reproduces the saved summary exactly.
+- Timing of the Qiskit and QCRE duration estimators from a ready physical circuit (1,452 tasks, 3,443 observations): aggregates in `results/ready_analytical_latency/`, `experiments/latency/summarize_ready_analytical.py` and `verify_ready_analytical.py`, and a section in `docs/PREDICTION_LATENCY.md`. `make check` verifies the means and the file hashes.
+- `make check` recomputes the shared graph-ablation statistics from anonymous per-group errors and checks the files against the hashes in `results/graph_ablation/manifest.json`.
+- `docs/PITFALLS.md`: error messages and misreadings, each with cause and fix.
+- Tests for the graph controls, the median-of-seeds estimand, the stratified paired bootstrap and the shared results.
+
+### Removed
+- Internal process steps of the original study: `experiments/qpu/lock_protocol.py` (creates the execution lock), `profile_batch.py` (batch profile), `validate_first_cell.py` (first-cell QA) and `audit_classical_inputs.py`. The original lock still names them, so `prepare_run.py` now records files named in the lock but not distributed as `code_not_distributed` instead of stopping.
+- `configs/study/` (three summaries that no code read and that could drift from the docs), `requirements-review.txt` (unused), `scripts/verify_analytical_kernel.py` and `experiments/analytical/export_kernel_fixtures.py` (a pair that was never run on the study bundle: the verifier needs fixtures that the bundle does not contain), and the `acquire`, `latency`, `screen` and `analytical` stages of `scripts/run_benchmark_pipeline.py`, which only wrapped other commands.
+- Report and figure writers that nothing called and that only wrote narrative reports and plots into the private bundle: `experiments/analytical/write_report.py`, `experiments/analytical/make_figures.py` and `experiments/qpu/write_final_report.py`. Also `scripts/verify_cost.py`, which checked the aggregates of an earlier timing campaign that was removed in 0.3.0 and that no document references.
+
+- 48 functions (about 2,800 lines) that no live code reaches, in `mali_training.py`, `mali_batching.py`, `qonductor_models.py`, `qonductor_regression.py`, `qonductor_materialize.py`, `shots.py` and `circuit_representation.py`: the trainers and tuners of the earlier 8,767-row Ma-Li study and the 340-row Qonductor panel, their GPU-handoff, authorization and QA checks, and the status-note writer of the C133-C135 batch. The producers of the study inputs (`logical_panel.py`, `qonductor_materialize.py`, `mali_materialize.py`, `path_estimators.py`) stay. The manifest lists what was removed. A replay of 8 saved checkpoints and a new-run preflight give the same results as before.
+
+### Changed
+- Code clarity: every public function now has a docstring, the longest `main` functions have step comments, and the copied CSV-reading and hashing helpers of ten scripts are replaced by `benchmark26/tables.py` and `integrity.py`. In the 47 files that no run manifest pins, imports are sorted, unused imports and dead variables are removed, and subprocess checks are explicit. In the 28 Python files that the executed graph-ablation run pinned, only docstrings, comments and layout changed. `make check` now verifies them by the signature of their syntax tree (`benchmark26/codesig.py`, the same on Python 3.10 to 3.14), so a documentation change passes and any change to the code fails. `path_kernel.cpp` stays byte-identical. `docs/REPRODUCTION.md` lists which code must stay unchanged.
+- README: the first command now checks the published numbers; a table points each reader task to its document. `docs/METHODOLOGY.md` starts with definitions, and `docs/PREDICTION_LATENCY.md` states what is and is not timed.
+- `experiments/qpu/graph_ablation_runner.py` joins the run entry points, so a prepared run pins 29 code files. Run manifests prepared with 0.3.2 list fewer files and are rejected; prepare a new `B26_RUN_DIR`.
+
 ## [0.3.2] - 2026-11-03
 
 ### Fixed

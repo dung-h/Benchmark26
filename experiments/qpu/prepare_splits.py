@@ -16,12 +16,13 @@ from sklearn.model_selection import StratifiedKFold
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
 OUT = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
-COHORT = OUT / "cohort"
+DATASET_DIR = OUT / "cohort"
 SPLITS = OUT / "splits"
 SEED = 42
 
 
 def sha(path):
+    """Return the SHA-256 hex digest of a file, read in 1 MiB chunks."""
     h = hashlib.sha256()
     with Path(path).open("rb") as f:
         for b in iter(lambda: f.read(1 << 20), b""):
@@ -30,11 +31,13 @@ def sha(path):
 
 
 def rows(path):
+    """Read a UTF-8 CSV file into a list of dicts."""
     with Path(path).open(newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
 def write(path, rs):
+    """Write rows as a CSV file; raise if there are none."""
     if not rs:
         raise RuntimeError(f"empty_split:{path}")
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -45,6 +48,7 @@ def write(path, rs):
 
 
 def digest_ids(ids):
+    """Return the SHA-256 of the sorted IDs joined by newlines."""
     return hashlib.sha256("\n".join(sorted(ids)).encode()).hexdigest()
 
 
@@ -82,6 +86,11 @@ def assign_groups(group_rows, source_by_id, folds, seed):
 
 
 def make_grouped(eligible_ids, group_by_id, source_by_id, folds, seed, tag):
+    """Assign whole groups to folds with `assign_groups`, balanced across sources, using a seed.
+
+    Returns the fold of each observation, the loads and the groups. Raises if there are fewer groups than
+    folds.
+    """
     groups = defaultdict(list)
     for cid in eligible_ids:
         groups[group_by_id[cid]].append(cid)
@@ -92,15 +101,21 @@ def make_grouped(eligible_ids, group_by_id, source_by_id, folds, seed, tag):
 
 
 def main():
+    """Create the target-blind folds of the study.
+
+    E1 holds out logical-circuit groups, E2 holds out random observations stratified by source, and E3 holds
+    out backends. E1 and E2 have 5 outer folds and E3 has one case per held-out backend; all have inner folds. Writes the
+    outer and inner split files and a receipt. Refuses to run if the splits already exist.
+    """
     if (SPLITS / "E1_outer.csv").exists():
         raise RuntimeError("refuse_overwrite_locked_splits")
-    panel = rows(COHORT / "panel.csv")
-    ids = [r["canonical_observation_id"] for r in panel]
+    run_rows = rows(DATASET_DIR / "panel.csv")
+    ids = [r["canonical_observation_id"] for r in run_rows]
     if len(ids) != 3443 or len(set(ids)) != 3443:
         raise RuntimeError("cohort_id_count_mismatch")
-    group = {r["canonical_observation_id"]: r["group_id"] for r in panel}
-    source = {r["canonical_observation_id"]: r["source_id"] for r in panel}
-    backend = {r["canonical_observation_id"]: r["backend"] for r in panel}
+    group = {r["canonical_observation_id"]: r["group_id"] for r in run_rows}
+    source = {r["canonical_observation_id"]: r["source_id"] for r in run_rows}
+    backend = {r["canonical_observation_id"]: r["backend"] for r in run_rows}
     source_counts = Counter(source.values())
     groups = defaultdict(list)
     for cid, gid in group.items():
@@ -329,8 +344,8 @@ def main():
         len(ids) - len([c for c in ids if backend[c] == b]) for b in set(backend.values())
     ):
         raise RuntimeError("E3_assignment_row_count_mismatch")
-    panelsha = sha(COHORT / "panel.csv")
-    feature_sha = sha(COHORT / "feature_ledger.csv")
+    run_table_sha256 = sha(DATASET_DIR / "panel.csv")
+    feature_sha = sha(DATASET_DIR / "feature_ledger.csv")
     receipt = {
         "status": "PASS_TARGET_BLIND_SPLITS_PREPARED",
         "rows": len(ids),
@@ -342,7 +357,7 @@ def main():
         "group_definition_source": "target-blind audited cohort panel; logical signature/retained group/physical hash union plus no cross-group full feature collisions",
         "split_seed": 42,
         "studies": out_receipts,
-        "input_sha256": {"panel.csv": panelsha, "feature_ledger.csv": feature_sha},
+        "input_sha256": {"panel.csv": run_table_sha256, "feature_ledger.csv": feature_sha},
         "outputs_sha256": {record_name(p): sha(p) for p in all_outputs},
         "code_sha256": sha(Path(__file__)),
         "python": platform.python_version(),

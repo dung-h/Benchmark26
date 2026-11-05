@@ -1,6 +1,19 @@
 # Methodology
 
-## Cohort
+## Definitions
+
+These terms are used the same way in every document and in the code.
+
+- **Observation**: one row of the study dataset: one archived QPU run, or for QPack the mean over the timings of one workflow. It has a circuit, a shot count, a backend and one archived runtime label.
+- **Label**: the archived runtime of an observation, in seconds. Each source defines it differently (see the table below).
+- **Source**: where the observation comes from. There are three: Ma–Li, Qonductor and QPack.
+- **Logical circuit**: the circuit before it is compiled to a backend's native gates. The neural estimators take it as input. For Qonductor it is reconstructed from the circuit family and width, not recovered byte for byte.
+- **Physical circuit**: the circuit after compilation to a backend's native gates. The analytical estimators score the saved physical circuit of each observation. For Qonductor this is the circuit that was submitted.
+- **Logical-circuit group**: observations whose circuits differ only in gate angles. Details below.
+- **Estimator**: anything that maps an input to a predicted runtime: a neural model, the regression selector, or an analytical duration formula.
+- **Group-balanced MAE (GB-MAE)**: the mean absolute error in seconds, averaged within each group and then over groups, so every group counts once. It is the primary metric.
+
+## Dataset
 
 The study uses 3,443 archived QPU observations in 203 logical-circuit groups.
 
@@ -43,18 +56,24 @@ The analytical routes produce different quantities and are not interchangeable:
 - unitless scores (NoTaDS);
 - predictors calibrated on outer-training labels (historical variants in `experiments/analytical/calibrate.py`; not reported in the paper).
 
+## Terms from the original study process
+
+`benchmark26/circuit_representation.py` still has the preparation steps of the earlier study under the names C133 (backend snapshot registry), C134 (feature sidecar) and C135 (target preflight). They produce inputs of the 3,443-observation study or check them; they are not part of the evaluation.
+
+The trainers, tuners and approval checks that belonged only to the earlier 8,767-row Ma-Li study and the 340-row Qonductor study were removed from the code. They produced no input of the current study.
+
 ## Code map
 
 | Stage | Code |
 | --- | --- |
-| Logical inputs and grouping | `benchmark26/logical_panel.py`, `benchmark26/circuit_representation.py` |
-| Ma–Li features and graph models | `benchmark26/mali_features.py`, `mali_materialize.py`, `mali_training.py`, `mali_batching.py` |
-| Qonductor features and regression | `benchmark26/qonductor_features.py`, `qonductor_materialize.py`, `qonductor_regression.py`, `qonductor_models.py` |
+| Logical inputs and grouping | `benchmark26/logical_inputs.py`, `benchmark26/circuit_representation.py` |
+| Ma–Li features and graph models | `benchmark26/mali_features.py`, `mali_inputs.py`, `mali_training.py`, `mali_batching.py` |
+| Qonductor features and regression | `benchmark26/qonductor_features.py`, `qonductor_inputs.py`, `qonductor_regression.py`, `qonductor_models.py` |
 | Shot features | `benchmark26/shots.py` |
-| Cohort, splits, fitting, evaluation | `experiments/qpu/` |
+| Dataset table, splits, fitting, evaluation | `experiments/qpu/` |
 | Analytical estimators | `experiments/analytical/`, `benchmark26/path_estimators.py`, `benchmark26/path_kernel.cpp` |
 | Prediction latency | `experiments/latency/` |
 
 ## Protocols
 
-`protocols/` holds the frozen contracts of the component studies on which the unified study builds (Ma–Li features, Qonductor features, estimator execution, logical inputs). Several describe the earlier 4,515- and 8,767-row cohorts. They are kept because the shared code verifies their hashes; they are not the configuration of the 3,443-observation study, whose execution lock is part of the study bundle. `configs/study/` summarizes that study's settings for readers.
+`protocols/` holds the frozen contracts of the component studies on which the unified study builds (Ma–Li features, Qonductor features, estimator execution, logical inputs). Several describe the earlier 4,515- and 8,767-row cohorts. They are kept because the shared code verifies their hashes; they are not the configuration of the 3,443-observation study, whose execution lock is part of the study bundle.

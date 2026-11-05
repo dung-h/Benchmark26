@@ -24,11 +24,13 @@ class Pin:
 
     @property
     def local(self) -> Path:
+        """Return the location of the recorded path on this machine."""
         return recorded(self.path)
 
 
-def sha256_file(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+def sha256_file(path: str | Path) -> str:
+    """Return the SHA-256 hex digest of a file."""
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
 def _load(name: str) -> dict:

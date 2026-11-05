@@ -33,6 +33,7 @@ FEATURES = ("swap", "depth", "num_qubits", "shots", "circuit_count")
 
 
 def load_matrix(context):
+    """Load the five native features of every observation as a matrix keyed by observation ID."""
     records = {r["canonical_observation_id"]: r for r in rows(NATIVE)}
     if set(records) != context["all_ids"]:
         raise RuntimeError("classical_input_identity_mismatch")
@@ -46,6 +47,12 @@ def load_matrix(context):
 
 
 def run_case(ev, fold, context, matrix, lock_sha, templates, candidates, families):
+    """Run the six-family selector and the train-median baseline for one case (evaluation and fold).
+
+    Selects the model on the inner folds of the training rows, refits it, predicts the test rows and
+    writes the regression manifest and predictions. The constant baseline is the median of the outer-
+    training labels only. Completed outputs are checked and reused. Returns the case summary.
+    """
     parts = parts_for(context, fold)
     folder = RUN / "classical" / ev / f"fold_{fold}"
     folder.mkdir(parents=True, exist_ok=True)
@@ -203,6 +210,11 @@ def run_case(ev, fold, context, matrix, lock_sha, templates, candidates, familie
 
 
 def main():
+    """Run a stage (`preflight` or training) of the classical models for E1, E2 and E3.
+
+    Checks the execution identity and that the frozen candidates match the six families, then runs each
+    case.
+    """
     ap = argparse.ArgumentParser()
     ap.add_argument("--stage", choices=["preflight", "train"], required=True)
     ap.add_argument("--evaluation", choices=["E1", "E2", "E3"])

@@ -30,6 +30,7 @@ class RestorationMetadata:
     restored_qasm_sha256: str
 
     def as_dict(self) -> dict[str, Any]:
+        """Return the fields of the record as a dict."""
         return {
             "api": self.api,
             "register_name": self.register_name,
@@ -74,6 +75,7 @@ def restore_saved_qasm3_hardware_wires(qasm_text: str, register_width: int) -> t
         raise ValueError(f"cannot parse saved QASM3 AST: {type(exc).__name__}: {exc}") from exc
 
     def walk(node: Any):
+        """Yield every node of a nested list, tuple or AST structure."""
         if isinstance(node, list):
             for child in node:
                 yield from walk(child)
@@ -119,6 +121,7 @@ def restore_saved_qasm3_hardware_wires(qasm_text: str, register_width: int) -> t
         register_name = f"{_DEFAULT_REGISTER}_{suffix}"
 
     def replace_hardware_identifiers(node: Any) -> Any:
+        """Replace hardware-wire identifiers in an AST node by their restored indices."""
         if isinstance(node, qasm_ast.Identifier):
             match = _HARDWARE_ID.fullmatch(node.name)
             if match:
@@ -177,7 +180,7 @@ def restore_saved_qasm3_hardware_wires(qasm_text: str, register_width: int) -> t
 
 
 def _feed_ast_hash(hasher: Any, node: Any) -> None:
-    """Hash AST incrementally without materializing a huge nested JSON object."""
+    """Hash AST incrementally without building a huge nested JSON object."""
     if isinstance(node, list):
         hasher.update(b"list[")
         hasher.update(str(len(node)).encode("ascii"))
@@ -219,6 +222,11 @@ def _compare_and_hash_ast(
     observed_indices: list[int] = []
 
     def compare(left: Any, right: Any, location: str) -> None:
+        """Compare two AST nodes field by field and update the signature and the wire lists.
+
+        Raises ValueError at the first difference in node type or value, or if a restored hardware
+        index lies outside the register width.
+        """
         if type(left) is not type(right):
             raise ValueError(f"AST node type changed at {location}: {type(left).__name__} != {type(right).__name__}")
         if isinstance(left, list):

@@ -3,10 +3,19 @@
 import csv
 import json
 from pathlib import Path
+
 import numpy as np
 
 
 def run(config_path, output):
+    """Run the synthetic split, fit and report example and return its metrics.
+
+    Generates grouped observations from the config, holds out whole groups, fits least
+    squares on the training groups with preprocessing fitted on them only, predicts the
+    held-out groups, computes group-balanced errors, and writes the tables under
+    `output`. Uses generated data, so it shows that the pipeline runs, not any measured
+    result.
+    """
     config = json.loads(Path(config_path).read_text())
     if config.get("dataset") != "synthetic" or config.get("model") != "least_squares":
         raise ValueError("Smoke config requires dataset=synthetic and model=least_squares")
@@ -28,21 +37,22 @@ def run(config_path, output):
             shots = int(rng.choice([128, 512, 1024]))
             target = 0.02 * widths[group] + 0.003 * depths[group] + 0.0002 * shots
             rows.append(
-                dict(
-                    id=f"g{group}_r{repeat}",
-                    group_id=f"g{group}",
-                    width=int(widths[group]),
-                    depth=int(depths[group]),
-                    shots=shots,
-                    target_seconds=float(target),
-                    split="test" if group in test else "train",
-                )
+                {
+                    "id": f"g{group}_r{repeat}",
+                    "group_id": f"g{group}",
+                    "width": int(widths[group]),
+                    "depth": int(depths[group]),
+                    "shots": shots,
+                    "target_seconds": float(target),
+                    "split": "test" if group in test else "train",
+                }
             )
     train = [r for r in rows if r["split"] == "train"]
     heldout = [r for r in rows if r["split"] == "test"]
     assert {r["group_id"] for r in train}.isdisjoint({r["group_id"] for r in heldout})
 
     def features(selected):
+        """Return the width, depth and shots of the selected rows as a float matrix."""
         return np.asarray([[r[k] for k in ("width", "depth", "shots")] for r in selected], dtype=float)
 
     # Fit preprocessing on train only, then reuse it on held-out groups.
@@ -51,6 +61,7 @@ def run(config_path, output):
     scale[scale == 0] = 1
 
     def design(selected):
+        """Return the standardized feature matrix with a leading column of ones."""
         normalized = (features(selected) - mean) / scale
         return np.column_stack([np.ones(len(selected)), normalized])
 
@@ -63,17 +74,17 @@ def run(config_path, output):
     group_errors = {}
     for r in predictions:
         group_errors.setdefault(r["group_id"], []).append(r["absolute_error_seconds"])
-    metrics = dict(
-        dataset="synthetic",
-        model="least_squares",
-        train_rows=len(train),
-        test_rows=len(heldout),
-        train_groups=groups - test_groups,
-        test_groups=test_groups,
-        group_overlap=0,
-        pooled_mae_seconds=float(np.mean([r["absolute_error_seconds"] for r in predictions])),
-        group_balanced_mae_seconds=float(np.mean([np.mean(v) for v in group_errors.values()])),
-    )
+    metrics = {
+        "dataset": "synthetic",
+        "model": "least_squares",
+        "train_rows": len(train),
+        "test_rows": len(heldout),
+        "train_groups": groups - test_groups,
+        "test_groups": test_groups,
+        "group_overlap": 0,
+        "pooled_mae_seconds": float(np.mean([r["absolute_error_seconds"] for r in predictions])),
+        "group_balanced_mae_seconds": float(np.mean([np.mean(v) for v in group_errors.values()])),
+    }
     output.mkdir(parents=True)
     for name, data in [("observations.csv", rows), ("predictions.csv", predictions)]:
         with (output / name).open("w", newline="") as handle:
@@ -83,7 +94,7 @@ def run(config_path, output):
     for name, data in [
         ("config.json", config),
         ("metrics.json", metrics),
-        ("model.json", dict(mean=mean.tolist(), scale=scale.tolist(), coefficients=coef.tolist())),
+        ("model.json", {"mean": mean.tolist(), "scale": scale.tolist(), "coefficients": coef.tolist()}),
     ]:
         (output / name).write_text(json.dumps(data, indent=2) + "\n")
     (output / "report.md").write_text(

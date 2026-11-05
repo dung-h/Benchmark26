@@ -2,16 +2,23 @@
 """Independent replay of unified analytical predictions, metrics, and fits."""
 
 from __future__ import annotations
+
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
-from benchmark26.paths import ARTIFACTS, recorded
-from pathlib import Path
-import csv, hashlib, json, math
+import hashlib
+import json
+import math
 from collections import defaultdict
+from pathlib import Path
+
 import numpy as np
 from scipy.stats import pearsonr, spearmanr
+
+from benchmark26.integrity import sha256_file as sha
+from benchmark26.paths import ARTIFACTS, recorded
+from benchmark26.tables import read_csv as read
 
 ROOT = Path(__file__).resolve().parents[2]
 NS = ARTIFACTS / "postfreeze_unified_analytical_completion_v1"
@@ -19,16 +26,8 @@ ST = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
 AN = ST / "analysis_v1"
 
 
-def read(p):
-    with open(p, newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
-
-
-def sha(p):
-    return hashlib.sha256(Path(p).read_bytes()).hexdigest()
-
-
 def close(a, b, tol=1e-10):
+    """Assert that two values agree within `tol`, or are equal strings; a blank expected value requires a blank actual value."""
     if b in ("", None):
         if a not in ("", None):
             raise AssertionError(("expected_blank", a, b))
@@ -42,6 +41,7 @@ def close(a, b, tol=1e-10):
 
 
 def independently_metric(rows, pred):
+    """Recompute the metric row of the predictions `pred(row)` over the rows with plain NumPy."""
     y = np.array([float(r["target_seconds"]) for r in rows])
     p = np.array([float(pred(r)) for r in rows])
     g = np.array([r["group_id"] for r in rows])
@@ -89,6 +89,7 @@ def independently_metric(rows, pred):
 
 
 def corr(x, y):
+    """Return (Pearson, Spearman) correlations with SciPy, or ('', '') for fewer than 3 points or a constant input."""
     x = np.asarray(x, float)
     y = np.asarray(y, float)
     if len(x) < 3 or len(np.unique(x)) < 2 or len(np.unique(y)) < 2:
@@ -97,15 +98,23 @@ def corr(x, y):
 
 
 def main():
+    """Independently replay the unified analytical predictions, metrics and fits.
+
+    Re-derives every prediction from the raw features, checks the 615 cached Qiskit
+    parities, reconstructs all 200 calibration fits, recomputes the metric rows, the
+    paired whole-group intervals (from the persisted draws) and the correlations, and
+    checks that the frozen results and input hashes are unchanged. Prints a summary.
+    """
+    # Load the saved receipts, the dataset and the saved tables.
     receipt = json.loads((NS / "evaluation_receipt.json").read_text())
     cal = json.loads((NS / "calibration_receipt.json").read_text())
-    inv = json.loads((NS / "inventory.json").read_text())
-    ext = json.loads((NS / "extraction_receipt.json").read_text())
-    panel_rows = read(ST / "cohort/panel.csv")
-    panel = {r["canonical_observation_id"]: r for r in panel_rows}
+    json.loads((NS / "inventory.json").read_text())  # fail early if a receipt is missing or malformed
+    json.loads((NS / "extraction_receipt.json").read_text())
+    run_rows = read(ST / "cohort/panel.csv")
+    runs_by_id = {r["canonical_observation_id"]: r for r in run_rows}
     targets = {r["canonical_observation_id"]: float(r["target_seconds"]) for r in read(ST / "cohort/targets.csv")}
-    ids = sorted(panel)
-    assert len(ids) == 3443 and len(set(panel[x]["group_id"] for x in ids)) == 203 and set(ids) == set(targets)
+    ids = sorted(runs_by_id)
+    assert len(ids) == 3443 and len({runs_by_id[x]["group_id"] for x in ids}) == 203 and set(ids) == set(targets)
     raw = read(NS / "raw_features.csv")
     line = read(NS / "lineage.csv")
     lin = {r["canonical_observation_id"]: r for r in line}
@@ -147,7 +156,7 @@ def main():
     for i in ids:
         for method, field in base_raw.items():
             value = float(feats[i][field])
-            shots = float(panel[i]["shots"])
+            shots = float(runs_by_id[i]["shots"])
             # E1 record for each identity appears in exactly its assigned outer fold.
             fold = foldmaps["E1"][i]
             for name, expected, unit in (
@@ -199,16 +208,13 @@ def main():
         assert (
             fitsha == fit["fit_ids_sha256"]
             and len(train) == int(fit["fit_rows"])
-            and len({panel[i]["group_id"] for i in train}) == int(fit["fit_groups"])
+            and len({runs_by_id[i]["group_id"] for i in train}) == int(fit["fit_groups"])
         )
         assert not train & test
         field = base_raw[baseid.removesuffix("_SHOT_SCALED") if baseid.endswith("_SHOT_SCALED") else baseid]
-        multiplier = 1.0 if baseid == field else 1.0
-        if baseid.endswith("_SHOT_SCALED"):
-            multiplier = float(panel[next(iter(train))]["shots"])  # replaced per row below
         x = np.array(
             [
-                float(feats[i][field]) * (float(panel[i]["shots"]) if baseid.endswith("_SHOT_SCALED") else 1.0)
+                float(feats[i][field]) * (float(runs_by_id[i]["shots"]) if baseid.endswith("_SHOT_SCALED") else 1.0)
                 for i in sorted(train)
             ]
         )
@@ -221,7 +227,7 @@ def main():
         assert {r["canonical_observation_id"] for r in testrows} == test
         for r in testrows:
             i = r["canonical_observation_id"]
-            rawx = float(feats[i][field]) * (float(panel[i]["shots"]) if baseid.endswith("_SHOT_SCALED") else 1.0)
+            rawx = float(feats[i][field]) * (float(runs_by_id[i]["shots"]) if baseid.endswith("_SHOT_SCALED") else 1.0)
             close(r["prediction_seconds"], max(0, float(coef[0] + coef[1] * rawx)), 1e-10)
     # Independently recompute metric rows.
     savedred = read(AN / "reduced_predictions.csv")
@@ -231,6 +237,7 @@ def main():
             bpred[(r["evaluation"], r["canonical_observation_id"], r["treatment"])] = float(r["predicted_seconds"])
 
     def predval(ev, case, i, m):
+        """Return the saved prediction for (evaluation, case, observation, method); R0 and C0 come from the baseline."""
         if m in ("R0", "C0"):
             return bpred[(ev, i, m)]
         if ev in ("E1", "E2") and case == "ALL":
@@ -243,7 +250,7 @@ def main():
             ev, m = row["evaluation"], row["method_id"]
             case = row["case"] if "case" in row else row["outer_fold"]
             if table == "metrics.csv":
-                ii = [i for i in ids if ev != "E3" or panel[i]["backend"] == case]
+                ii = [i for i in ids if ev != "E3" or runs_by_id[i]["backend"] == case]
             elif table == "fold_metrics.csv":
                 ii = [
                     i
@@ -254,11 +261,11 @@ def main():
             else:
                 scope = row["scope"]
                 v = row["scope_value"]
-                ii = [i for i in ids if ev != "E3" or panel[i]["backend"] == case]
+                ii = [i for i in ids if ev != "E3" or runs_by_id[i]["backend"] == case]
                 if scope == "source":
-                    ii = [i for i in ii if panel[i]["source_id"] == v]
+                    ii = [i for i in ii if runs_by_id[i]["source_id"] == v]
                 elif scope == "backend":
-                    ii = [i for i in ii if panel[i]["backend"] == v]
+                    ii = [i for i in ii if runs_by_id[i]["backend"] == v]
                 elif scope == "structure_provenance":
                     ii = [i for i in ii if lin[i]["structure_provenance"] == v]
                 elif scope == "timing_provenance":
@@ -266,8 +273,8 @@ def main():
             rr = [
                 {
                     "target_seconds": targets[i],
-                    "group_id": panel[i]["group_id"],
-                    "source_id": panel[i]["source_id"],
+                    "group_id": runs_by_id[i]["group_id"],
+                    "source_id": runs_by_id[i]["source_id"],
                     "prediction_seconds": predval(ev, case, i, m),
                 }
                 for i in ii
@@ -280,8 +287,8 @@ def main():
     comparison_checks = 0
     for row in read(NS / "paired_comparisons.csv"):
         ev, case, a, b = row["evaluation"], row["case"], row["treatment"], row["control"]
-        ii = [i for i in ids if ev != "E3" or panel[i]["backend"] == case]
-        groupids = sorted({panel[i]["group_id"] for i in ii})
+        ii = [i for i in ids if ev != "E3" or runs_by_id[i]["backend"] == case]
+        groupids = sorted({runs_by_id[i]["group_id"] for i in ii})
         path = recorded(row["bootstrap_draws_path"])
         assert sha(path) == row["bootstrap_draws_sha256"]
         with np.load(path, allow_pickle=False) as z:
@@ -290,7 +297,7 @@ def main():
             assert draws.shape == (10000, len(groupids))
         gb = defaultdict(list)
         for i in ii:
-            gb[panel[i]["group_id"]].append(i)
+            gb[runs_by_id[i]["group_id"]].append(i)
         d = []
         for g in groupids:
             xa = np.mean([abs(predval(ev, case, i, a) - targets[i]) for i in gb[g]])
@@ -308,9 +315,9 @@ def main():
     corr_checks = 0
     for row in read(NS / "correlations.csv"):
         ev, case, m, scope, v = row["evaluation"], row["case"], row["method_id"], row["scope"], row["scope_value"]
-        ii = [i for i in ids if ev != "E3" or panel[i]["backend"] == case]
+        ii = [i for i in ids if ev != "E3" or runs_by_id[i]["backend"] == case]
         if scope == "source":
-            ii = [i for i in ii if panel[i]["source_id"] == v]
+            ii = [i for i in ii if runs_by_id[i]["source_id"] == v]
         if m.startswith("NOTADS_") and ("LEVEL_SCORE" in m or "FILTERED_DEPTH" in m) and not m.endswith("_AFFINE"):
             if ev in ("E1", "E2") and case == "ALL":
                 rawrows = [

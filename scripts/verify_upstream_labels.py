@@ -9,8 +9,6 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repository root
-from benchmark26.paths import ARTIFACTS
-from pathlib import Path
 import argparse
 import collections
 import csv
@@ -20,17 +18,22 @@ import math
 import sqlite3
 import statistics
 import zipfile
+from pathlib import Path
+
+from benchmark26.paths import ARTIFACTS
 
 ROOT = Path(__file__).resolve().parents[1]
 STUDY = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1"
 
 
 def rows(path):
+    """Read a UTF-8 CSV file into a list of dicts."""
     with path.open(newline="", encoding="utf-8") as stream:
         return list(csv.DictReader(stream))
 
 
 def digest(path):
+    """Return the SHA-256 hex digest of a file, read in 1 MiB chunks."""
     h = hashlib.sha256()
     with path.open("rb") as stream:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
@@ -39,11 +42,20 @@ def digest(path):
 
 
 def require(condition, message):
+    """Raise ValueError with the message if the condition is false."""
     if not condition:
         raise ValueError(message)
 
 
 def main():
+    """Check the study labels and source joins against the original upstream files.
+
+    Checks the dataset identity (3,443 observations), then for each source root given
+    (`--mali-root`, `--qonductor-root`, `--qpack-root`) compares the labels read from the
+    original CSV, SQLite, ZIP or JSON files with the study targets to 1e-10 seconds.
+    Every source file is checked against its pinned size and SHA-256. Writes a receipt
+    to `--output`, which must not exist yet.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mali-root", type=Path)
     parser.add_argument("--qonductor-root", type=Path)
@@ -55,14 +67,15 @@ def main():
     require(not args.output.exists(), "Refusing existing receipt")
     require(STUDY not in args.output.resolve().parents, "Do not write into frozen scientific artifacts")
     manifest = json.loads((ROOT / "upstream/data_sources.json").read_text())
-    panel = {r["canonical_observation_id"]: r for r in rows(STUDY / "cohort/panel.csv")}
+    runs_by_id = {r["canonical_observation_id"]: r for r in rows(STUDY / "cohort/panel.csv")}
     targets = {r["canonical_observation_id"]: float(r["target_seconds"]) for r in rows(STUDY / "cohort/targets.csv")}
-    require(len(panel) == len(targets) == 3443 and panel.keys() == targets.keys(), "Cohort identity mismatch")
+    require(len(runs_by_id) == len(targets) == 3443 and runs_by_id.keys() == targets.keys(), "Dataset identity mismatch")
     details = {}
     checked_files = []
     maximum_difference = 0.0
 
     def compare(a, b, context):
+        """Require two numbers to be finite and within 1e-10; track the largest difference seen."""
         nonlocal maximum_difference
         a, b = float(a), float(b)
         require(math.isfinite(a) and math.isfinite(b), "Nonfinite: " + context)
@@ -70,6 +83,7 @@ def main():
         require(math.isclose(a, b, rel_tol=0, abs_tol=1e-10), "Value differs: " + context)
 
     def asset_path(source, base, asset):
+        """Return the path of a pinned source file after checking that it exists and matches its size and SHA-256."""
         path = base / asset["path"]
         require(path.is_file(), "Missing source file: " + str(path))
         require(
@@ -95,11 +109,11 @@ def main():
         for ordinal, (backend, row) in enumerate(original):
             cid = f"mali_real_qpu|row{ordinal}"
             require(
-                cid in panel and panel[cid]["backend"] == "ibm_" + backend and row["device"] == backend,
+                cid in runs_by_id and runs_by_id[cid]["backend"] == "ibm_" + backend and row["device"] == backend,
                 "Ma-Li source row/backend join differs: " + cid,
             )
             compare(row["time_taken"], targets[cid], cid)
-            require(float(panel[cid]["shots"]) == 1024, "Ma-Li archived shots metadata differs")
+            require(float(runs_by_id[cid]["shots"]) == 1024, "Ma-Li archived shots metadata differs")
             name = f"data/quantum_circuits/{row['quantum_circuit']}.qasm"
             if name not in qasm_hash:
                 qasm_hash[name] = digest(asset_path("mali", args.mali_root, assets[name]))
@@ -131,7 +145,7 @@ def main():
                 JOIN (SELECT job_id, COUNT(*) AS n FROM circuit GROUP BY job_id) counts ON counts.job_id=j.id
                 WHERE counts.n=1""")
             }
-        selected = [cid for cid, r in panel.items() if r["source_id"] == "qonductor_single_circuit_ibm"]
+        selected = [cid for cid, r in runs_by_id.items() if r["source_id"] == "qonductor_single_circuit_ibm"]
         checked_members = {}
         with zipfile.ZipFile(archive) as zipped:
             for cid in selected:
@@ -143,7 +157,7 @@ def main():
                     "Job/circuit FK differs: " + cid,
                 )
                 require(
-                    original["backend_name"].replace("ibmq_", "ibm_") == panel[cid]["backend"],
+                    original["backend_name"].replace("ibmq_", "ibm_") == runs_by_id[cid]["backend"],
                     "Backend differs: " + cid,
                 )
                 require(
@@ -151,7 +165,7 @@ def main():
                     "Archive member join differs: " + cid,
                 )
                 compare(original["taken_time"], targets[cid], cid)
-                compare(original["shots"], panel[cid]["shots"], cid + "/shots")
+                compare(original["shots"], runs_by_id[cid]["shots"], cid + "/shots")
                 member = original["filename"]
                 if member not in checked_members:
                     checked_members[member] = hashlib.sha256(zipped.read(member)).hexdigest()
@@ -198,7 +212,7 @@ def main():
                 compare(float(durations[ordinal]) / 1000, row["target_seconds"], workflow + "/seconds")
             cid = "qpack_workflow_mean|" + workflow
             compare(statistics.mean(float(x) / 1000 for x in durations), targets[cid], cid)
-            require(int(panel[cid]["constituent_count"]) == len(rr), "QPack constituent count differs")
+            require(int(runs_by_id[cid]["constituent_count"]) == len(rr), "QPack constituent count differs")
             total += len(rr)
         require(len(assets) == 45 and total == 3854, "QPack coverage differs")
         details["qpack"] = {

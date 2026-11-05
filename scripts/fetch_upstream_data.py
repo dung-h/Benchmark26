@@ -4,14 +4,15 @@
 import argparse
 import hashlib
 import json
-from pathlib import Path
 import tempfile
 import urllib.request
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def sha(path):
+    """Return the SHA-256 hex digest of a file, read in 1 MiB chunks."""
     h = hashlib.sha256()
     with path.open("rb") as stream:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
@@ -20,6 +21,11 @@ def sha(path):
 
 
 def main():
+    """Download the pinned upstream files and verify their size and SHA-256.
+
+    `--list` only shows what would be fetched. The destination must lie outside this
+    checkout. Nothing is built or run.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", choices=["all", "mali", "qonductor", "qpack"], required=True)
     parser.add_argument("--destination", type=Path, required=True)

@@ -3,10 +3,18 @@
 import argparse
 import csv
 from pathlib import Path
+
 import numpy as np
 
 
 def main():
+    """Add the matched stages of each observation and summarize the totals per method.
+
+    Each input row gives the parse or compile, method-stage and inference durations in
+    nanoseconds; the composite is their sum in milliseconds. Writes the rows with the
+    composite and prints, per method, the group-balanced mean, the median and the 90th
+    percentile. Rejects duplicate (observation, method) pairs and invalid durations.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stages", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)

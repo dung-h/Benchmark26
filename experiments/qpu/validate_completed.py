@@ -2,30 +2,31 @@
 """Final label-blind checkpoint/OOF replay. Never trains or rewrites producer files."""
 
 from __future__ import annotations
+
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repository root
 import argparse
 import collections
-import csv
 import datetime
 import gc
 import json
 import math
-from pathlib import Path
 import sys
 import time
+from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-from core import RUN, load_context, parts_for, rows, sha, stable, atomic_json, atomic_csv
+from core import RUN, atomic_csv, atomic_json, load_context, parts_for, rows, sha, stable
 
 SEEDS = (42, 1234, 31415)
 TREATMENTS = ("M0", "M1", "G0", "G1")
 
 
 def earliest_minimum(history):
+    """Return the 1-based epoch of the first minimum validation MSE; raise if the curve is empty or not finite."""
     vals = [float(r["validation_mse"]) for r in history]
     if not vals or not all(math.isfinite(x) for x in vals):
         raise RuntimeError("Invalid validation curve")
@@ -33,6 +34,7 @@ def earliest_minimum(history):
 
 
 def unique_predictions(records, expected_ids):
+    """Check that the records cover exactly the expected observation IDs once each and are finite."""
     ids = [r["canonical_observation_id"] for r in records]
     if len(ids) != len(set(ids)) or set(ids) != set(expected_ids):
         raise RuntimeError("Prediction IDs missing, duplicate, or foreign")
@@ -41,6 +43,7 @@ def unique_predictions(records, expected_ids):
 
 
 def finite_state(value, torch):
+    """Return True if every tensor in a (nested) checkpoint state is finite."""
     if isinstance(value, torch.Tensor):
         return bool(torch.isfinite(value).all())
     if isinstance(value, dict):
@@ -51,6 +54,15 @@ def finite_state(value, torch):
 
 
 def main():
+    """Replay-check all saved neural and classical outputs without reading labels or training.
+
+    Reads the protocol lock, then for each evaluation (E1, E2, E3), fold, method and
+    seed checks the cell's saved manifest, epoch history, checkpoint state and
+    predictions, and checks the classical selector cases. With `--replay-all`, every
+    saved neural prediction is recomputed from its checkpoint on the GPU (a GPU
+    lease is taken). Writes a receipt under `--output` and refuses to overwrite an
+    existing one.
+    """
     ap = argparse.ArgumentParser()
     ap.add_argument("--output", type=Path, default=RUN / "validation/final_v2")
     ap.add_argument("--replay-all", action="store_true", help="Inference only, all saved held-out predictions")
@@ -65,11 +77,13 @@ def main():
     import numpy as np
     import torch
     import train_neural as producer
+
     from benchmark26 import mali_training as base
     from benchmark26.gpu_lease import acquire_gpu_lease
 
     torch.set_num_threads(8)
     torch.set_num_interop_threads(1)
+    # Data identity only: the lock pins the inputs; its code hashes belong to the original study.
     lock, lock_sha = producer.protocol_lock(require_code=False)
     lease = acquire_gpu_lease("expanded-qpu-final-saved-checkpoint-replay") if args.replay_all else None
     cases = []
@@ -81,13 +95,13 @@ def main():
         for ev in ("E1", "E2", "E3"):
             context, labels, split = load_context(ev, include_targets=False)
             assert labels is None and split["target_values_read"] is False
-            panel = context["panel_by_id"]
+            runs_by_id = context["runs_by_id"]
             all_ids = set(context["all_ids"])
             tested = []
             for fold in range(context["case_count"]):
                 parts = parts_for(context, fold)
                 tested.extend(parts["test"])
-                groups = {r["canonical_observation_id"]: r["group_id"] for r in context["panel"]}
+                groups = {r["canonical_observation_id"]: r["group_id"] for r in context["run_rows"]}
                 assert not set(parts["fit"]) & set(parts["validation"])
                 assert not set(parts["train"]) & set(parts["test"])
                 if ev == "E1":
@@ -96,8 +110,8 @@ def main():
                     assert not {groups[c] for c in parts["fit"]} & {groups[c] for c in parts["validation"]}
                 if ev == "E3":
                     backend = context["cases"][fold]
-                    assert all(panel[c]["backend"] == backend for c in parts["test"])
-                    assert all(panel[c]["backend"] != backend for c in parts["train"])
+                    assert all(runs_by_id[c]["backend"] == backend for c in parts["test"])
+                    assert all(runs_by_id[c]["backend"] != backend for c in parts["train"])
                 transform_path = RUN / "training" / ev / f"fold_{fold}" / "transform.json"
                 transform = json.loads(transform_path.read_text())
                 # Recompute from fit IDs, using no label reader. Independent direct global/shot moment checks below.
@@ -111,7 +125,7 @@ def main():
                 assert retained.tolist() == transform["global"]["retained_indices"]
                 assert np.array_equal(raw[:, retained].mean(axis=0), np.asarray(transform["global"]["mean"]))
                 assert np.array_equal(raw[:, retained].std(axis=0, ddof=1), np.asarray(transform["global"]["std"]))
-                shots = np.asarray([float(panel[c]["shots"]) for c in parts["fit"]], dtype=np.float64)
+                shots = np.asarray([float(runs_by_id[c]["shots"]) for c in parts["fit"]], dtype=np.float64)
                 assert float(shots.mean()) == transform["shots"]["mean"]
                 assert float(shots.std(ddof=1)) == transform["shots"]["std_ddof1"]
                 cases.append(
