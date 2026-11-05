@@ -31,6 +31,7 @@ Next steps:
 | Understand the data, the definitions and the metrics | [Methodology](docs/METHODOLOGY.md) |
 | Know what the latency numbers include and exclude | [Prediction latency](docs/PREDICTION_LATENCY.md) |
 | See whether graph edges help, and how that was tested | [Graph ablation](docs/GRAPH_ABLATION.md) |
+| See how the Scholten-style throughput estimate scores, and why it overestimates | [Scholten-style estimate](docs/SCHOLTEN.md) |
 | Fix an error message you ran into | [Pitfalls](docs/PITFALLS.md) |
 | Change the code, data or documents | [Contributing](CONTRIBUTING.md) |
 

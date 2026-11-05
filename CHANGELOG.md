@@ -12,6 +12,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 - The Qonductor feature build (`python -m benchmark26.qonductor_inputs`) failed in its worker processes. `qonductor_feature_tasks.py` imported the builder by its original-study module name, and two imports that the workers use (`qiskit.qasm3`, `restore_saved_qasm3_hardware_wires`) had been removed as unused. Rebuilt rows equal the saved features.
 
 ### Added
+- Scholten-style throughput estimate (shots × compiled depth / CLOPS) on the 2,289 runs whose processor reports CLOPS: `experiments/scholten/`, aggregate scores in `results/scholten/`, `docs/SCHOLTEN.md`, and a check in `make check`. The scores equal those used in the workshop paper.
 - `scripts/export_dataset.py` writes the public runtime dataset as one table, `runs.csv`, with one row per run and plain column names.
 - Graph ablation, a separate experiment on the E1/E2 splits. It has four arms with shots: MLP, Graph+MLP, Graph+MLP without edges, and Graph+MLP with node features permuted relative to the edges; 3 seeds and 120 cells. The experiment adds:
   - `experiments/graph_ablation/` (locked protocol, graph controls, analysis, verifier);
