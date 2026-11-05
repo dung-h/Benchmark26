@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "benchmark26"
-version = "0.4.0"
+version = "0.4.1"
 description = "Code and aggregate results for comparing QPU runtime estimators on 3,443 archived observations"
 readme = "README.md"
 license = { text = "MIT" }

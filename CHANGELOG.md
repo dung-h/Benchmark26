@@ -2,6 +2,11 @@
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow the package version in `pyproject.toml`.
 
+## [0.4.1] - 2026-11-05
+
+### Added
+- Which of its six model families the Qonductor procedure chose in each of the 20 splits, with the selection scores: `experiments/qonductor_selection/`, `results/qonductor_selection/`, `docs/QONDUCTOR_MODEL_CHOICE.md`, and a check in `make check`.
+
 ## [0.4.0] - 2026-11-04
 
 ### Changed
