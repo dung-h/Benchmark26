@@ -18,6 +18,7 @@ check:
 	$(PYTHON) experiments/graph_ablation/verify_summary.py
 	$(PYTHON) experiments/latency/verify_ready_analytical.py
 	$(PYTHON) experiments/scholten/verify_summary.py
+	$(PYTHON) experiments/qonductor_selection/verify_summary.py
 
 check-study-inputs:
 	$(PYTHON) scripts/check_setup.py --require-study-inputs

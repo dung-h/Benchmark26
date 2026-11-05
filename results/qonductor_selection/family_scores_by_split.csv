@@ -1,0 +1,121 @@
+setting,fold,held_out_backend,family,candidates,best_mean_inner_r2,chosen
+E1,0,,Extra Trees,64,0.6336268569689641,1
+E1,0,,Gradient Boosting,64,0.6177479205875087,0
+E1,0,,Random Forest,64,0.6101287480267813,0
+E1,0,,Histogram Gradient Boosting,64,0.6107036539240324,0
+E1,0,,AdaBoost,48,0.5565889311520127,0
+E1,0,,Polynomial Regression,3,0.5477380643071178,0
+E1,1,,Extra Trees,64,0.7892517123156925,1
+E1,1,,Gradient Boosting,64,0.7696761192017609,0
+E1,1,,Random Forest,64,0.7427339072273947,0
+E1,1,,Histogram Gradient Boosting,64,0.7751592363481565,0
+E1,1,,AdaBoost,48,0.6474035235733909,0
+E1,1,,Polynomial Regression,3,0.5241144419837243,0
+E1,2,,Extra Trees,64,0.7999121319221036,1
+E1,2,,Gradient Boosting,64,0.7824233365330234,0
+E1,2,,Random Forest,64,0.7630335586600265,0
+E1,2,,Histogram Gradient Boosting,64,0.7817070493067662,0
+E1,2,,AdaBoost,48,0.6695478808375988,0
+E1,2,,Polynomial Regression,3,0.6355130083966629,0
+E1,3,,Extra Trees,64,0.6066450272423383,1
+E1,3,,Gradient Boosting,64,0.5789933505393444,0
+E1,3,,Random Forest,64,0.5875075251759473,0
+E1,3,,Histogram Gradient Boosting,64,0.49830821321244223,0
+E1,3,,AdaBoost,48,0.532060299580463,0
+E1,3,,Polynomial Regression,3,0.036750993788733255,0
+E1,4,,Extra Trees,64,0.8019881943248999,1
+E1,4,,Gradient Boosting,64,0.7722968351939428,0
+E1,4,,Random Forest,64,0.7557260087979594,0
+E1,4,,Histogram Gradient Boosting,64,0.7573348316256201,0
+E1,4,,AdaBoost,48,0.6969594407170491,0
+E1,4,,Polynomial Regression,3,0.7507895858962652,0
+E2,0,,Extra Trees,64,0.887181630108639,1
+E2,0,,Gradient Boosting,64,0.8854574916934994,0
+E2,0,,Random Forest,64,0.883320607814871,0
+E2,0,,Histogram Gradient Boosting,64,0.8850892922603901,0
+E2,0,,AdaBoost,48,0.8022031114920258,0
+E2,0,,Polynomial Regression,3,0.7746038280327613,0
+E2,1,,Extra Trees,64,0.8796583855387241,0
+E2,1,,Gradient Boosting,64,0.8780816916178473,0
+E2,1,,Random Forest,64,0.8765595712218057,0
+E2,1,,Histogram Gradient Boosting,64,0.8812612349909926,1
+E2,1,,AdaBoost,48,0.798500103605663,0
+E2,1,,Polynomial Regression,3,0.8495449978108165,0
+E2,2,,Extra Trees,64,0.868142291602059,0
+E2,2,,Gradient Boosting,64,0.8693737962245865,0
+E2,2,,Random Forest,64,0.8672696492529052,0
+E2,2,,Histogram Gradient Boosting,64,0.8727006251060065,1
+E2,2,,AdaBoost,48,0.7650468037763374,0
+E2,2,,Polynomial Regression,3,0.7681711819569943,0
+E2,3,,Extra Trees,64,0.8850413074873068,1
+E2,3,,Gradient Boosting,64,0.8839175842889835,0
+E2,3,,Random Forest,64,0.8794853705149714,0
+E2,3,,Histogram Gradient Boosting,64,0.8815339937652968,0
+E2,3,,AdaBoost,48,0.8047625123162175,0
+E2,3,,Polynomial Regression,3,0.7466908482883708,0
+E2,4,,Extra Trees,64,0.8860488145088967,0
+E2,4,,Gradient Boosting,64,0.8868720458959194,0
+E2,4,,Random Forest,64,0.8844302378587916,0
+E2,4,,Histogram Gradient Boosting,64,0.8905151150800381,1
+E2,4,,AdaBoost,48,0.799982921698936,0
+E2,4,,Polynomial Regression,3,0.8573086789294998,0
+E3,0,belem,Extra Trees,64,0.8299336432512259,1
+E3,0,belem,Gradient Boosting,64,0.8086407212392963,0
+E3,0,belem,Random Forest,64,0.7938875959564068,0
+E3,0,belem,Histogram Gradient Boosting,64,0.8174026971178308,0
+E3,0,belem,AdaBoost,48,0.7209361128095894,0
+E3,0,belem,Polynomial Regression,3,0.7905915255162321,0
+E3,1,jakarta,Extra Trees,64,0.7989285855224209,1
+E3,1,jakarta,Gradient Boosting,64,0.7808351101601261,0
+E3,1,jakarta,Random Forest,64,0.7768969343862631,0
+E3,1,jakarta,Histogram Gradient Boosting,64,0.7805093962267796,0
+E3,1,jakarta,AdaBoost,48,0.6939005527668121,0
+E3,1,jakarta,Polynomial Regression,3,0.46316537530498025,0
+E3,2,kyoto,Extra Trees,64,0.7987794758613092,1
+E3,2,kyoto,Gradient Boosting,64,0.7750496519946002,0
+E3,2,kyoto,Random Forest,64,0.7842235187462628,0
+E3,2,kyoto,Histogram Gradient Boosting,64,0.7409272559544279,0
+E3,2,kyoto,AdaBoost,48,0.7209586212618486,0
+E3,2,kyoto,Polynomial Regression,3,0.6651995985131985,0
+E3,3,lagos,Extra Trees,64,0.6239188847948094,0
+E3,3,lagos,Gradient Boosting,64,0.6207289811021612,0
+E3,3,lagos,Random Forest,64,0.6144703760952341,0
+E3,3,lagos,Histogram Gradient Boosting,64,0.6196869281305766,0
+E3,3,lagos,AdaBoost,48,0.5679527775849786,0
+E3,3,lagos,Polynomial Regression,3,0.6833681322939986,1
+E3,4,lima,Extra Trees,64,0.8091446643135141,1
+E3,4,lima,Gradient Boosting,64,0.785294056917494,0
+E3,4,lima,Random Forest,64,0.76747146489893,0
+E3,4,lima,Histogram Gradient Boosting,64,0.7916344175503109,0
+E3,4,lima,AdaBoost,48,0.6171328194848186,0
+E3,4,lima,Polynomial Regression,3,0.5632860947487426,0
+E3,5,manila,Extra Trees,64,0.7864137747481332,1
+E3,5,manila,Gradient Boosting,64,0.7587799695203775,0
+E3,5,manila,Random Forest,64,0.7415116928860334,0
+E3,5,manila,Histogram Gradient Boosting,64,0.7644267757030585,0
+E3,5,manila,AdaBoost,48,0.6719993246381708,0
+E3,5,manila,Polynomial Regression,3,0.5664465375533116,0
+E3,6,nairobi,Extra Trees,64,0.8241913835764377,1
+E3,6,nairobi,Gradient Boosting,64,0.7831760327001902,0
+E3,6,nairobi,Random Forest,64,0.7781231165695196,0
+E3,6,nairobi,Histogram Gradient Boosting,64,0.7683892429625429,0
+E3,6,nairobi,AdaBoost,48,0.7089875517971913,0
+E3,6,nairobi,Polynomial Regression,3,0.6520412695752449,0
+E3,7,osaka,Extra Trees,64,0.7958666768906446,1
+E3,7,osaka,Gradient Boosting,64,0.7522769445554367,0
+E3,7,osaka,Random Forest,64,0.7526096205133079,0
+E3,7,osaka,Histogram Gradient Boosting,64,0.6627533269961849,0
+E3,7,osaka,AdaBoost,48,0.7084848837384383,0
+E3,7,osaka,Polynomial Regression,3,0.6723664158281486,0
+E3,8,perth,Extra Trees,64,0.6761119723479869,0
+E3,8,perth,Gradient Boosting,64,0.6645838964159811,0
+E3,8,perth,Random Forest,64,0.666711319600805,0
+E3,8,perth,Histogram Gradient Boosting,64,0.6271746688584074,0
+E3,8,perth,AdaBoost,48,0.613846874553564,0
+E3,8,perth,Polynomial Regression,3,0.7945045983924608,1
+E3,9,quito,Extra Trees,64,0.8183219601578504,1
+E3,9,quito,Gradient Boosting,64,0.7849197590079506,0
+E3,9,quito,Random Forest,64,0.7662467706358134,0
+E3,9,quito,Histogram Gradient Boosting,64,0.7980465956778048,0
+E3,9,quito,AdaBoost,48,0.7028383433792809,0
+E3,9,quito,Polynomial Regression,3,0.5646294574117434,0
