@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "checks": 138,
+  "scope": "Group/pooled MAE and fourteen paired whole-group confidence intervals from anonymous aggregates. Does not reproduce checkpoints, raw correlation metrics, training or latency.",
+  "inputs_sha256": {
+    "group_errors.csv": "8a3530279a9742d8d6ba743847eb5387e10d0b984dc94db0a8bc3fe186adcc53",
+    "metrics.csv": "320420bc2abf29703548562fc2da64e7ca870e2c57d50968533654d93117105d",
+    "contrasts.csv": "a81be6c1d0d02d93ac5bdedcb119917f9c80272f0a6bfcb7e1d69fb306d8a050"
+  }
+}

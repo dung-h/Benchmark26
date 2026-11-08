@@ -1,0 +1,19 @@
+setting,family,splits,mean_best_inner_r2,times_chosen
+E1,Extra Trees,5,0.7262847845547997,5
+E1,Gradient Boosting,5,0.704227512411116,0
+E1,Random Forest,5,0.6918259495776219,0
+E1,Histogram Gradient Boosting,5,0.6846425968834035,0
+E1,AdaBoost,5,0.6205120151721029,0
+E1,Polynomial Regression,5,0.4989812188745007,0
+E2,Extra Trees,5,0.8812144858491251,2
+E2,Gradient Boosting,5,0.8807405219441672,0
+E2,Random Forest,5,0.878213087332669,0
+E2,Histogram Gradient Boosting,5,0.8822200522405449,3
+E2,AdaBoost,5,0.794099090577836,0
+E2,Polynomial Regression,5,0.7992639070036885,0
+E3,Extra Trees,10,0.7761611021464332,8
+E3,Gradient Boosting,10,0.7514285123613614,0
+E3,Random Forest,10,0.7442152410288576,0
+E3,Histogram Gradient Boosting,10,0.7370951305177924,0
+E3,AdaBoost,10,0.6727037862014693,0
+E3,Polynomial Regression,10,0.6415599005138062,2

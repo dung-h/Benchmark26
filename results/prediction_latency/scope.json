@@ -1,0 +1,15 @@
+{
+  "observations": 3443,
+  "logical_circuit_groups": 203,
+  "neural_sessions": 3,
+  "neural_routes": 5,
+  "neural_raw_samples": 516450,
+  "composite_routes": 5,
+  "composite_cpu_unique_tasks": 695,
+  "composite_cpu_concurrency": 8,
+  "classical_inference_unique_samples": 20850,
+  "group_labels": "Anonymous labels preserve source-specific ordering for bootstrap replay.",
+  "included": "Source summaries, anonymous per-session and overall neural group means, paired intervals.",
+  "external": "Per-observation raw timings, CPU stages, inputs, fitted models and checkpoints are not distributed.",
+  "neural_session_group_rows": 3045
+}

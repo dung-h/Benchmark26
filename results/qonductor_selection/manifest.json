@@ -1,0 +1,8 @@
+{
+  "files": {
+    "results/qonductor_selection/family_scores.csv": "6a057c860e07fe790a3d59d127261fe985da65e97596b1c1bb790d0cca853963",
+    "results/qonductor_selection/family_scores_by_split.csv": "a2cdda4f8c7923d17d2a3ab88e7a14f984be5bf2f94172577853803c02c5585f"
+  },
+  "scope": "Selection scores of the six Qonductor model families on the training part of each split; no test scores.",
+  "command": "python3 experiments/qonductor_selection/summarize.py --output <new folder>, with B26_ARTIFACTS pointing at the study files on Google Drive"
+}

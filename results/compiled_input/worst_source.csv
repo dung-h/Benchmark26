@@ -1,0 +1,13 @@
+evaluation,arm,worst_source,worst_source_gb_mae_s
+E1,M1,qonductor_single_circuit_ibm,1.4163076877095964
+E1,G1,qonductor_single_circuit_ibm,1.279010769504655
+E1,R0,qpack_mcp,1.5238570110503058
+E1,TM_structural,qonductor_single_circuit_ibm,1.3023754118124908
+E1,TG_structural,qpack_mcp,1.2719913632324609
+E1,TGF_structural,qonductor_single_circuit_ibm,1.1977944170264045
+E2,M1,qpack_mcp,0.7532230883785425
+E2,G1,mali_real_qpu,0.6234679875162815
+E2,R0,qpack_mcp,0.8295088292952458
+E2,TM_structural,qonductor_single_circuit_ibm,0.6342550475505596
+E2,TG_structural,qpack_mcp,0.5961098582645252
+E2,TGF_structural,qpack_mcp,0.6447664513818686

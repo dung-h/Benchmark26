@@ -1,0 +1,14 @@
+{
+  "files": {
+    "results/ready_analytical_latency/ready_analytical_summary.csv": "dd3d329ba9fdef69d4ee257f07dbb0a44f92d60353bc3b1296d6bb923900c176",
+    "results/ready_analytical_latency/ready_analytical_group_means.csv": "e82557391fd1471e3e11743a634d7ad2b1f7a6035d24824b67673adf26fe4b19",
+    "results/ready_analytical_latency/run_summary.json": "a8361464a3fd2f482f2832a6a75ba58835b22f2c85994ea5015234bcd30e83c9"
+  },
+  "scope": "Aggregate export only; no circuits, labels, per-observation or per-task timings.",
+  "provenance": {
+    "timing_protocol_sha256": "3f1028716606a30aa77cfaf30dd2d060b44777415cc8197b6d750c86e15023cf",
+    "correctness_gate_receipt_sha256": "949dbef4e31ea8c94e9b0addd472770b356650a48fb541b5420853abbb5fb9a3",
+    "measurement_script_sha256": "e9dab1df4e2a1669b6a591f5d77116d020a2765b31f0de5fb2b16302f0afca72",
+    "private_run": "The measurement script and the correctness gate need the private study bundle and are not distributed; their hashes identify the versions that ran."
+  }
+}

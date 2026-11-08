@@ -1,0 +1,3 @@
+# Preserve exact scientific artifact bytes; no newline conversion.
+* -text
+*.csv whitespace=cr-at-eol

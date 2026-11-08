@@ -1,0 +1,538 @@
+{
+  "registry_id": "method-fidelity-registry-v2",
+  "status": "wave_1b_reader_facing_fidelity_overlay",
+  "supersedes_registry": "benchmark_v1/registry/method_fidelity_registry_v1.json",
+  "decision_path": "benchmark_v1/decisions/WAVE1B_METHOD_FIDELITY_REGISTRY_V2_DECISION_20260930.md",
+  "scope": "Reader-facing method identity and claim boundaries, extended to every published archived-real-QPU analytical raw, shot-scaled, affine, and log-affine variant. Historical IDs and artifacts remain immutable; CURRENT.json is intentionally unchanged.",
+  "classes": {
+    "native": "Official/public estimator is called and its native output semantics are retained.",
+    "source_native_reimplementation": "Public source code/data and source representation are used under a leakage-safe benchmark protocol.",
+    "independent_reimplementation": "Rebuilt from public paper/artifact information rather than an author runnable implementation.",
+    "adaptation": "Feature contract, representation, target context, split or execution setup is changed for a declared benchmark setting.",
+    "analytical_proxy": "A valid analytical or scheduled quantity whose clock differs from the target observation.",
+    "unavailable": "A required public artifact or input is missing; no surrogate may be silently substituted.",
+    "baseline": "Internal comparator, not a published-method replication.",
+    "local_measurement": "Native local engine measurement, not a published runtime-prediction method."
+  },
+  "wave_1b_contract": {
+    "evaluation_target_clock": "archived_observed_service_execution_time",
+    "published_analytical_source": "artifacts/benchmark_v3/real_qpu/archived_analytical_wave_v3_20260930/method_metrics.csv",
+    "required_variant_fields": [
+      "parent_method_id",
+      "transformation",
+      "evaluation_target_clock",
+      "method_output_clock",
+      "native_output_clock",
+      "ranking_eligibility",
+      "equivalence_group",
+      "native_status",
+      "claim_boundary"
+    ],
+    "native_rule": "Within the Wave 1B analytical variants, only qiskit_estimate_duration_snapshot is native, and only for its unscaled single-shot API output. Shot scaling and every outer-train calibration are non-native adaptations.",
+    "calibration_rule": "Every affine/log-affine variant is an outer-train-only diagnostic adaptation; no outer-test labels may be used for fitting or selection.",
+    "qiskit_qcre_equivalence_semantics": {
+      "single_shot": "qcre_snapshot_critical_path and qiskit_estimate_duration_snapshot are numerically equivalent under the frozen Target to floating-point tolerance, but retain different provenance/fidelity classes.",
+      "shot_scaled": "qcre_shot_scaled_schedule_seconds and qiskit_shot_scaled_schedule_seconds remain equivalent after multiplying their equivalent parent values by the same ledger shots.",
+      "calibrated": "Matching affine or log-affine transformations preserve equivalence when fitted on the same outer-train rows. Equivalent rows are cross-checks, never independent leaderboard entries."
+    }
+  },
+  "methods": [
+    {
+      "method_id": "common_tabular_baseline",
+      "reader_label": "Common width + shots tabular baseline",
+      "fidelity_class": "baseline",
+      "scope": "source-stratified archived QPU observations",
+      "claim_boundary": "Internal comparator; no paper-replication claim."
+    },
+    {
+      "method_id": "mali_graph_estimator",
+      "reader_label": "Ma--Li source-native graph + metadata reimplementation (340)",
+      "fidelity_class": "source_native_reimplementation",
+      "scope": "340 Ma--Li exact-logical-QASM observations",
+      "claim_boundary": "Public code/data and source representation; grouped benchmark split and non-historical FakeBackend context prevent a paper-exact claim."
+    },
+    {
+      "method_id": "mali_graph_architecture_v3",
+      "reader_label": "Ma--Li-style hybrid graph + metadata adaptation (V3)",
+      "fidelity_class": "adaptation",
+      "scope": "unified 8,767-row archived-QPU envelope; V3 representation coverage",
+      "claim_boundary": "Seven common global features and harmonized DAGs replace the source feature/context contract."
+    },
+    {
+      "method_id": "mali_graph_architecture_v3_large",
+      "reader_label": "Ma--Li-style hybrid graph + metadata adaptation (V3-large)",
+      "fidelity_class": "adaptation",
+      "scope": "unified 8,767-row envelope; 8,766 predictions and row4477 unavailable",
+      "claim_boundary": "Resource extension of unified V3, not Ma--Li original."
+    },
+    {
+      "method_id": "mali_graph_architecture_v4_control_flow",
+      "reader_label": "Ma--Li-style hybrid graph + metadata adaptation (V4 control-flow)",
+      "fidelity_class": "adaptation",
+      "scope": "signed control-flow representation only; no V4 training or score",
+      "claim_boundary": "V4 changes the graph branch and retains V3's seven-feature global MLP; row4477 is structural OOD for fold 0."
+    },
+    {
+      "method_id": "mali_structural_dag_adaptation",
+      "reader_label": "Ma--Li-style structural-DAG adaptation",
+      "fidelity_class": "adaptation",
+      "scope": "source-specific structural candidates",
+      "claim_boundary": "Distinct from exact logical Ma--Li reproduction."
+    },
+    {
+      "method_id": "mali_compiled_feature_adaptation",
+      "reader_label": "Compiled-feature real-QPU adaptation",
+      "fidelity_class": "adaptation",
+      "scope": "source-specific compiled representations",
+      "claim_boundary": "Not the Ma--Li graph estimator."
+    },
+    {
+      "method_id": "qonductor_regression",
+      "reader_label": "Qonductor grouped regression adaptation",
+      "fidelity_class": "adaptation",
+      "scope": "4,482 Qonductor exact submitted-QASM rows",
+      "claim_boundary": "The public fitted artifact is in-sample on the archive; grouped OOF retraining changes the paper split to remove leakage."
+    },
+    {
+      "method_id": "unified_polynomial_v3",
+      "reader_label": "Qonductor-style unified polynomial adaptation",
+      "fidelity_class": "adaptation",
+      "scope": "unified 8,767-row archived-QPU envelope; grouped frozen outer split; source-agnostic log1p structural features",
+      "claim_boundary": "Not source-local qonductor_regression (4,482). Feature contract is log1p(active_width, structural_depth, two_qubit_count, swap_like_count, shots) with circuit_count=1 asserted then dropped as a zero-variance constant; grouped OOF split. Not a paper-exact Qonductor reproduction."
+    },
+    {
+      "method_id": "qcre_snapshot_critical_path",
+      "reader_label": "QCRE snapshot critical-path scheduled-duration proxy",
+      "fidelity_class": "analytical_proxy",
+      "scope": "canonical 8,767-row archived-QPU ledger; frozen tier-3 backend-matched nominal Targets; row4477 remains unavailable",
+      "parent_method_id": null,
+      "transformation": "identity_snapshot_critical_path_proxy",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "scheduled_critical_path_seconds",
+      "native_output_clock": "scheduled_critical_path_seconds",
+      "ranking_eligibility": "raw_cross_clock_diagnostic",
+      "equivalence_group": "frozen_target_scheduled_critical_path_equivalent",
+      "native_status": "non_native_proxy",
+      "claim_boundary": "Raw snapshot-specific critical-path seconds are a QCRE analytical proxy for scheduled single-shot duration, not archived observed service time. Under the frozen Target this is numerically equivalent to the Qiskit single-shot API output, so it is a cross-check rather than an independent winner."
+    },
+    {
+      "method_id": "qcre_snapshot_critical_path_outer_train_affine_seconds",
+      "reader_label": "QCRE snapshot critical-path scheduled-duration proxy \u2014 outer-train-only affine calibration",
+      "fidelity_class": "adaptation",
+      "scope": "canonical 8,767-row archived-QPU ledger; frozen tier-3 backend-matched nominal Targets; row4477 remains unavailable",
+      "parent_method_id": "qcre_snapshot_critical_path",
+      "transformation": "outer_train_ols_affine_y=max(0,a+b*x)",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "calibrated_observed_service_seconds",
+      "native_output_clock": "scheduled_critical_path_seconds",
+      "ranking_eligibility": "fold_safe_calibrated_diagnostic",
+      "equivalence_group": "frozen_target_scheduled_critical_path_equivalent_outer_train_affine_equivalent",
+      "native_status": "non_native_adaptation",
+      "claim_boundary": "Raw snapshot-specific critical-path seconds are a QCRE analytical proxy for scheduled single-shot duration, not archived observed service time. Under the frozen Target this is numerically equivalent to the Qiskit single-shot API output, so it is a cross-check rather than an independent winner. This is a non-native OLS calibration fitted on each outer-train partition only; it is not the published/native estimator and never fits or selects on outer-test labels."
+    },
+    {
+      "method_id": "qcre_snapshot_critical_path_outer_train_log_affine_seconds",
+      "reader_label": "QCRE snapshot critical-path scheduled-duration proxy \u2014 outer-train-only log-affine calibration",
+      "fidelity_class": "adaptation",
+      "scope": "canonical 8,767-row archived-QPU ledger; frozen tier-3 backend-matched nominal Targets; row4477 remains unavailable",
+      "parent_method_id": "qcre_snapshot_critical_path",
+      "transformation": "outer_train_ols_log_affine_y=max(0,expm1(a+b*log1p(x)))",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "calibrated_observed_service_seconds",
+      "native_output_clock": "scheduled_critical_path_seconds",
+      "ranking_eligibility": "fold_safe_calibrated_diagnostic",
+      "equivalence_group": "frozen_target_scheduled_critical_path_equivalent_outer_train_log_affine_equivalent",
+      "native_status": "non_native_adaptation",
+      "claim_boundary": "Raw snapshot-specific critical-path seconds are a QCRE analytical proxy for scheduled single-shot duration, not archived observed service time. Under the frozen Target this is numerically equivalent to the Qiskit single-shot API output, so it is a cross-check rather than an independent winner. This is a non-native log1p/expm1 OLS calibration fitted on each outer-train partition only; it is not the published/native estimator and never fits or selects on outer-test labels."
+    },
+    {
+      "method_id": "qiskit_estimate_duration_snapshot",
+      "reader_label": "Qiskit estimate_duration scheduled-duration estimator (frozen snapshot, single shot)",
+      "fidelity_class": "native",
+      "scope": "canonical 8,767-row archived-QPU ledger; frozen tier-3 backend-matched nominal Targets; row4477 remains unavailable",
+      "parent_method_id": null,
+      "transformation": "identity_native_qiskit_estimate_duration_api",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "scheduled_single_shot_seconds",
+      "native_output_clock": "scheduled_single_shot_seconds",
+      "ranking_eligibility": "raw_cross_clock_diagnostic",
+      "equivalence_group": "frozen_target_scheduled_critical_path_equivalent",
+      "native_status": "native_single_shot_api_output",
+      "claim_boundary": "The single-shot value is the native QuantumCircuit.estimate_duration API output under the frozen Target. Its clock is scheduled circuit duration, not archived observed service time. Numerical equivalence to QCRE under this Target does not make the methods independent winners."
+    },
+    {
+      "method_id": "qiskit_estimate_duration_snapshot_outer_train_affine_seconds",
+      "reader_label": "Qiskit estimate_duration scheduled-duration estimator (frozen snapshot, single shot) \u2014 outer-train-only affine calibration",
+      "fidelity_class": "adaptation",
+      "scope": "canonical 8,767-row archived-QPU ledger; frozen tier-3 backend-matched nominal Targets; row4477 remains unavailable",
+      "parent_method_id": "qiskit_estimate_duration_snapshot",
+      "transformation": "outer_train_ols_affine_y=max(0,a+b*x)",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "calibrated_observed_service_seconds",
+      "native_output_clock": "scheduled_single_shot_seconds",
+      "ranking_eligibility": "fold_safe_calibrated_diagnostic",
+      "equivalence_group": "frozen_target_scheduled_critical_path_equivalent_outer_train_affine_equivalent",
+      "native_status": "non_native_adaptation",
+      "claim_boundary": "The single-shot value is the native QuantumCircuit.estimate_duration API output under the frozen Target. Its clock is scheduled circuit duration, not archived observed service time. Numerical equivalence to QCRE under this Target does not make the methods independent winners. This is a non-native OLS calibration fitted on each outer-train partition only; it is not the published/native estimator and never fits or selects on outer-test labels."
+    },
+    {
+      "method_id": "qiskit_estimate_duration_snapshot_outer_train_log_affine_seconds",
+      "reader_label": "Qiskit estimate_duration scheduled-duration estimator (frozen snapshot, single shot) \u2014 outer-train-only log-affine calibration",
+      "fidelity_class": "adaptation",
+      "scope": "canonical 8,767-row archived-QPU ledger; frozen tier-3 backend-matched nominal Targets; row4477 remains unavailable",
+      "parent_method_id": "qiskit_estimate_duration_snapshot",
+      "transformation": "outer_train_ols_log_affine_y=max(0,expm1(a+b*log1p(x)))",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "calibrated_observed_service_seconds",
+      "native_output_clock": "scheduled_single_shot_seconds",
+      "ranking_eligibility": "fold_safe_calibrated_diagnostic",
+      "equivalence_group": "frozen_target_scheduled_critical_path_equivalent_outer_train_log_affine_equivalent",
+      "native_status": "non_native_adaptation",
+      "claim_boundary": "The single-shot value is the native QuantumCircuit.estimate_duration API output under the frozen Target. Its clock is scheduled circuit duration, not archived observed service time. Numerical equivalence to QCRE under this Target does not make the methods independent winners. This is a non-native log1p/expm1 OLS calibration fitted on each outer-train partition only; it is not the published/native estimator and never fits or selects on outer-test labels."
+    },
+    {
+      "method_id": "hyb_hanas_one_circuit_effective_cost_adaptation",
+      "reader_label": "Hyb-HANAS one-circuit effective-cost proxy/adaptation",
+      "fidelity_class": "analytical_proxy",
+      "scope": "canonical 8,767-row archived-QPU ledger; identifiable one-circuit Hyb-HANAS component; row4477 and incomplete calibration rows remain unavailable",
+      "parent_method_id": null,
+      "transformation": "identity_one_circuit_effective_cost_proxy",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "one_circuit_effective_cost_seconds",
+      "native_output_clock": "one_circuit_effective_cost_seconds",
+      "ranking_eligibility": "raw_cross_clock_diagnostic",
+      "equivalence_group": "none_declared",
+      "native_status": "non_native_proxy",
+      "claim_boundary": "Preserves the raw one-circuit effective-cost clock T_eff using declared multi-operation aggregation adaptations. It excludes NAS, parameter-shift, N_eval, N_steps, and FLOPs multipliers; it is neither the paper HQNN training-cost target nor archived observed service time."
+    },
+    {
+      "method_id": "hyb_hanas_one_circuit_effective_cost_adaptation_outer_train_affine_seconds",
+      "reader_label": "Hyb-HANAS one-circuit effective-cost proxy/adaptation \u2014 outer-train-only affine calibration",
+      "fidelity_class": "adaptation",
+      "scope": "canonical 8,767-row archived-QPU ledger; identifiable one-circuit Hyb-HANAS component; row4477 and incomplete calibration rows remain unavailable",
+      "parent_method_id": "hyb_hanas_one_circuit_effective_cost_adaptation",
+      "transformation": "outer_train_ols_affine_y=max(0,a+b*x)",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "calibrated_observed_service_seconds",
+      "native_output_clock": "one_circuit_effective_cost_seconds",
+      "ranking_eligibility": "fold_safe_calibrated_diagnostic",
+      "equivalence_group": "none_declared",
+      "native_status": "non_native_adaptation",
+      "claim_boundary": "Preserves the raw one-circuit effective-cost clock T_eff using declared multi-operation aggregation adaptations. It excludes NAS, parameter-shift, N_eval, N_steps, and FLOPs multipliers; it is neither the paper HQNN training-cost target nor archived observed service time. This is a non-native OLS calibration fitted on each outer-train partition only; it is not the published/native estimator and never fits or selects on outer-test labels."
+    },
+    {
+      "method_id": "hyb_hanas_one_circuit_effective_cost_adaptation_outer_train_log_affine_seconds",
+      "reader_label": "Hyb-HANAS one-circuit effective-cost proxy/adaptation \u2014 outer-train-only log-affine calibration",
+      "fidelity_class": "adaptation",
+      "scope": "canonical 8,767-row archived-QPU ledger; identifiable one-circuit Hyb-HANAS component; row4477 and incomplete calibration rows remain unavailable",
+      "parent_method_id": "hyb_hanas_one_circuit_effective_cost_adaptation",
+      "transformation": "outer_train_ols_log_affine_y=max(0,expm1(a+b*log1p(x)))",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "calibrated_observed_service_seconds",
+      "native_output_clock": "one_circuit_effective_cost_seconds",
+      "ranking_eligibility": "fold_safe_calibrated_diagnostic",
+      "equivalence_group": "none_declared",
+      "native_status": "non_native_adaptation",
+      "claim_boundary": "Preserves the raw one-circuit effective-cost clock T_eff using declared multi-operation aggregation adaptations. It excludes NAS, parameter-shift, N_eval, N_steps, and FLOPs multipliers; it is neither the paper HQNN training-cost target nor archived observed service time. This is a non-native log1p/expm1 OLS calibration fitted on each outer-train partition only; it is not the published/native estimator and never fits or selects on outer-test labels."
+    },
+    {
+      "method_id": "scholten_nominal_single_circuit_adaptation",
+      "reader_label": "Scholten-style nominal single-circuit CLOPS_v-like adaptation",
+      "fidelity_class": "adaptation",
+      "scope": "canonical 8,767-row archived-QPU ledger; same-backend nominal CLOPS_v-like rows only; unavailable rows remain in the denominator",
+      "parent_method_id": null,
+      "transformation": "identity_nominal_clops_v_like_adaptation",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "nominal_clops_v_like_seconds",
+      "native_output_clock": "nominal_clops_v_like_seconds",
+      "ranking_eligibility": "raw_cross_clock_diagnostic",
+      "equivalence_group": "none_declared",
+      "native_status": "non_native_adaptation",
+      "claim_boundary": "Uses nominal same-backend CLOPS_v-like values with M=K=1 and a compiled depth proxy. It is not Scholten original-style because historical row-aligned CLOPS_v and paper D_eff are absent; CLOPS_h, T1/T2, and gate durations are never converted to CLOPS_v."
+    },
+    {
+      "method_id": "scholten_nominal_single_circuit_adaptation_outer_train_affine_seconds",
+      "reader_label": "Scholten-style nominal single-circuit CLOPS_v-like adaptation \u2014 outer-train-only affine calibration",
+      "fidelity_class": "adaptation",
+      "scope": "canonical 8,767-row archived-QPU ledger; same-backend nominal CLOPS_v-like rows only; unavailable rows remain in the denominator",
+      "parent_method_id": "scholten_nominal_single_circuit_adaptation",
+      "transformation": "outer_train_ols_affine_y=max(0,a+b*x)",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "calibrated_observed_service_seconds",
+      "native_output_clock": "nominal_clops_v_like_seconds",
+      "ranking_eligibility": "fold_safe_calibrated_diagnostic",
+      "equivalence_group": "none_declared",
+      "native_status": "non_native_adaptation",
+      "claim_boundary": "Uses nominal same-backend CLOPS_v-like values with M=K=1 and a compiled depth proxy. It is not Scholten original-style because historical row-aligned CLOPS_v and paper D_eff are absent; CLOPS_h, T1/T2, and gate durations are never converted to CLOPS_v. This is a non-native OLS calibration fitted on each outer-train partition only; it is not the published/native estimator and never fits or selects on outer-test labels."
+    },
+    {
+      "method_id": "scholten_nominal_single_circuit_adaptation_outer_train_log_affine_seconds",
+      "reader_label": "Scholten-style nominal single-circuit CLOPS_v-like adaptation \u2014 outer-train-only log-affine calibration",
+      "fidelity_class": "adaptation",
+      "scope": "canonical 8,767-row archived-QPU ledger; same-backend nominal CLOPS_v-like rows only; unavailable rows remain in the denominator",
+      "parent_method_id": "scholten_nominal_single_circuit_adaptation",
+      "transformation": "outer_train_ols_log_affine_y=max(0,expm1(a+b*log1p(x)))",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "calibrated_observed_service_seconds",
+      "native_output_clock": "nominal_clops_v_like_seconds",
+      "ranking_eligibility": "fold_safe_calibrated_diagnostic",
+      "equivalence_group": "none_declared",
+      "native_status": "non_native_adaptation",
+      "claim_boundary": "Uses nominal same-backend CLOPS_v-like values with M=K=1 and a compiled depth proxy. It is not Scholten original-style because historical row-aligned CLOPS_v and paper D_eff are absent; CLOPS_h, T1/T2, and gate durations are never converted to CLOPS_v. This is a non-native log1p/expm1 OLS calibration fitted on each outer-train partition only; it is not the published/native estimator and never fits or selects on outer-test labels."
+    },
+    {
+      "method_id": "scholten_clops_original_style",
+      "reader_label": "Scholten CLOPS original-style model",
+      "fidelity_class": "unavailable",
+      "scope": "paper-compatible Runtime jobs with historical CLOPS_v and D_eff",
+      "claim_boundary": "No row-aligned historical CLOPS_v evidence exists for the canonical archive."
+    },
+    {
+      "method_id": "nominal_clops_v_sensitivity",
+      "reader_label": "Nominal-CLOPS single-circuit sensitivity",
+      "fidelity_class": "adaptation",
+      "scope": "declared nominal backend-matched sensitivity rows",
+      "claim_boundary": "Never labeled a historical Scholten reproduction or observed-runtime estimate."
+    },
+    {
+      "method_id": "qcre_gate_duration",
+      "reader_label": "QCRE gate-aware scheduled-duration proxy",
+      "fidelity_class": "analytical_proxy",
+      "scope": "compiled circuit plus frozen duration-map context",
+      "claim_boundary": "Faithful for a gate-aware/scheduled proxy; not identical to provider observed service time."
+    },
+    {
+      "method_id": "qiskit_estimate_duration",
+      "reader_label": "Qiskit scheduled-duration estimator",
+      "fidelity_class": "native",
+      "scope": "versioned Qiskit Target snapshots",
+      "claim_boundary": "Native API output is scheduled duration, not an observed-QPU-time oracle."
+    },
+    {
+      "method_id": "hyb_hanas",
+      "reader_label": "Hyb-HANAS one-circuit effective-cost proxy",
+      "fidelity_class": "analytical_proxy",
+      "scope": "identifiable component of the paper's HQNN cost model",
+      "claim_boundary": "The paper target is effective HQNN training cost, not one provider circuit-service observation."
+    },
+    {
+      "method_id": "azizov_aer_independent",
+      "reader_label": "Azizov-style local noisy-Aer reimplementation",
+      "fidelity_class": "independent_reimplementation",
+      "scope": "local q<=9 noisy-Aer clock",
+      "claim_boundary": "Author code/runtime table was unavailable; local hardware and snapshots differ."
+    },
+    {
+      "method_id": "azizov_to_qpu_transfer",
+      "reader_label": "Azizov-style simulator-to-QPU transfer adaptation",
+      "fidelity_class": "adaptation",
+      "scope": "Qonductor archived-QPU transfer diagnostics",
+      "claim_boundary": "Not an Azizov paper replication and not a QPU-time simulation."
+    },
+    {
+      "method_id": "mali_simulator_pretraining",
+      "reader_label": "Ma--Li simulator source-native reimplementation",
+      "fidelity_class": "source_native_reimplementation",
+      "scope": "Ma--Li simulator corpus and source clock",
+      "claim_boundary": "Local host runs remain a separate context from source labels."
+    },
+    {
+      "method_id": "family_aware_residual",
+      "reader_label": "Family-aware residual architecture reimplementation",
+      "fidelity_class": "independent_reimplementation",
+      "scope": "public artifact target only",
+      "claim_boundary": "Private/underspecified labels prevent a paper-exact leaderboard."
+    },
+    {
+      "method_id": "maestro_formula_reimplementation",
+      "reader_label": "Maestro paper-exact predictor",
+      "fidelity_class": "unavailable",
+      "scope": "paper predictor across simulator candidates",
+      "claim_boundary": "Public checkout lacks the Composer estimator implementation and fitted artifacts."
+    },
+    {
+      "method_id": "maestro_paper_described_reimplementation",
+      "reader_label": "Maestro paper-described component adaptation",
+      "fidelity_class": "adaptation",
+      "scope": "local candidate-specific simulator runtime",
+      "claim_boundary": "Component curves are locally calibrated; no full selector score is available."
+    },
+    {
+      "method_id": "cutensornet_runtime_est",
+      "reader_label": "cuTensorNet native RUNTIME_EST",
+      "fidelity_class": "native",
+      "scope": "matching selected-plan scalar contraction on the local GPU",
+      "claim_boundary": "Native estimator is compared only to the matching contraction clock, not generic simulator end-to-end time."
+    },
+    {
+      "method_id": "dense_statevector_local",
+      "reader_label": "Local dense-statevector measurement baseline",
+      "fidelity_class": "local_measurement",
+      "scope": "declared local engine/configuration clock",
+      "claim_boundary": "Measurement capsule, not a published predictor replication."
+    },
+    {
+      "method_id": "cudaq_launch_scaling_diagnostic",
+      "reader_label": "CUDA-Q launch/scaling diagnostic",
+      "fidelity_class": "local_measurement",
+      "scope": "local CUDA-Q first/warm timing probes",
+      "claim_boundary": "No published scaling-law claim."
+    },
+    {
+      "method_id": "cudaq_dense_local",
+      "reader_label": "CUDA-Q dense local bridge measurement",
+      "fidelity_class": "local_measurement",
+      "scope": "local CUDA-Q sample API, precision and clock",
+      "claim_boundary": "Native local measurement, not a paper runtime-predictor reproduction."
+    },
+    {
+      "method_id": "cudaq_mps_quality_constrained",
+      "reader_label": "CUDA-Q MPS quality-gated local bridge measurement",
+      "fidelity_class": "local_measurement",
+      "scope": "local MPS configuration plus declared quality gate",
+      "claim_boundary": "Runtime is meaningful only with its paired fidelity/quality condition."
+    },
+    {
+      "method_id": "pasqal_emu_mps",
+      "reader_label": "Pasqal EMU-MPS analytical runtime adaptation",
+      "fidelity_class": "adaptation",
+      "scope": "local analog-MPS panel",
+      "claim_boundary": "Documented complexity form was locally calibrated and not identified for promotion."
+    },
+    {
+      "method_id": "qcre_shot_scaled_schedule_seconds",
+      "reader_label": "QCRE shot-scaled scheduled-duration adaptation",
+      "fidelity_class": "adaptation",
+      "scope": "canonical 8,767-row archived-QPU ledger; frozen tier-3 backend-matched nominal Targets; row4477 remains unavailable",
+      "parent_method_id": "qcre_snapshot_critical_path",
+      "transformation": "multiply_parent_by_row_shots",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "shot_scaled_scheduled_seconds",
+      "native_output_clock": "scheduled_critical_path_seconds",
+      "ranking_eligibility": "raw_cross_clock_diagnostic",
+      "equivalence_group": "frozen_target_shot_scaled_schedule_equivalent",
+      "native_status": "non_native_adaptation",
+      "claim_boundary": "Multiplies the QCRE single-shot critical-path proxy by ledger shots. This non-native shot-linear adaptation excludes service, queue, compilation, transport, reset/repetition-delay, and fixed overhead. It is numerically equivalent to the corresponding Qiskit shot-scaled adaptation under the frozen Target and is a cross-check, not an independent winner."
+    },
+    {
+      "method_id": "qcre_shot_scaled_schedule_seconds_outer_train_affine_seconds",
+      "reader_label": "QCRE shot-scaled scheduled-duration adaptation \u2014 outer-train-only affine calibration",
+      "fidelity_class": "adaptation",
+      "scope": "canonical 8,767-row archived-QPU ledger; frozen tier-3 backend-matched nominal Targets; row4477 remains unavailable",
+      "parent_method_id": "qcre_shot_scaled_schedule_seconds",
+      "transformation": "outer_train_ols_affine_y=max(0,a+b*x)",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "calibrated_observed_service_seconds",
+      "native_output_clock": "scheduled_critical_path_seconds",
+      "ranking_eligibility": "fold_safe_calibrated_diagnostic",
+      "equivalence_group": "frozen_target_shot_scaled_schedule_equivalent_outer_train_affine_equivalent",
+      "native_status": "non_native_adaptation",
+      "claim_boundary": "Multiplies the QCRE single-shot critical-path proxy by ledger shots. This non-native shot-linear adaptation excludes service, queue, compilation, transport, reset/repetition-delay, and fixed overhead. This is a non-native OLS calibration fitted on each outer-train partition only; it is not the published/native estimator and never fits or selects on outer-test labels."
+    },
+    {
+      "method_id": "qcre_shot_scaled_schedule_seconds_outer_train_log_affine_seconds",
+      "reader_label": "QCRE shot-scaled scheduled-duration adaptation \u2014 outer-train-only log-affine calibration",
+      "fidelity_class": "adaptation",
+      "scope": "canonical 8,767-row archived-QPU ledger; frozen tier-3 backend-matched nominal Targets; row4477 remains unavailable",
+      "parent_method_id": "qcre_shot_scaled_schedule_seconds",
+      "transformation": "outer_train_ols_log_affine_y=max(0,expm1(a+b*log1p(x)))",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "calibrated_observed_service_seconds",
+      "native_output_clock": "scheduled_critical_path_seconds",
+      "ranking_eligibility": "fold_safe_calibrated_diagnostic",
+      "equivalence_group": "frozen_target_shot_scaled_schedule_equivalent_outer_train_log_affine_equivalent",
+      "native_status": "non_native_adaptation",
+      "claim_boundary": "Multiplies the QCRE single-shot critical-path proxy by ledger shots. This non-native shot-linear adaptation excludes service, queue, compilation, transport, reset/repetition-delay, and fixed overhead. This is a non-native log1p/expm1 OLS calibration fitted on each outer-train partition only; it is not the published/native estimator and never fits or selects on outer-test labels."
+    },
+    {
+      "method_id": "qiskit_shot_scaled_schedule_seconds",
+      "reader_label": "Qiskit estimate_duration shot-scaled schedule adaptation",
+      "fidelity_class": "adaptation",
+      "scope": "canonical 8,767-row archived-QPU ledger; frozen tier-3 backend-matched nominal Targets; row4477 remains unavailable",
+      "parent_method_id": "qiskit_estimate_duration_snapshot",
+      "transformation": "multiply_parent_by_row_shots",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "shot_scaled_scheduled_seconds",
+      "native_output_clock": "scheduled_single_shot_seconds",
+      "ranking_eligibility": "raw_cross_clock_diagnostic",
+      "equivalence_group": "frozen_target_shot_scaled_schedule_equivalent",
+      "native_status": "non_native_adaptation",
+      "claim_boundary": "Multiplies the native single-shot Qiskit API value by ledger shots. The multiplication is a non-native benchmark adaptation and excludes service, queue, compilation, transport, reset/repetition-delay, and fixed overhead. It is numerically equivalent to the corresponding QCRE shot-scaled adaptation under the frozen Target and is a cross-check, not an independent winner."
+    },
+    {
+      "method_id": "qiskit_shot_scaled_schedule_seconds_outer_train_affine_seconds",
+      "reader_label": "Qiskit estimate_duration shot-scaled schedule adaptation \u2014 outer-train-only affine calibration",
+      "fidelity_class": "adaptation",
+      "scope": "canonical 8,767-row archived-QPU ledger; frozen tier-3 backend-matched nominal Targets; row4477 remains unavailable",
+      "parent_method_id": "qiskit_shot_scaled_schedule_seconds",
+      "transformation": "outer_train_ols_affine_y=max(0,a+b*x)",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "calibrated_observed_service_seconds",
+      "native_output_clock": "scheduled_single_shot_seconds",
+      "ranking_eligibility": "fold_safe_calibrated_diagnostic",
+      "equivalence_group": "frozen_target_shot_scaled_schedule_equivalent_outer_train_affine_equivalent",
+      "native_status": "non_native_adaptation",
+      "claim_boundary": "Multiplies the native single-shot Qiskit API value by ledger shots. The multiplication is a non-native benchmark adaptation and excludes service, queue, compilation, transport, reset/repetition-delay, and fixed overhead. This is a non-native OLS calibration fitted on each outer-train partition only; it is not the published/native estimator and never fits or selects on outer-test labels."
+    },
+    {
+      "method_id": "qiskit_shot_scaled_schedule_seconds_outer_train_log_affine_seconds",
+      "reader_label": "Qiskit estimate_duration shot-scaled schedule adaptation \u2014 outer-train-only log-affine calibration",
+      "fidelity_class": "adaptation",
+      "scope": "canonical 8,767-row archived-QPU ledger; frozen tier-3 backend-matched nominal Targets; row4477 remains unavailable",
+      "parent_method_id": "qiskit_shot_scaled_schedule_seconds",
+      "transformation": "outer_train_ols_log_affine_y=max(0,expm1(a+b*log1p(x)))",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "calibrated_observed_service_seconds",
+      "native_output_clock": "scheduled_single_shot_seconds",
+      "ranking_eligibility": "fold_safe_calibrated_diagnostic",
+      "equivalence_group": "frozen_target_shot_scaled_schedule_equivalent_outer_train_log_affine_equivalent",
+      "native_status": "non_native_adaptation",
+      "claim_boundary": "Multiplies the native single-shot Qiskit API value by ledger shots. The multiplication is a non-native benchmark adaptation and excludes service, queue, compilation, transport, reset/repetition-delay, and fixed overhead. This is a non-native log1p/expm1 OLS calibration fitted on each outer-train partition only; it is not the published/native estimator and never fits or selects on outer-test labels."
+    },
+    {
+      "method_id": "hyb_hanas_shot_linear_effective_seconds",
+      "reader_label": "Hyb-HANAS shot-linear effective-cost adaptation",
+      "fidelity_class": "adaptation",
+      "scope": "canonical 8,767-row archived-QPU ledger; identifiable one-circuit Hyb-HANAS component; row4477 and incomplete calibration rows remain unavailable",
+      "parent_method_id": "hyb_hanas_one_circuit_effective_cost_adaptation",
+      "transformation": "multiply_parent_by_row_shots",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "shot_linear_effective_cost_seconds",
+      "native_output_clock": "one_circuit_effective_cost_seconds",
+      "ranking_eligibility": "raw_cross_clock_diagnostic",
+      "equivalence_group": "none_declared",
+      "native_status": "non_native_adaptation",
+      "claim_boundary": "Multiplies the one-circuit T_eff proxy by ledger shots. This is a non-native shot-linear sampling-cost adaptation, not a literal provider retry/service-time model and not the paper full HQNN training-cost target."
+    },
+    {
+      "method_id": "hyb_hanas_shot_linear_effective_seconds_outer_train_affine_seconds",
+      "reader_label": "Hyb-HANAS shot-linear effective-cost adaptation \u2014 outer-train-only affine calibration",
+      "fidelity_class": "adaptation",
+      "scope": "canonical 8,767-row archived-QPU ledger; identifiable one-circuit Hyb-HANAS component; row4477 and incomplete calibration rows remain unavailable",
+      "parent_method_id": "hyb_hanas_shot_linear_effective_seconds",
+      "transformation": "outer_train_ols_affine_y=max(0,a+b*x)",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "calibrated_observed_service_seconds",
+      "native_output_clock": "one_circuit_effective_cost_seconds",
+      "ranking_eligibility": "fold_safe_calibrated_diagnostic",
+      "equivalence_group": "none_declared",
+      "native_status": "non_native_adaptation",
+      "claim_boundary": "Multiplies the one-circuit T_eff proxy by ledger shots. This is a non-native shot-linear sampling-cost adaptation, not a literal provider retry/service-time model and not the paper full HQNN training-cost target. This is a non-native OLS calibration fitted on each outer-train partition only; it is not the published/native estimator and never fits or selects on outer-test labels."
+    },
+    {
+      "method_id": "hyb_hanas_shot_linear_effective_seconds_outer_train_log_affine_seconds",
+      "reader_label": "Hyb-HANAS shot-linear effective-cost adaptation \u2014 outer-train-only log-affine calibration",
+      "fidelity_class": "adaptation",
+      "scope": "canonical 8,767-row archived-QPU ledger; identifiable one-circuit Hyb-HANAS component; row4477 and incomplete calibration rows remain unavailable",
+      "parent_method_id": "hyb_hanas_shot_linear_effective_seconds",
+      "transformation": "outer_train_ols_log_affine_y=max(0,expm1(a+b*log1p(x)))",
+      "evaluation_target_clock": "archived_observed_service_execution_time",
+      "method_output_clock": "calibrated_observed_service_seconds",
+      "native_output_clock": "one_circuit_effective_cost_seconds",
+      "ranking_eligibility": "fold_safe_calibrated_diagnostic",
+      "equivalence_group": "none_declared",
+      "native_status": "non_native_adaptation",
+      "claim_boundary": "Multiplies the one-circuit T_eff proxy by ledger shots. This is a non-native shot-linear sampling-cost adaptation, not a literal provider retry/service-time model and not the paper full HQNN training-cost target. This is a non-native log1p/expm1 OLS calibration fitted on each outer-train partition only; it is not the published/native estimator and never fits or selects on outer-test labels."
+    }
+  ]
+}

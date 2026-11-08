@@ -1,0 +1,9 @@
+{
+  "files": {
+    "results/scholten/scores.csv": "56906846f758f08b7fb06d378a843913037fe4821b504a0c0adfaceb56d561cb",
+    "results/scholten/ratio_by_shots.csv": "eb04043b1efe5bb70bd8dfd3d0a3dcb44a80273a9538ad2bba495d7bb772f368",
+    "results/scholten/run_summary.json": "51134d5f2f05792aa5fe51554175ecd78f504c70877c0751478c87b5b36c5b20"
+  },
+  "scope": "Aggregate scores only; no per-run predictions or labels.",
+  "command": "python3 experiments/scholten/estimate.py --output <new folder>, with B26_ARTIFACTS pointing at the study files on Google Drive"
+}

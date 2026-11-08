@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.venv/
+*.partial
+*.pt
+
+# Local data, outputs and settings
+artifacts/
+inputs/
+work/
+verification/
+configs/paths.env
+.env

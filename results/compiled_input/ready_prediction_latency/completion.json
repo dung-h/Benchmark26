@@ -1,0 +1,282 @@
+{
+  "status": "PASS",
+  "sessions": 2,
+  "requests": 41316,
+  "timed_ensemble_requests": 413160,
+  "summary": [
+    {
+      "evaluation": "E1",
+      "arm": "TM_structural",
+      "source": "all",
+      "groups": 203,
+      "observations": 3443,
+      "group_balanced_mean_ms": 0.34346720272025605,
+      "pooled_mean_ms": 0.3439769775631716
+    },
+    {
+      "evaluation": "E1",
+      "arm": "TM_structural",
+      "source": "mali_real_qpu",
+      "groups": 148,
+      "observations": 340,
+      "group_balanced_mean_ms": 0.3432888221846847,
+      "pooled_mean_ms": 0.3435028810294118
+    },
+    {
+      "evaluation": "E1",
+      "arm": "TM_structural",
+      "source": "qonductor_single_circuit_ibm",
+      "groups": 49,
+      "observations": 3058,
+      "group_balanced_mean_ms": 0.344335472573487,
+      "pooled_mean_ms": 0.3440986712720732
+    },
+    {
+      "evaluation": "E1",
+      "arm": "TM_structural",
+      "source": "qpack_mcp",
+      "groups": 6,
+      "observations": 45,
+      "group_balanced_mean_ms": 0.3407763854629629,
+      "pooled_mean_ms": 0.33928927666666664
+    },
+    {
+      "evaluation": "E1",
+      "arm": "TG_structural",
+      "source": "all",
+      "groups": 203,
+      "observations": 3443,
+      "group_balanced_mean_ms": 139.8740115777968,
+      "pooled_mean_ms": 22.201738354734243
+    },
+    {
+      "evaluation": "E1",
+      "arm": "TG_structural",
+      "source": "mali_real_qpu",
+      "groups": 148,
+      "observations": 340,
+      "group_balanced_mean_ms": 190.75552203930178,
+      "pooled_mean_ms": 197.41721893
+    },
+    {
+      "evaluation": "E1",
+      "arm": "TG_structural",
+      "source": "qonductor_single_circuit_ibm",
+      "groups": 49,
+      "observations": 3058,
+      "group_balanced_mean_ms": 2.9632331473464113,
+      "pooled_mean_ms": 3.004935778646174
+    },
+    {
+      "evaluation": "E1",
+      "arm": "TG_structural",
+      "source": "qpack_mcp",
+      "groups": 6,
+      "observations": 45,
+      "group_balanced_mean_ms": 2.9014440426851853,
+      "pooled_mean_ms": 2.880824623333333
+    },
+    {
+      "evaluation": "E1",
+      "arm": "TGF_structural",
+      "source": "all",
+      "groups": 203,
+      "observations": 3443,
+      "group_balanced_mean_ms": 139.75721161494113,
+      "pooled_mean_ms": 22.183163396442055
+    },
+    {
+      "evaluation": "E1",
+      "arm": "TGF_structural",
+      "source": "mali_real_qpu",
+      "groups": 148,
+      "observations": 340,
+      "group_balanced_mean_ms": 190.59319819797298,
+      "pooled_mean_ms": 197.2261267172059
+    },
+    {
+      "evaluation": "E1",
+      "arm": "TGF_structural",
+      "source": "qonductor_single_circuit_ibm",
+      "groups": 49,
+      "observations": 3058,
+      "group_balanced_mean_ms": 2.9674558147333947,
+      "pooled_mean_ms": 3.005087710742315
+    },
+    {
+      "evaluation": "E1",
+      "arm": "TGF_structural",
+      "source": "qpack_mcp",
+      "groups": 6,
+      "observations": 45,
+      "group_balanced_mean_ms": 2.919214935185185,
+      "pooled_mean_ms": 2.8931171255555554
+    },
+    {
+      "evaluation": "E2",
+      "arm": "TM_structural",
+      "source": "all",
+      "groups": 203,
+      "observations": 3443,
+      "group_balanced_mean_ms": 0.34095595602867806,
+      "pooled_mean_ms": 0.3407075769677606
+    },
+    {
+      "evaluation": "E2",
+      "arm": "TM_structural",
+      "source": "mali_real_qpu",
+      "groups": 148,
+      "observations": 340,
+      "group_balanced_mean_ms": 0.3413022375281532,
+      "pooled_mean_ms": 0.34123332235294124
+    },
+    {
+      "evaluation": "E2",
+      "arm": "TM_structural",
+      "source": "qonductor_single_circuit_ibm",
+      "groups": 49,
+      "observations": 3058,
+      "group_balanced_mean_ms": 0.3400798817276526,
+      "pooled_mean_ms": 0.34066796841072594
+    },
+    {
+      "evaluation": "E2",
+      "arm": "TM_structural",
+      "source": "qpack_mcp",
+      "groups": 6,
+      "observations": 45,
+      "group_balanced_mean_ms": 0.3395689525,
+      "pooled_mean_ms": 0.3394269
+    },
+    {
+      "evaluation": "E2",
+      "arm": "TG_structural",
+      "source": "all",
+      "groups": 203,
+      "observations": 3443,
+      "group_balanced_mean_ms": 139.6412240648235,
+      "pooled_mean_ms": 22.140805939689226
+    },
+    {
+      "evaluation": "E2",
+      "arm": "TG_structural",
+      "source": "mali_real_qpu",
+      "groups": 148,
+      "observations": 340,
+      "group_balanced_mean_ms": 190.44927612646399,
+      "pooled_mean_ms": 197.09979490161766
+    },
+    {
+      "evaluation": "E2",
+      "arm": "TG_structural",
+      "source": "qonductor_single_circuit_ibm",
+      "groups": 49,
+      "observations": 3058,
+      "group_balanced_mean_ms": 2.930582492817418,
+      "pooled_mean_ms": 2.971982796877044
+    },
+    {
+      "evaluation": "E2",
+      "arm": "TG_structural",
+      "source": "qpack_mcp",
+      "groups": 6,
+      "observations": 45,
+      "group_balanced_mean_ms": 2.8461793824074078,
+      "pooled_mean_ms": 2.8564709099999996
+    },
+    {
+      "evaluation": "E2",
+      "arm": "TGF_structural",
+      "source": "all",
+      "groups": 203,
+      "observations": 3443,
+      "group_balanced_mean_ms": 139.78177061928892,
+      "pooled_mean_ms": 22.16702248297996
+    },
+    {
+      "evaluation": "E2",
+      "arm": "TGF_structural",
+      "source": "mali_real_qpu",
+      "groups": 148,
+      "observations": 340,
+      "group_balanced_mean_ms": 190.6383217425394,
+      "pooled_mean_ms": 197.2771073333823
+    },
+    {
+      "evaluation": "E2",
+      "arm": "TGF_structural",
+      "source": "qonductor_single_circuit_ibm",
+      "groups": 49,
+      "observations": 3058,
+      "group_balanced_mean_ms": 2.9410790846335377,
+      "pooled_mean_ms": 2.9816916251144536
+    },
+    {
+      "evaluation": "E2",
+      "arm": "TGF_structural",
+      "source": "qpack_mcp",
+      "groups": 6,
+      "observations": 45,
+      "group_balanced_mean_ms": 2.8524904454629634,
+      "pooled_mean_ms": 2.8628650211111113
+    }
+  ],
+  "contrasts": [
+    {
+      "evaluation": "E1",
+      "first": "TG_structural",
+      "second": "TM_structural",
+      "difference_ms": 139.53054437507657,
+      "ci_level": 0.9833333333333333,
+      "ci_low_ms": 131.60117095829764,
+      "ci_high_ms": 147.4832239945555
+    },
+    {
+      "evaluation": "E1",
+      "first": "TGF_structural",
+      "second": "TM_structural",
+      "difference_ms": 139.41374441222086,
+      "ci_level": 0.9833333333333333,
+      "ci_low_ms": 131.51208533679645,
+      "ci_high_ms": 147.35695461820922
+    },
+    {
+      "evaluation": "E1",
+      "first": "TGF_structural",
+      "second": "TG_structural",
+      "difference_ms": -0.11679996285568647,
+      "ci_level": 0.9833333333333333,
+      "ci_low_ms": -0.32815473106401283,
+      "ci_high_ms": 0.08832629008194048
+    },
+    {
+      "evaluation": "E2",
+      "first": "TG_structural",
+      "second": "TM_structural",
+      "difference_ms": 139.30026810879482,
+      "ci_level": 0.9833333333333333,
+      "ci_low_ms": 131.40032805172774,
+      "ci_high_ms": 147.23090783882085
+    },
+    {
+      "evaluation": "E2",
+      "first": "TGF_structural",
+      "second": "TM_structural",
+      "difference_ms": 139.44081466326026,
+      "ci_level": 0.9833333333333333,
+      "ci_low_ms": 131.5525970387263,
+      "ci_high_ms": 147.38416375359304
+    },
+    {
+      "evaluation": "E2",
+      "first": "TGF_structural",
+      "second": "TG_structural",
+      "difference_ms": 0.14054655446546555,
+      "ci_level": 0.9833333333333333,
+      "ci_low_ms": -0.022638348310347466,
+      "ci_high_ms": 0.30587424375223904
+    }
+  ],
+  "boundary": "normalized inputs already resident on GPU -> three FP32 seed models -> CPU scalar median; excludes parsing, compilation, extraction, normalization, transfer, model loading and cold start",
+  "scope": "device-ready inputs only; excludes logical-input preparation/transfer; conditional host timing"
+}
