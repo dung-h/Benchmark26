@@ -8,7 +8,7 @@ Inputs (outside the repository):
   Qiskit and QCRE outputs were checked against the accuracy-route values of
   every observation that maps to it.
 - ``--timing``: the timing directory (``protocol.json``, ``tasks/``,
-  ``status_*.json``). It holds one record per gate task, with raw samples in
+  ``status.json`` for one worker, ``status_*.json`` for several). It holds one record per gate task, with raw samples in
   nanoseconds for four components: Qiskit ``estimate_duration``, the
   Qiskit-to-BQSKit conversion, the QCRE estimator, and conversion + estimator
   timed as one interval.
@@ -17,8 +17,8 @@ Inputs (outside the repository):
 
 The timed boundary starts from a parsed physical circuit in memory and a
 prepared target or duration map. It excludes QASM parsing and transpilation.
-Samples were taken with eight concurrent single-core workers; summaries
-describe that condition only.
+The published samples were taken by one worker pinned to one CPU core, timing
+the tasks one after another; summaries describe that condition only.
 
 For each task, the value of a component is the median of its samples. Every
 observation takes its task's value. The script reports, per source and pooled:
@@ -54,7 +54,7 @@ from benchmark26.tables import read_csv as read
 RUN_TABLE = ARTIFACTS / "postfreeze_qpu_workflow_mean_expansion_v1/cohort/panel.csv"
 REPRESENTATIONS = ARTIFACTS / "benchmark_v3/real_qpu/compiled_unified/representation_rows.csv"
 COMPONENTS = ("qiskit", "qcre_conversion", "qcre_estimator", "qcre_total")
-EXPECTED = {"observations": 3443, "groups": 203, "tasks": 1452, "workers": 8}
+EXPECTED = {"observations": 3443, "groups": 203, "tasks": 1452}
 
 
 def load(gate: Path, timing: Path) -> tuple[dict, list[str]]:
@@ -75,7 +75,8 @@ def load(gate: Path, timing: Path) -> tuple[dict, list[str]]:
         problems.append("protocol_names_a_different_gate_receipt")
     samples_per_task = int(protocol["samples_per_task"])
     workers = int(protocol["worker_count"])
-    statuses = sorted(timing.glob("status_*.json"))
+    statuses = [timing / "status.json"] if workers == 1 else sorted(timing.glob("status_*.json"))
+    statuses = [p for p in statuses if p.is_file()]
     if len(statuses) != workers or any(json.loads(p.read_text()).get("status") != "COMPLETE" for p in statuses):
         problems.append(f"worker_status_incomplete:{len(statuses)}_of_{workers}")
 

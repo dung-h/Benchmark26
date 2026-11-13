@@ -5,7 +5,7 @@ The new timing results cover 3,443 observations and 203 logical-circuit groups u
 | Measurement | Start and end | Conditions |
 | --- | --- | --- |
 | Observed neural request latency | Resident logical circuit bytes → parsing → features → transformation → GPU prediction → host scalar | MLP/Graph variants, three serial sessions, three warmups and ten timed repetitions; three-seed median prediction |
-| Composite compiled-route processing cost | Matched parse/compile time + method-specific processing + Qonductor inference, when applicable | 695 unique CPU configurations measured with eight workers; inference measured separately in three serial sessions |
+| Composite compiled-route processing cost | Matched parse/compile time + method-specific processing + Qonductor inference, when applicable | 695 unique CPU configurations, each stage timed once, one after another by one worker on one CPU core; inference measured separately in three serial sessions |
 
 Compilation is counted once per input and method. Totals are computed for each observation before calculating summary statistics. Composite costs exclude model loading, disk access, backend preparation and inter-stage communication. They are not observed isolated end-to-end latency. The constant lookup bypasses circuit processing. NoTaDS produces a unitless score, while its processing cost is measured in time units.
 
@@ -28,21 +28,23 @@ This measurement times the Qiskit and QCRE duration estimators on the physical c
 - **Qiskit** is one call of `QuantumCircuit.estimate_duration`.
 - **QCRE** is the conversion of the measurement-stripped circuit to BQSKit plus the original `estimate_runtime`. Conversion and estimator are also timed separately. Building the measurement-stripped Qiskit circuit is not timed.
 - **Design.** One timing task per unique (circuit, backend snapshot) pair: 1,452 tasks for 3,443 observations. Each task has one warm-up call and three timed calls. The value of a task is the median of its three samples, and each observation takes the value of its task.
-- **Conditions.** Eight worker processes ran at the same time, each pinned to one CPU core. The numbers describe latency under that load. Do not compare them with single-worker measurements. The host was not otherwise idle: other checks ran on the remaining cores (the efficiency cores 16 to 27) while the measurement ran, which can add interference. The three samples of a task differ: the largest of the three is a median of 1.2 times the smallest for Qiskit (90th percentile 1.8; up to 73 times for the tiniest circuits) and 1.05 times for QCRE (90th percentile 1.3).
+- **Conditions.** One worker process, pinned to one CPU core, timed the tasks one after another. The host was not otherwise idle: other work ran on other cores during the measurement, which can add interference. The three samples of a task differ: the largest of the three is a median of 1.16 times the smallest for Qiskit (90th percentile 1.8; up to 34 times on a task whose fastest sample took about 0.03 ms) and 1.03 times for QCRE (90th percentile 1.17).
 - **Correctness.** Before timing, the estimators were run on every task and matched the accuracy-route values exactly (largest difference 0). The check covers the timing graph and the numeric output. For the 325 Ma–Li and QPack tasks the full circuit IR after parsing differs from the saved one, so identity of the complete circuit is not claimed. All 1,127 Qonductor tasks have an identical IR.
 
 Milliseconds. The mean weights every circuit group equally; the median weights every observation equally. The two differ because Ma–Li has 148 of the 203 groups but only 340 of the 3,443 observations.
 
 | Source | Groups | Qiskit mean | QCRE mean | Qiskit median | QCRE median |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Ma–Li | 148 | 819.6 | 28,866.6 | 839.4 | 30,113.7 |
-| Qonductor | 49 | 0.15 | 44.8 | 0.10 | 16.4 |
-| QPack | 6 | 0.11 | 18.7 | 0.10 | 12.5 |
-| All sources | 203 | 597.5 | 21,057.0 | 0.11 | 17.9 |
+| Ma–Li | 148 | 732.2 | 25,700.2 | 777.6 | 27,440.8 |
+| Qonductor | 49 | 0.11 | 40.1 | 0.07 | 14.9 |
+| QPack | 6 | 0.07 | 17.3 | 0.06 | 11.6 |
+| All sources | 203 | 533.9 | 18,747.3 | 0.07 | 16.4 |
 
 What the numbers show:
 
-- The cost is set by circuit size. The Ma–Li circuits are large (median about 246,000 operations, largest about 373,000), so Qiskit takes about 0.8 s and QCRE about 29 s on them. The Qonductor circuits are small (median 173 operations, largest 7,444), and Qiskit takes about 0.1 ms on them.
+- Larger circuits took longer. The Ma–Li circuits are large (median about 246,000 operations, largest about 373,000), and on them Qiskit takes about 0.7 s and QCRE about 26 s. The Qonductor circuits are small (median 173 operations, largest 7,444), and Qiskit takes about 0.1 ms on them.
+- For Qiskit, the time also depends on how the circuit object was built. The circuits timed here were read from the saved OpenQASM 3 files. A spot check on three Ma–Li circuits compared each with the same circuit straight from the compiler: the operations and the estimated value were the same, but the estimate took 494 to 960 ms on the circuit read from file and 22 to 50 ms on the compiled one. Writing the compiled circuit to OpenQASM 3 and reading it back made the estimate slow again. In these three circuits the only difference in gate types was the ECR gate, a generic gate after reading from file and Qiskit's built-in ECR gate after compiling. This points to how the circuit is represented, but the check does not prove the cause.
+- The compiled-route measurement runs the estimators on the freshly compiled circuit. On Ma–Li its Qiskit stage alone has a group-balanced mean of about 38 ms, against 732.2 ms here; its QCRE stage, about 26,143 ms, is close to the 25,700.2 ms here. The two measurements also differ in warm-up and in the number of samples. These stage values are not in the exported table, which holds totals.
 - About 92% of the pooled QCRE mean is the conversion to BQSKit. The estimator itself is the smaller part.
 - These numbers start from a parsed circuit. They are not comparable with the composite compiled-route table, which starts from the logical circuit and includes parsing and compilation.
 

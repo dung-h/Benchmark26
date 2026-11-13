@@ -4,6 +4,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## [Unreleased]
 
+### Changed
+- The CPU stages of the composite compiled-route costs were measured again with one worker on one CPU core, one task after another, instead of eight workers at once, and the costs in `results/prediction_latency/composite_summary.csv` were recomputed; Qonductor inference is unchanged (three serial sessions). The ready-input timing of the Qiskit and QCRE estimators (`results/ready_analytical_latency/`) was also measured again with one worker on one CPU core, one task after another; its protocol is unchanged (one warm-up and three timed calls per task). Pooled group-balanced means fell, for example QCRE from 23,332.8 to 19,569.2 ms (compiled route) and from 21,057.0 to 18,747.3 ms (ready input). `summarize_ready_analytical.py` accepts runs with one worker.
+
 ### Added
 - Exploratory results for neural models with compiled-circuit inputs, with scripts that recompute their summaries from anonymous per-group values: `docs/COMPILED_INPUT.md`.
 
