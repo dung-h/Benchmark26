@@ -56,7 +56,9 @@ The graph ablation retrains the MLP and Graph models inside its own run. Its num
 
 ### Timings depend on the measurement conditions
 
-The composite CPU stages were measured with eight concurrent workers. Do not compare them with single-worker timings, and do not add medians from different runs and call the result a median total.
+The composite CPU stages and the ready-input analytical timings were measured by one worker on one CPU core, one task after another. Do not compare them with timings taken while several workers ran at once, and do not add medians from different runs and call the result a median total.
+
+Qiskit's duration estimate can take about twenty times longer on a circuit read from OpenQASM 3 than on the same circuit straight from the compiler (see [Prediction latency](PREDICTION_LATENCY.md)). When you compare Qiskit timings, state how each circuit was built and take it into account.
 
 ### A confidence interval that contains zero is not evidence of equivalence
 
