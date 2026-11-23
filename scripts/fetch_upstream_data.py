@@ -68,7 +68,7 @@ def main():
                 raise RuntimeError("Existing file differs; refusing overwrite: " + str(target))
             status = "EXISTING_HASH_MATCH"
         else:
-            request = urllib.request.Request(a["url"], headers={"User-Agent": "QRE-private-review/1.0"})
+            request = urllib.request.Request(a["url"], headers={"User-Agent": "benchmark26-fetch/1.0"})
             with tempfile.TemporaryDirectory(prefix=".qre-fetch-", dir=target.parent) as tmp:
                 pending = Path(tmp) / "download"
                 with urllib.request.urlopen(request, timeout=90) as response, pending.open("xb") as out:

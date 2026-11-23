@@ -8,6 +8,21 @@ The runtimes of all 3,443 runs are published as one table, `runs.csv`, in the [b
 
 The same folder holds the study files needed to replay the study and retrain the models (51 MB), the weights of the 241 trained neural models (2.35 GB), the finished graph-ablation run (94 MB) and the compiled circuits needed to rebuild features (376 MB), as four zip files. Its `README.md` says how to unzip them and set the paths; [Reproduction](docs/REPRODUCTION.md) lists the commands. Without the bundle you can still recompute the published latency and graph-ablation statistics. With it you can replay the study checks.
 
+The held-out predictions of the main comparison are in `benchmark26-study-files.zip`. Under `artifacts/postfreeze_qpu_workflow_mean_expansion_v1/`, `training/` holds one `predictions.csv` per neural model, fold and seed, and `analysis_v1/reduced_predictions.csv` the predictions of the learned estimators and the training median for all three splits; `experiments/qpu/replay_statistics.py` recomputes their error metrics. The analytical estimates are in `artifacts/postfreeze_unified_analytical_completion_v1/predictions.csv`, and `experiments/analytical/validate_portable.py` recomputes their metrics.
+
+## Relation to the paper
+
+| Paper content | Source in this repository |
+| --- | --- |
+| Overall, per-source and per-backend errors; correlations | Held-out predictions in the study bundle (see above) |
+| Prediction time (table and accuracy–time figure) | `results/prediction_latency/`, `results/ready_analytical_latency/` |
+| Scholten-style estimate | `results/scholten/` |
+| Model family chosen by the Qonductor procedure | `results/qonductor_selection/` |
+| Graph model without edges | `results/graph_ablation/` |
+| Exploratory compiled-circuit inputs | `results/compiled_input/` |
+
+The repository also contains material that the paper does not report: bootstrap intervals for paired comparisons and latencies, and the NoTaDS and HyperQ duration estimators in `experiments/analytical/`.
+
 ## Check the published numbers
 
 ```bash
