@@ -1,0 +1,9 @@
+{
+  "description": "Neural models retrained on the whole outer-training partition: seed predictions, medians and error metrics.",
+  "script": "experiments/qpu/retrain_neural.py",
+  "cells": 180,
+  "files": {
+    "metrics.csv": "de2009daeaeedb4391166f56aceba270a6fdf1f18e111dc191026ba286434768",
+    "predictions.csv": "b241efba85c150bab0296216011ab25c4c7b00b63dcf8b9017d0cf82b46038ce"
+  }
+}

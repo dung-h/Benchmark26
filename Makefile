@@ -4,7 +4,7 @@ PYTHON ?= python3
 
 help:
 	@echo "make setup               install the package with test dependencies"
-	@echo "make check               syntax, protocol hash chain and included aggregate statistics (latency, ready-input timing, graph ablation)"
+	@echo "make check               syntax, protocol hash chain and included results (latency, ready-input timing, graph ablation, retrained neural predictions)"
 	@echo "make check-study-inputs  as 'check', and fail if the external study bundle is missing"
 	@echo "make test                unit tests"
 	@echo "make smoke               synthetic split-fit-evaluate-report example in work/smoke"
@@ -21,6 +21,7 @@ check:
 	$(PYTHON) experiments/compiled_input/verify_ready_prediction.py
 	$(PYTHON) experiments/scholten/verify_summary.py
 	$(PYTHON) experiments/qonductor_selection/verify_summary.py
+	$(PYTHON) experiments/qpu/verify_retrained.py
 
 check-study-inputs:
 	$(PYTHON) scripts/check_setup.py --require-study-inputs

@@ -97,12 +97,15 @@ python3 experiments/qpu/train_neural.py --stage preflight --require-ready
 | Dataset table | `python3 experiments/qpu/prepare_dataset.py` |
 | Splits | `python3 experiments/qpu/prepare_splits.py`, then `validate_splits.py` |
 | Neural models | `python3 experiments/qpu/train_neural.py --stage train --evaluation E1` (also E2, E3) |
+| Retraining on the whole training partition | `python3 experiments/qpu/retrain_neural.py --output /path/to/retrained` |
 | Regression selector | `python3 experiments/qpu/run_classical.py --stage train --evaluation E1` (also E2, E3) |
 | Completion check | `python3 experiments/qpu/validate_completed.py` |
 | Metrics and contrasts | `python3 experiments/qpu/aggregate_results.py` |
 | Analytical estimates | `experiments/analytical/extract_raw.py --full`, then `evaluate.py` |
 
 With `B26_RUN_DIR` set, fitting, completion check and aggregation read and write `training/`, `classical/`, `validation/` and `analysis_v1/` under that directory; inputs are still read from the bundle. Without it they address the saved study, where fitting is refused and validation checks the saved outputs. Neural training needs a CUDA GPU with at least 12 GiB and the Ma–Li Git checkout (`B26_MALI_SOURCE`), from which the pinned model source is loaded.
+
+The retraining reads the selected epochs from `training/` (of `B26_RUN_DIR` when it is set, otherwise of the bundle) and needs the same GPU and Ma–Li checkout; graph models are built without activation checkpointing. With this script, the E1 MLP-with-shots cell of fold 0 and seed 42 reproduced the published predictions exactly. `--collect predictions.csv` gathers all finished cells into one table.
 
 Shared modules can also be run directly, for example `python3 -m benchmark26.mali_inputs --help`.
 
