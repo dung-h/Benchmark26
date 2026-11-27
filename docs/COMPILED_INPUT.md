@@ -32,6 +32,8 @@ The table gives GB-MAE in seconds, with every group weighted equally (148 Ma–L
 
 `M1` and `G1` in this table are fitted on inner folds 1–3, like the compiled-input models. The paper reports them retrained on the whole training partition (`results/retrained_neural/`): 0.829 and 0.779 s in E1, 0.529 and 0.528 s in E2. Compiled-DAG Graph+MLP is therefore not below the retrained Graph+MLP + shots in E1.
 
+The paper also reports the compiled-feature MLP retrained on the whole training partition (`experiments/compiled_input/retrain_structural_mlp.py`, [`results/retrained_compiled_mlp/`](../results/retrained_compiled_mlp/)): 0.780495 s in E1 and 0.512049 s in E2. In E1 it is then level with the retrained Graph+MLP + shots. The two compiled-DAG models in the paper are the ones in this table.
+
 Three limits apply to this table:
 
 - The compiled-DAG + global model has the lowest GB-MAE, but its difference from the compiled-feature MLP has an interval containing zero in both settings. That leaves the value of the DAG branch unresolved; it does not show equivalence.

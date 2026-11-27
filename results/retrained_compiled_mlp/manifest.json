@@ -1,0 +1,9 @@
+{
+  "description": "Compiled-feature MLP retrained on the whole outer-training partition: seed predictions, medians and error metrics.",
+  "script": "experiments/compiled_input/retrain_structural_mlp.py",
+  "cells": 30,
+  "files": {
+    "metrics.csv": "70e9f33d43773e4aa9382d73c85befd4f3db5c61aec80f143476fefa8e142cf9",
+    "predictions.csv": "bc0feff994c57b9cb1cc4a0bee7fcc425cfd6747dcc2b53db04c2b5d526f836f"
+  }
+}

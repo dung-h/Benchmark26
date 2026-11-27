@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check results/retrained_neural/ and recompute its error metrics.
+"""Check results/retrained_neural/ and results/retrained_compiled_mlp/ and recompute their error metrics.
 
 Without runtimes this checks the file hashes, the row counts and that each prediction
 is the median of its three seed predictions. With the public dataset table it also
@@ -18,8 +18,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 RESULTS = ROOT / "results/retrained_neural"
+COMPILED = ROOT / "results/retrained_compiled_mlp"
 SEEDS = (42, 1234, 31415)
 EXPECTED = {"E1": ("M0", "M1", "G0", "G1"), "E2": ("M0", "M1", "G0", "G1"), "E3": ("M1", "G1")}
+SETS = [(RESULTS, EXPECTED, 34430), (COMPILED, {"E1": ("TM_structural",), "E2": ("TM_structural",)}, 6886)]
 
 
 def read(path: Path) -> list[dict[str, str]]:
@@ -32,10 +34,10 @@ def mean(values) -> float:
     return sum(values) / len(values)
 
 
-def metrics(predictions: list[dict[str, str]], runs: dict[str, dict[str, str]]) -> list[dict[str, str]]:
+def metrics(predictions: list[dict[str, str]], runs: dict[str, dict[str, str]], expected: dict) -> list[dict[str, str]]:
     """Return GB-MAE, MAE and R2 for each evaluation and treatment, over all runs and by source and backend."""
     table = []
-    for evaluation, treatments in EXPECTED.items():
+    for evaluation, treatments in expected.items():
         for treatment in treatments:
             cell = [r for r in predictions if r["evaluation"] == evaluation and r["treatment"] == treatment]
             scopes: dict[str, list] = {"all": []}
@@ -67,43 +69,49 @@ def metrics(predictions: list[dict[str, str]], runs: dict[str, dict[str, str]]) 
     return table
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    parser.add_argument("--runs", type=Path, help="runs.csv of the public dataset")
-    parser.add_argument("--write", action="store_true", help="write metrics.csv instead of comparing with it")
-    args = parser.parse_args()
+def check(folder: Path, expected_cells: dict, row_count: int, args) -> None:
+    """Check one result folder and recompute its metrics when the runtimes are given."""
     if not args.write:
-        manifest = json.loads((RESULTS / "manifest.json").read_text(encoding="utf-8"))
+        manifest = json.loads((folder / "manifest.json").read_text(encoding="utf-8"))
         for name, digest in manifest["files"].items():
-            if hashlib.sha256((RESULTS / name).read_bytes()).hexdigest() != digest:
+            if hashlib.sha256((folder / name).read_bytes()).hexdigest() != digest:
                 raise SystemExit(f"hash mismatch: {name}")
-    predictions = read(RESULTS / "predictions.csv")
+    predictions = read(folder / "predictions.csv")
     cells: dict[tuple[str, str], set[str]] = {}
     for row in predictions:
         cells.setdefault((row["evaluation"], row["treatment"]), set()).add(row["canonical_observation_id"])
         median = sorted(float(row[f"seed_{seed}"]) for seed in SEEDS)[1]
         if float(row["predicted_seconds"]) != median:
             raise SystemExit("a prediction is not the median of its seed predictions")
-    expected = {(e, t) for e, treatments in EXPECTED.items() for t in treatments}
-    if set(cells) != expected or any(len(ids) != 3443 for ids in cells.values()) or len(predictions) != 34430:
+    wanted = {(e, t) for e, treatments in expected_cells.items() for t in treatments}
+    if set(cells) != wanted or any(len(ids) != 3443 for ids in cells.values()) or len(predictions) != row_count:
         raise SystemExit("unexpected cells or row counts")
     if args.runs is None:
         if args.write:
             raise SystemExit("--write needs --runs")
-        print("retrained_neural: hashes, row counts and seed medians agree (give --runs to recompute metrics)")
-        return 0
+        print(f"{folder.name}: hashes, row counts and seed medians agree (give --runs to recompute metrics)")
+        return
     runs = {row["run_id"]: row for row in read(args.runs)}
-    computed = metrics(predictions, runs)
+    computed = metrics(predictions, runs, expected_cells)
     if args.write:
-        with (RESULTS / "metrics.csv").open("w", newline="", encoding="utf-8") as handle:
+        with (folder / "metrics.csv").open("w", newline="", encoding="utf-8") as handle:
             writer = csv.DictWriter(handle, fieldnames=list(computed[0]), lineterminator="\n")
             writer.writeheader()
             writer.writerows(computed)
-        return 0
-    saved = read(RESULTS / "metrics.csv")
+        return
+    saved = read(folder / "metrics.csv")
     if saved != computed:
         raise SystemExit("recomputed metrics differ from metrics.csv")
-    print(f"retrained_neural: {len(computed)} metric rows recomputed and equal")
+    print(f"{folder.name}: {len(computed)} metric rows recomputed and equal")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument("--runs", type=Path, help="runs.csv of the public dataset")
+    parser.add_argument("--write", action="store_true", help="write metrics.csv instead of comparing with it")
+    args = parser.parse_args()
+    for folder, expected_cells, row_count in SETS:
+        check(folder, expected_cells, row_count, args)
     return 0
 
 

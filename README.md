@@ -8,7 +8,7 @@ The runtimes of all 3,443 runs are published as one table, `runs.csv`, in the [b
 
 The same folder holds the study files needed to replay the study and retrain the models (51 MB), the weights of 241 trained neural models fitted on inner folds 1–3 (2.35 GB), the finished graph-ablation run (94 MB) and the compiled circuits needed to rebuild features (376 MB), as four zip files. Its `README.md` says how to unzip them and set the paths; [Reproduction](docs/REPRODUCTION.md) lists the commands. Without the bundle you can still recompute the published latency and graph-ablation statistics. With it you can replay the study checks.
 
-The neural errors in the paper come from models retrained on the whole outer-training partition (`experiments/qpu/retrain_neural.py`). Their seed predictions, medians and error metrics are in [`results/retrained_neural/`](results/retrained_neural/); `experiments/qpu/verify_retrained.py --runs runs.csv` recomputes the metrics.
+The neural errors in the paper come from models retrained on the whole outer-training partition (`experiments/qpu/retrain_neural.py`, and `experiments/compiled_input/retrain_structural_mlp.py` for the compiled-feature MLP). Their seed predictions, medians and error metrics are in [`results/retrained_neural/`](results/retrained_neural/) and [`results/retrained_compiled_mlp/`](results/retrained_compiled_mlp/); `experiments/qpu/verify_retrained.py --runs runs.csv` recomputes the metrics.
 
 The predictions of the Qonductor model and the training median are in `benchmark26-study-files.zip`, in `artifacts/postfreeze_qpu_workflow_mean_expansion_v1/analysis_v1/reduced_predictions.csv`. The `training/` folder next to it holds the neural models fitted on inner folds 1–3, which give the retraining its epoch counts; `experiments/qpu/replay_statistics.py` recomputes the error metrics of these study files. The analytical estimates are in `artifacts/postfreeze_unified_analytical_completion_v1/predictions.csv`, and `experiments/analytical/validate_portable.py` recomputes their metrics.
 
@@ -21,7 +21,7 @@ The predictions of the Qonductor model and the training median are in `benchmark
 | Scholten-style estimate | `results/scholten/` |
 | Model family chosen by the Qonductor procedure | `results/qonductor_selection/` |
 | Graph model without edges | `results/graph_ablation/` |
-| Exploratory compiled-circuit inputs | `results/compiled_input/` |
+| Exploratory compiled-circuit inputs | `results/compiled_input/`; compiled-feature MLP: `results/retrained_compiled_mlp/` |
 
 The repository also contains material that the paper does not report: bootstrap intervals for paired comparisons and latencies, and the NoTaDS and HyperQ duration estimators in `experiments/analytical/`.
 
