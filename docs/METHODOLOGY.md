@@ -35,7 +35,7 @@ A logical-circuit group collects circuits that differ only in gate angles, so th
 | E2 | Random observations, stratified by source; groups may repeat | 5 outer × 4 inner |
 | E3 | Backend contexts; structures may appear on other backends | 10 outer cases |
 
-Feature transformations are fitted on training partitions only. Neural models select their epoch on the inner validation fold and are then trained anew on the whole outer-training partition for that number of epochs (`experiments/qpu/retrain_neural.py`); the graph-ablation and compiled-input studies keep the selected model fitted on inner folds 1–3. The Qonductor-style regression selector chooses one model family and candidate per outer fold on inner validation, then refits it on the outer training data; it does not choose per test row.
+Feature transformations are fitted on training partitions only. Neural models select their epoch on the inner validation fold and are then trained anew on the whole outer-training partition for that number of epochs (`experiments/qpu/retrain_neural.py`); the compiled-feature MLP and the graph ablation are retrained the same way (`experiments/compiled_input/retrain_structural_mlp.py`, `experiments/qpu/retrain_graph_ablation.py`); the two compiled-graph models keep the selected model fitted on inner folds 1–3. The Qonductor-style regression selector chooses one model family and candidate per outer fold on inner validation, then refits it on the outer training data; it does not choose per test row.
 
 ## Metrics
 

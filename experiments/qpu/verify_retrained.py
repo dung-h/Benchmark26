@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check results/retrained_neural/ and results/retrained_compiled_mlp/ and recompute their error metrics.
+"""Check the retrained predictions in results/retrained_*/ and recompute their error metrics.
 
 Without runtimes this checks the file hashes, the row counts and that each prediction
 is the median of its three seed predictions. With the public dataset table it also
@@ -19,9 +19,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 RESULTS = ROOT / "results/retrained_neural"
 COMPILED = ROOT / "results/retrained_compiled_mlp"
+ABLATION = ROOT / "results/retrained_graph_ablation"
 SEEDS = (42, 1234, 31415)
 EXPECTED = {"E1": ("M0", "M1", "G0", "G1"), "E2": ("M0", "M1", "G0", "G1"), "E3": ("M1", "G1")}
-SETS = [(RESULTS, EXPECTED, 34430), (COMPILED, {"E1": ("TM_structural",), "E2": ("TM_structural",)}, 6886)]
+SETS = [
+    (RESULTS, EXPECTED, 34430),
+    (COMPILED, {"E1": ("TM_structural",), "E2": ("TM_structural",)}, 6886),
+    (ABLATION, {"E1": ("M1", "G1", "G1e"), "E2": ("M1", "G1", "G1e")}, 20658),
+]
 
 
 def read(path: Path) -> list[dict[str, str]]:

@@ -98,6 +98,8 @@ python3 experiments/qpu/train_neural.py --stage preflight --require-ready
 | Splits | `python3 experiments/qpu/prepare_splits.py`, then `validate_splits.py` |
 | Neural models | `python3 experiments/qpu/train_neural.py --stage train --evaluation E1` (also E2, E3) |
 | Retraining on the whole training partition | `python3 experiments/qpu/retrain_neural.py --output /path/to/retrained` |
+| Compiled-feature MLP on the whole partition | `python3 experiments/compiled_input/retrain_structural_mlp.py --output /path/to/out` |
+| Graph ablation on the whole partition | `python3 experiments/qpu/retrain_graph_ablation.py --output /path/to/out` |
 | Regression selector | `python3 experiments/qpu/run_classical.py --stage train --evaluation E1` (also E2, E3) |
 | Completion check | `python3 experiments/qpu/validate_completed.py` |
 | Metrics and contrasts | `python3 experiments/qpu/aggregate_results.py` |

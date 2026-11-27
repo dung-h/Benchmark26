@@ -30,7 +30,7 @@ Two properties of the controls matter when you read the results:
 - **Graph without edges still sees operation order.** Each node carries its position in the circuit as a feature, so removing edges does not hide the order of operations.
 - **Graph without edges does not have the same effective capacity.** It has the same 842,057 parameters as the Graph model. Without edges, however, the attention weights in each layer take no part in the computation, and a check on one training batch showed zero gradient for them. The model then behaves like one network applied to each operation separately, followed by averaging.
 
-All four models are trained from scratch in the same way. They use Adam, a batch of 32, and at most 500 epochs, and they keep the checkpoint with the lowest validation error. `PROTOCOL.md` has the details. The MLP and Graph models are retrained for this experiment, so every comparison happens inside one run. Do not compare these numbers with the tables in the paper.
+All four models are trained from scratch in the same way. They use Adam, a batch of 32, and at most 500 epochs, and they keep the checkpoint with the lowest validation error. `PROTOCOL.md` has the details. The MLP and Graph models are retrained for this experiment, so every comparison happens inside one run. Do not compare these numbers with the tables in the paper. The paper reports the graph model with and without edges retrained on the whole training partition; those numbers are in [the section below](#retrained-on-the-whole-training-partition).
 
 ### How the results are measured
 
@@ -68,6 +68,17 @@ What the table shows:
 4. **Shuffled nodes (E2).** Shuffling the node features raises the error, mostly on the Qonductor-source groups (1.0736 s, against 0.5565 s for the Graph model). This experiment does not test why.
 
 Per-source values are in `results/graph_ablation/summary.json`. QPack has only 6 groups, so its values are descriptive.
+
+### Retrained on the whole training partition
+
+The paper's comparison of the graph model with and without edges uses these models. Each network is trained again on all four inner folds for the number of epochs found above (`experiments/qpu/retrain_graph_ablation.py`). Predictions and metrics are in [`results/retrained_graph_ablation/`](../results/retrained_graph_ablation/). The group intervals above belong to the first set of models and were not recomputed for these.
+
+| Setting | MLP | Graph | Graph without edges |
+| --- | ---: | ---: | ---: |
+| E1 (unseen groups) | 0.8647 | 0.8453 | 0.8090 |
+| E2 (shared groups) | 0.5746 | 0.5527 | 0.4898 |
+
+Graph models do not train identically twice on a GPU, so rerunning a graph cell gives predictions that differ from the published ones by about 0.1 s in the median.
 
 ### Limits
 

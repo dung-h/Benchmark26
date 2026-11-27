@@ -1,0 +1,9 @@
+{
+  "description": "Graph-ablation models retrained on the whole outer-training partition: seed predictions, medians and error metrics.",
+  "script": "experiments/qpu/retrain_graph_ablation.py",
+  "cells": 90,
+  "files": {
+    "metrics.csv": "c72bbf62715356134eb5cc3905772e6b0c73deea0d2f28f55d50c8ef696ffb29",
+    "predictions.csv": "96f85982178e031fc573d9f855b865ddeeb15c66d5a6aa6dca5cd628e0b2a885"
+  }
+}
